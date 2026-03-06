@@ -17,11 +17,28 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
-    Azimuth,
+    alakazam,
     dplyr,
+    forcats,
     ggplot2,
+    grDevices,
+    hues,
+    magrittr,
+    Matrix,
+    pals,
+    patchwork,
+    purrr,
+    qs2,
+    readr,
+    recipes,
     rlang,
+    scales,
     Seurat,
+    splatter,
+    stats,
     stringr,
-    tidyr
+    tibble,
+    tidyr,
+    tidyselect,
+    utils
 VignetteBuilder: knitr
