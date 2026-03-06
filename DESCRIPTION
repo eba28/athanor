@@ -1,11 +1,27 @@
 Package: athanor
-Title: What the Package Does (One Line, Title Case)
+Title: Integration of Single-Cell Gene Expression and B Cell Receptor Data
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    person("Edel", "Aron",  email = "edel.aron@yale.edu",
+    role = c("aut", "cre"), comment = c(ORCID = "0000-0002-8683-4772"))
+Description: Integrates paired single-cell transcriptomics and B cell receptor sequencing data for improved B cell subtyping.
+URL: https://github.com/eba28/athanor
+BugReports: https://github.com/eba28/athanor/issues
+License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Imports: 
+    Azimuth,
+    dplyr,
+    ggplot2,
+    rlang,
+    Seurat,
+    stringr,
+    tidyr
+VignetteBuilder: knitr
