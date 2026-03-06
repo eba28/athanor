@@ -16,6 +16,8 @@ plot_counts_cluster(
 )
 }
 \arguments{
+\item{seurat_obj}{The Seurat object containing the clusters and/or cell type annotations to plot.}
+
 \item{tissue_type}{The tissue type of interest e.g. "Blood" or "Skin".}
 
 \item{clrs_specific}{The specific color palette (should be named).}
@@ -29,12 +31,6 @@ plot_counts_cluster(
 \item{x_axis}{What to plot on the x axis: "Cluster" or "Cell Type".}
 
 \item{details}{The optional subtitle.}
-
-\item{clusters}{A factor or character vector of cluster identities, e.g. seurat_clusters or annotated_subclusters.}
-
-\item{x_axis_label}{The label for the x axis.}
-
-\item{add_zeroes}{A character/numeric vector of cluster identities to add with zero counts.}
 }
 \value{
 A ggplot bar plot of cell counts.

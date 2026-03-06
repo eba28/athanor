@@ -40,8 +40,6 @@ calc_neighbor_matches(
 \item{previous_matches}{Data frame of previous matches to combine with the new results (optional).}
 
 \item{path_save}{Where to save the results.}
-
-\item{obj_type}{Character string identifying the object type.}
 }
 \value{
 Data frame with these columns: Full_Name, Category, Category_Details, Assay, Meta_Col, Method, Matches

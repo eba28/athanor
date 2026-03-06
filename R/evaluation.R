@@ -234,7 +234,6 @@ calc_int_metrics <- function(seurat_obj, reduction_name,
 #' @param criteria One of: ARI, Completeness, Homogeneity
 #' @param labels_true The name of the column in the metadata that contains the true cluster labels to evaluate.
 #' @param labels_pred The name of the column in the metadata that contains the predicted cluster labels to evaluate.
-#' @param labels_name A more descriptive name for the labels to use in plotting (optional).
 #'
 #' @returns A data.frame with a row per metric containing the combined score.
 calc_ext_metrics <- function(seurat_obj, reduction_name,
@@ -345,7 +344,7 @@ plot_metrics <- function(metrics, plot_title = "", best_score = "higher",
 #' @param meta_res Named list of cluster columns for each reduction.
 #' @param metric_type One of: Internal, External
 #' @param metrics List of metric names.
-#' @param adt_feats ADT feature name (e.g. "CD27.1"). You can provide multiple.
+#' @param adt_features ADT feature name (e.g. "CD27.1"). You can provide multiple.
 #' @param adt_cutoff Numeric cutoff for binary classification.
 #'
 #' @return Data frame of scores for each embedding/reduction.
@@ -355,6 +354,7 @@ calc_adt_scores <- function(seurat_objs, meta_res, metric_type, metrics,
 
   for (adt_feat in adt_features) {
     # embedding-dependent (BCR and WNN only)
+    # TODO: replace with map or map2
     scores_feat <- map_dfr(names(seurat_objs), function(embedding_type) {
       meta_res_type <- meta_res[[embedding_type]]
       obj <- seurat_objs[[embedding_type]]
@@ -369,6 +369,7 @@ calc_adt_scores <- function(seurat_objs, meta_res, metric_type, metrics,
              list(reduction = "wnn.umap",
                   labels_pred = meta_res_type[["wnn.umap"]]))
 
+      # TODO: replace with map or map2
       if (metric_type == "Internal") {
         map_dfr(reduction_combinations, function(combo) {
           calc_int_metrics(seurat_obj = obj, reduction_name = combo$reduction,
@@ -430,7 +431,7 @@ calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
   adt_data <- GetAssayData(seurat_obj, assay = adt_assay, layer = layer)
 
   # make sure that the requested features are available, then get the ADT data
-  if (!missing(feature)) {
+  if (!is_missing(feature)) {
     features_keep <- intersect(feature, rownames(adt_data))
 
     if (length(features_keep) == 0) {
@@ -516,7 +517,7 @@ calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
 #' @param exclude_self Drop the cell itself from neighbors if present.
 calc_adt_dists_fast <- function(adt_data, features, neighbors,
                                 exclude_self = TRUE) {
-  if (!missing(features)) {
+  if (!is_missing(features)) {
     keep <- intersect(features, rownames(adt_data))
     adt_data <- adt_data[keep, , drop = FALSE]
   }
@@ -560,19 +561,19 @@ calc_adt_dists_fast <- function(adt_data, features, neighbors,
 #'
 #' @param seurat_obj A Seurat object containing ADT data and computed neighbor
 #'   graphs.
-#' @param adt_assay Character. Name of the assay containing ADT data. Default
-#'   is "ADT".
+#' @param adt_assay Character. Name of the assay containing ADT data.
 #' @param feature Character. Name of the ADT feature to evaluate (e.g., "CD27.1",
 #'   "CD38.1").
 #' @param base_assay Character. The assay used to compute neighbors. One of
-#'   "RNA", "GEX", "BCR", or "WNN". Default is "RNA".
+#'   "RNA", "GEX", "BCR", or "WNN".
 #' @param k Numeric. Number of nearest neighbors to evaluate. Must match the k
-#'   used when computing the neighbor graph. Default is 20.
+#'   used when computing the neighbor graph.
+#' @param use_k Logical. Whether to look for a neighbor slot specific to the provided k (e.g., "RNA.nn_20") or just use the generic one (e.g., "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.
 #' @param range Numeric. The relative threshold for considering neighbors
 #'   similar. A value of 0.20 means neighbors within ±20% of the cell's
-#'   expression are counted. Default is 0.20.
+#'   expression are counted.
 #' @param return_counts Logical. If TRUE, returns the count of neighbors within
-#'   range. If FALSE, returns the proportion (count/k). Default is FALSE.
+#'   range. If FALSE, returns the proportion (count/k).
 #'
 #' @return A named numeric vector with one value per cell in the Seurat object.
 #'   If \code{return_counts = TRUE}, returns the count of neighbors within
@@ -628,7 +629,6 @@ calc_adt_nn_within_range <- function(seurat_obj, adt_assay = "ADT", feature,
 #' `cell_id`s are saved for subsetting later if desired.
 #'
 #' @param seurat_obj The Seurat object, with details added to the Misc() slot.
-#' @param obj_type Character string identifying the object type.
 #' @param nn_name Name of the nearest neighbor graph slot.
 #' @param meta_cols Character vector of metadata columns to evaluate.
 #' @param adt_features Character vector of ADT feature names to evaluate.

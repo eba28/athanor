@@ -9,7 +9,7 @@ bin_mu_freq(seurat_obj, num_bins = c(2, 3, 5))
 \arguments{
 \item{seurat_obj}{The Seurat object.}
 
-\item{bins}{The number of bins to split \code{mu_freq} into. Must be at least one of 2, 3, or 5.}
+\item{num_bins}{The number of bins to split \code{mu_freq} into. Must be at least one of 2, 3, or 5.}
 }
 \value{
 The provided Seurat object with a new binned mu_freq column.

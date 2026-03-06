@@ -22,9 +22,9 @@ calc_adt_scores(
 
 \item{metrics}{List of metric names.}
 
-\item{adt_cutoff}{Numeric cutoff for binary classification.}
+\item{adt_features}{ADT feature name (e.g. "CD27.1"). You can provide multiple.}
 
-\item{adt_feats}{ADT feature name (e.g. "CD27.1"). You can provide multiple.}
+\item{adt_cutoff}{Numeric cutoff for binary classification.}
 }
 \value{
 Data frame of scores for each embedding/reduction.

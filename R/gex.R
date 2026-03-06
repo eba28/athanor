@@ -18,153 +18,151 @@
 #'
 #' @returns A processed Seurat object with normalization, scaling, PCA, clustering, and UMAP.
 seurat_pipeline <- function(seurat_obj, nfeatures_RNA = 200, perc_mt = 15,
-                           num_features = 2000, num_pcs = 30, num_dims = 20,
-                           cluster_res = 0.4, filter_genes = TRUE,
-                           verbose = TRUE) {
- # filtration
- if ("percent.mt" %in% names(seurat_obj[[]])) {
-   seurat_obj <-
-     subset(seurat_obj,
-            subset = nFeature_RNA > nfeatures_RNA & percent.mt < perc_mt)
- } else {
-   warning("No filtration was performed upon this object.")
- }
-
- # standard normalization
- seurat_obj <- NormalizeData(seurat_obj,
-                             normalization.method = "LogNormalize",
-                             scale.factor = 10000, verbose = verbose)
- if ("ADT" %in% names(seurat_obj@assays)) {
-   # normalize across the cells, not the features
-   seurat_obj <- NormalizeData(seurat_obj,
-                               normalization.method = "CLR", margin = 2,
-                               assay = "ADT", verbose = verbose)
- }
-
- # highly variable features
- seurat_obj <- FindVariableFeatures(seurat_obj, selection.method = "vst",
-                                    nfeatures = num_features,
-                                    verbose = verbose)
-
- # scaling
- # note: `features = rownames(seurat_obj)` can cause crashes
- seurat_obj <- ScaleData(seurat_obj, verbose = verbose)
-
- # filter out the IG and TR genes
- if (filter_genes) {
-   remove_feats <- VariableFeatures(seurat_obj) %in% remove_genes
-   VariableFeatures(seurat_obj) <- VariableFeatures(seurat_obj)[!remove_feats]
-
-   cat("After removing IG/TR genes, the total number of variable features is:",
-       length(VariableFeatures(seurat_obj)), "\n")
- }
-
- # save the Ensembl version (be careful since it's an environmental var)
- Misc(seurat_obj, slot = "ensembl_version") <- ensembl_version
-
- # dimensionality reduction
- seurat_obj <- RunPCA(seurat_obj, npcs = num_pcs, verbose = verbose)
-
- # neighbor detection
- seurat_obj <- FindNeighbors(seurat_obj, reduction = "pca", dims = 1:num_dims,
-                             verbose = verbose)
-
- # might not always want to perform clustering, so make it optional
- if (!rlang::is_missing(cluster_res)) {
-   seurat_obj <- FindClusters(seurat_obj, resolution = cluster_res,
-                              verbose = verbose)
-
-   # fix the cluster levels (for some reason they sort alphabetically now)
-   for (res in cluster_res) {
-     res <- paste0("RNA_snn_res.", res)
-     seurat_obj[[res]] <-
-       factor(seurat_obj[[]][[res]],
-              str_sort(unique(seurat_obj[[]][[res]]), numeric = TRUE))
+                            num_features = 2000, num_pcs = 30, num_dims = 20,
+                            cluster_res = 0.4, filter_genes = TRUE,
+                            verbose = TRUE) {
+   # filtration
+   if ("percent.mt" %in% names(seurat_obj[[]])) {
+      seurat_obj <-
+         subset(seurat_obj,
+                subset = nFeature_RNA > nfeatures_RNA & percent.mt < perc_mt)
+   } else {
+      warning("No filtration was performed upon this object.")
    }
- }
 
- # for visualization
- seurat_obj <- RunUMAP(seurat_obj, reduction = "pca", dims = 1:num_dims,
-                       verbose = verbose)
+   # standard normalization
+   seurat_obj <- NormalizeData(seurat_obj,
+                               normalization.method = "LogNormalize",
+                               scale.factor = 10000, verbose = verbose)
+   if ("ADT" %in% names(seurat_obj@assays)) {
+      # normalize across the cells, not the features
+      seurat_obj <- NormalizeData(seurat_obj,
+                                  normalization.method = "CLR", margin = 2,
+                                  assay = "ADT", verbose = verbose)
+   }
 
- return(seurat_obj)
+   # highly variable features
+   seurat_obj <- FindVariableFeatures(seurat_obj, selection.method = "vst",
+                                      nfeatures = num_features,
+                                      verbose = verbose)
+
+   # scaling
+   # note: `features = rownames(seurat_obj)` can cause crashes
+   seurat_obj <- ScaleData(seurat_obj, verbose = verbose)
+
+   # filter out the IG and TR genes
+   if (filter_genes) {
+      remove_feats <- VariableFeatures(seurat_obj) %in% remove_genes
+      VariableFeatures(seurat_obj) <- VariableFeatures(seurat_obj)[!remove_feats]
+
+      cat("After removing IG/TR genes, the total number of variable features is:",
+          length(VariableFeatures(seurat_obj)), "\n")
+   }
+
+   # save the Ensembl version (be careful since it's an environmental var)
+   Misc(seurat_obj, slot = "ensembl_version") <- ensembl_version
+
+   # dimensionality reduction
+   seurat_obj <- RunPCA(seurat_obj, npcs = num_pcs, verbose = verbose)
+
+   # neighbor detection
+   seurat_obj <- FindNeighbors(seurat_obj, reduction = "pca", dims = 1:num_dims,
+                               verbose = verbose)
+
+   # might not always want to perform clustering, so make it optional
+   if (!rlang::is_missing(cluster_res)) {
+      seurat_obj <- FindClusters(seurat_obj, resolution = cluster_res,
+                                 verbose = verbose)
+
+      # fix the cluster levels (for some reason they sort alphabetically now)
+      for (res in cluster_res) {
+         res <- paste0("RNA_snn_res.", res)
+         seurat_obj[[res]] <-
+            factor(seurat_obj[[]][[res]],
+                   str_sort(unique(seurat_obj[[]][[res]]), numeric = TRUE))
+      }
+   }
+
+   # for visualization
+   seurat_obj <- RunUMAP(seurat_obj, reduction = "pca", dims = 1:num_dims,
+                         verbose = verbose)
+
+   return(seurat_obj)
 }
 
 
 #' Visualize how many cells are in each Seurat cluster or cell type.
 #'
-#' @param clusters A factor or character vector of cluster identities, e.g. seurat_clusters or annotated_subclusters.
+#' @param seurat_obj The Seurat object containing the clusters and/or cell type annotations to plot.
 #' @param tissue_type The tissue type of interest e.g. "Blood" or "Skin".
 #' @param clrs_specific The specific color palette (should be named).
 #' @param clusters_col The column to plot on the x axis (e.g. seurat_clusters).
 #' @param fill_col The column to fill by (e.g. annotated_clusters).
 #' @param fill_col_name The label for the fill aesthetic.
 #' @param x_axis What to plot on the x axis: "Cluster" or "Cell Type".
-#' @param x_axis_label The label for the x axis.
-#' @param add_zeroes A character/numeric vector of cluster identities to add with zero counts.
 #' @param details The optional subtitle.
 #'
 #' @returns A ggplot bar plot of cell counts.
 plot_counts_cluster <- function(seurat_obj, tissue_type = "", clrs_specific,
-                               clusters_col, fill_col, fill_col_name,
-                               x_axis = "Cluster", # add_zeroes = FALSE,
-                               details = NULL) {
- # if you want to use the default Seurat colors
- if (rlang::is_missing(clrs_specific)) {
-   clrs_specific <- hue_pal()(n_distinct(seurat_obj[[clusters_col]]))
- }
+                                clusters_col, fill_col, fill_col_name,
+                                x_axis = "Cluster", # add_zeroes = FALSE,
+                                details = NULL) {
+   # if you want to use the default Seurat colors
+   if (rlang::is_missing(clrs_specific)) {
+      clrs_specific <- hue_pal()(n_distinct(seurat_obj[[clusters_col]]))
+   }
 
- if (rlang::is_missing(fill_col)) {
-   fill_col <- NULL
-   fill_by <- clusters_col
-   fill_col_name <- clusters_col
+   if (rlang::is_missing(fill_col)) {
+      fill_col <- NULL
+      fill_by <- clusters_col
+      fill_col_name <- clusters_col
 
-   plot_title <- paste(tissue_type, x_axis)
- } else {
-   fill_by <- fill_col
+      plot_title <- paste(tissue_type, x_axis)
+   } else {
+      fill_by <- fill_col
 
-   # they shouldn't both be missing
-   if (rlang::is_missing(fill_col_name)) fill_col_name <- fill_col
+      # they shouldn't both be missing
+      if (rlang::is_missing(fill_col_name)) fill_col_name <- fill_col
 
-   plot_title <- paste(tissue_type, fill_col_name, # paste0(fill_col_name, "s"),
-                       "per", x_axis)
- }
+      plot_title <- paste(tissue_type, fill_col_name, # paste0(fill_col_name, "s"),
+                          "per", x_axis)
+   }
 
- data <- data.frame(table(seurat_obj[[c(clusters_col, fill_col)]])) %>%
-   rename(Count = Freq) %>%
-   filter(Count != 0) # we don't want the zeroes
+   data <- data.frame(table(seurat_obj[[c(clusters_col, fill_col)]])) %>%
+      rename(Count = Freq) %>%
+      filter(Count != 0) # we don't want the zeroes
 
- # if (add_zeroes) {
- #   data <- bind_rows(data, data.frame(clusters = add_zeroes,
- #                                      Count = rep(0, length(add_zeroes)))) %>%
- #             arrange(clusters)
- # }
+   # if (add_zeroes) {
+   #   data <- bind_rows(data, data.frame(clusters = add_zeroes,
+   #                                      Count = rep(0, length(add_zeroes)))) %>%
+   #             arrange(clusters)
+   # }
 
- p <- ggplot(data,
-             aes(x = !!sym(clusters_col), y = Count, fill = !!sym(fill_by))) +
-   geom_col(color = "black", linewidth = 0.2) +
-   labs(title = plot_title, subtitle = details, x = x_axis,
-        fill = fill_col_name) +
-   scale_fill_manual(values = clrs_specific) +
-   theme_bw + labels_standard +
-   guides(fill = guide_legend(ncol = 1)) # one column legend
+   p <- ggplot(data,
+               aes(x = !!sym(clusters_col), y = Count, fill = !!sym(fill_by))) +
+      geom_col(color = "black", linewidth = 0.2) +
+      labs(title = plot_title, subtitle = details, x = x_axis,
+           fill = fill_col_name) +
+      scale_fill_manual(values = clrs_specific) +
+      theme_bw + labels_standard +
+      guides(fill = guide_legend(ncol = 1)) # one column legend
 
- # doesn't work with multiple fills
- # could just plot the sum on top
- if (is.null(fill_col)) {
-   p <- p +
-     geom_text(aes(label = Count), vjust = -1, size = 3) +
-     theme(legend.position = "none")
- } else {
-   p <- p +
-     geom_text(aes(label = after_stat(y), group = clusters_col),
-               stat = "summary", fun = sum, vjust = -1)
- }
+   # doesn't work with multiple fills
+   # could just plot the sum on top
+   if (is.null(fill_col)) {
+      p <- p +
+         geom_text(aes(label = Count), vjust = -1, size = 3) +
+         theme(legend.position = "none")
+   } else {
+      p <- p +
+         geom_text(aes(label = after_stat(y), group = clusters_col),
+                   stat = "summary", fun = sum, vjust = -1)
+   }
 
- if (x_axis == "Cell Type") p <- p + labels_rotate_x
+   if (x_axis == "Cell Type") p <- p + labels_rotate_x
 
- # return the plot
- return(p)
+   # return the plot
+   return(p)
 }
 
 
@@ -184,33 +182,33 @@ plot_counts_cluster <- function(seurat_obj, tissue_type = "", clrs_specific,
 #'
 #' @returns A character vector of unique gene features/markers.
 get_features_from_all <- function(markers_df, sources, contains, tissue_types,
-                                 cell_types, alphabetize_types = TRUE,
-                                 alphabetize_all = TRUE) {
- # make specific selections if needed
- if (!rlang::is_missing(sources)) {
-   markers_df <- filter(markers_df, Source %in% sources)
- }
- if (rlang::is_missing(cell_types)) {
-   cell_types <- unique(markers_df$Cell_Type)
- }
- if (!rlang::is_missing(contains)) {
-   cell_types <- grep(paste(contains, collapse = "|"),
-                      cell_types, value = TRUE)
- }
- if (!rlang::is_missing(tissue_types)) {
-   markers_df <- filter(markers_df, Tissue_Type %in% tissue_types)
- }
+                                  cell_types, alphabetize_types = TRUE,
+                                  alphabetize_all = TRUE) {
+   # make specific selections if needed
+   if (!rlang::is_missing(sources)) {
+      markers_df <- filter(markers_df, Source %in% sources)
+   }
+   if (rlang::is_missing(cell_types)) {
+      cell_types <- unique(markers_df$Cell_Type)
+   }
+   if (!rlang::is_missing(contains)) {
+      cell_types <- grep(paste(contains, collapse = "|"),
+                         cell_types, value = TRUE)
+   }
+   if (!rlang::is_missing(tissue_types)) {
+      markers_df <- filter(markers_df, Tissue_Type %in% tissue_types)
+   }
 
- features <- c()
- for (cell_type in cell_types) {
-   markers <- (filter(markers_df, Cell_Type == cell_type))$Marker
-   if (alphabetize_types) markers <- sort(markers)
-   features <- append(features, markers)
- }
+   features <- c()
+   for (cell_type in cell_types) {
+      markers <- (filter(markers_df, Cell_Type == cell_type))$Marker
+      if (alphabetize_types) markers <- sort(markers)
+      features <- append(features, markers)
+   }
 
- if (alphabetize_all) features <- str_sort(features, numeric = TRUE)
+   if (alphabetize_all) features <- str_sort(features, numeric = TRUE)
 
- return(unique(features)) # DotPlot doesn't work with duplicated features
+   return(unique(features)) # DotPlot doesn't work with duplicated features
 }
 
 
@@ -220,10 +218,10 @@ get_features_from_all <- function(markers_df, sources, contains, tissue_types,
 #'
 #' @returns A data.frame with Cell_Type_Full and features.plot columns
 get_cell_types <- function(markers_df) {
- markers_df %>%
-   select(Cell_Type_Full, Marker) %>%
-   rename(features.plot = Marker) %>%
-   mutate(Cell_Type_Full = str_replace_all(Cell_Type_Full, "_", " "))
+   markers_df %>%
+      select(Cell_Type_Full, Marker) %>%
+      rename(features.plot = Marker) %>%
+      mutate(Cell_Type_Full = str_replace_all(Cell_Type_Full, "_", " "))
 }
 
 
@@ -234,10 +232,10 @@ get_cell_types <- function(markers_df) {
 #'
 #' @returns A string with sources comma-separated and in parentheses
 gen_dot_title <- function(plot_title = "", marker_sources) {
- paste0(plot_title, " (",
-        str_c(sort(str_replace_all(marker_sources, "_", " ")),
-              collapse = ", "),
-        ")")
+   paste0(plot_title, " (",
+          str_c(sort(str_replace_all(marker_sources, "_", " ")),
+                collapse = ", "),
+          ")")
 }
 
 
@@ -252,11 +250,11 @@ gen_dot_title <- function(plot_title = "", marker_sources) {
 #'
 #' @returns A formatted table showing markers grouped by cell type.
 source_markers <- function(filtered_markers_df) {
- filtered_markers_df %>%
-   select(Cell_Type, Marker) %>%
-   group_by(Cell_Type) %>%
-   distinct() %>%
-   summarize(Markers = paste(Marker, collapse = ", "))
+   filtered_markers_df %>%
+      select(Cell_Type, Marker) %>%
+      group_by(Cell_Type) %>%
+      distinct() %>%
+      summarize(Markers = paste(Marker, collapse = ", "))
 }
 
 
@@ -280,38 +278,38 @@ source_markers <- function(filtered_markers_df) {
 #'
 #' @returns A Seurat object with added annotation information.
 add_annotations <- function(seurat_obj, annotations_df,
-                           cell_types_col = "CellType",
-                           relabel = TRUE, relocate = TRUE, alphabetize = TRUE,
-                           clusters_col = "seurat_clusters",
-                           annotations_col = "annotated_clusters") {
- # prepare the annotation information
- annotations <- annotations_df[[cell_types_col]] # you only need the cell type information
- names(annotations) <- levels(seurat_obj[[clusters_col]] %>% pull())
+                            cell_types_col = "CellType",
+                            relabel = TRUE, relocate = TRUE, alphabetize = TRUE,
+                            clusters_col = "seurat_clusters",
+                            annotations_col = "annotated_clusters") {
+   # prepare the annotation information
+   annotations <- annotations_df[[cell_types_col]] # you only need the cell type information
+   names(annotations) <- levels(seurat_obj[[clusters_col]] %>% pull())
 
- # relabel the Seurat clusters
- current_idents <- Idents(seurat_obj)
- Idents(seurat_obj) <- clusters_col # reset to original clusters
- seurat_obj <- RenameIdents(seurat_obj, annotations)
+   # relabel the Seurat clusters
+   current_idents <- Idents(seurat_obj)
+   Idents(seurat_obj) <- clusters_col # reset to original clusters
+   seurat_obj <- RenameIdents(seurat_obj, annotations)
 
- # alphabetize the cell types
- if (alphabetize) {
-   Idents(seurat_obj) <- factor(Idents(seurat_obj),
-                                levels = sort(levels(seurat_obj)))
- }
+   # alphabetize the cell types
+   if (alphabetize) {
+      Idents(seurat_obj) <- factor(Idents(seurat_obj),
+                                   levels = sort(levels(seurat_obj)))
+   }
 
- # useful metadata (e.g. if you want to have multiple annotation sets)
- seurat_obj[[annotations_col]] <- Idents(seurat_obj)
+   # useful metadata (e.g. if you want to have multiple annotation sets)
+   seurat_obj[[annotations_col]] <- Idents(seurat_obj)
 
- if (relocate) {
-   seurat_obj@meta.data <-
-     seurat_obj[[]] %>%
-     relocate(!!sym(annotations_col), .after = !!sym(clusters_col))
- }
+   if (relocate) {
+      seurat_obj@meta.data <-
+         seurat_obj[[]] %>%
+         relocate(!!sym(annotations_col), .after = !!sym(clusters_col))
+   }
 
- # if you just wanted to add the metadata
- if (!relabel) Idents(seurat_obj) <- current_idents
+   # if you just wanted to add the metadata
+   if (!relabel) Idents(seurat_obj) <- current_idents
 
- return(seurat_obj)
+   return(seurat_obj)
 }
 
 
@@ -331,74 +329,74 @@ add_annotations <- function(seurat_obj, annotations_df,
 #'
 #' @returns A data.frame with the annotations for each cell
 automated_annotation <- function(seurat_obj, annotation_method,
-                                reference = "pbmcref", azimuth_assay = "RNA",
-                                azimuth_levels = c("l1", "l2", "l3")) {
- # validate input
- valid_methods <- c("Azimuth", "CellTypist")
- if (!any(annotation_method %in% valid_methods)) {
-   stop("Method must be one of: ", paste(valid_methods, collapse = ", "))
- }
-
- # run Azimuth annotation
- if (annotation_method == "Azimuth") {
-   if (!requireNamespace("Azimuth", quietly = TRUE)) {
-     stop("The Azimuth package is required for annotation.")
+                                 reference = "pbmcref", azimuth_assay = "RNA",
+                                 azimuth_levels = c("l1", "l2", "l3")) {
+   # validate input
+   valid_methods <- c("Azimuth", "CellTypist")
+   if (!any(annotation_method %in% valid_methods)) {
+      stop("Method must be one of: ", paste(valid_methods, collapse = ", "))
    }
 
-   cat("Running Azimuth annotation...\n")
-   # could list how many of the specified features are not present in the reference
-   obj_azimuth <- Azimuth::RunAzimuth(query = seurat_obj,
-                                      reference = reference,
-                                      assay = azimuth_assay)
+   # run Azimuth annotation
+   if (annotation_method == "Azimuth") {
+      if (!requireNamespace("Azimuth", quietly = TRUE)) {
+         stop("The Azimuth package is required for annotation.")
+      }
 
-   # save annotations by cell
-   annotations <- data.frame(cell_id = Cells(obj_azimuth),
-                             mapping.score = obj_azimuth[[]]$mapping.score)
+      cat("Running Azimuth annotation...\n")
+      # could list how many of the specified features are not present in the reference
+      obj_azimuth <- Azimuth::RunAzimuth(query = seurat_obj,
+                                         reference = reference,
+                                         assay = azimuth_assay)
 
-   # process each level of annotation
-   for (level in azimuth_levels) {
-     full_level <- paste0("predicted.celltype.", level)
+      # save annotations by cell
+      annotations <- data.frame(cell_id = Cells(obj_azimuth),
+                                mapping.score = obj_azimuth[[]]$mapping.score)
 
-     if (!full_level %in% colnames(obj_azimuth[[]])) {
-       warning(paste("Column", full_level, "not found. Skipping level", level))
-       next
-     }
+      # process each level of annotation
+      for (level in azimuth_levels) {
+         full_level <- paste0("predicted.celltype.", level)
 
-     # add in the predicted cell types and the confidence score
-     annotations <- bind_cols(annotations,
-                              obj_azimuth[[]] %>%
-                                remove_rownames() %>%
-                                select(all_of(full_level),
-                                       paste0(full_level, ".score")))
+         if (!full_level %in% colnames(obj_azimuth[[]])) {
+            warning(paste("Column", full_level, "not found. Skipping level", level))
+            next
+         }
 
-     cat(paste("Generated Azimuth", level, "annotations\n"))
-   }
- }
+         # add in the predicted cell types and the confidence score
+         annotations <- bind_cols(annotations,
+                                  obj_azimuth[[]] %>%
+                                     remove_rownames() %>%
+                                     select(all_of(full_level),
+                                            paste0(full_level, ".score")))
 
- # run CellTypist annotation
- if (annotation_method == "CellTypist") {
-   cat("Processing CellTypist annotation...\n")
-
-   if (!requireNamespace("reticulate", quietly = TRUE)) {
-     stop("reticulate package is required for running CellTypist predictions")
+         cat(paste("Generated Azimuth", level, "annotations\n"))
+      }
    }
 
-   # load model and data
-   model <- celltypist$models$Model$load(model = reference)
-   obj_h5ad <- scanpy$read_h5ad(filename = seurat_obj)
+   # run CellTypist annotation
+   if (annotation_method == "CellTypist") {
+      cat("Processing CellTypist annotation...\n")
 
-   # run predictions (on a per cell level)
-   predictions <- celltypist$annotate(filename = obj_h5ad, model = model,
-                                      majority_voting = FALSE)
+      if (!requireNamespace("reticulate", quietly = TRUE)) {
+         stop("reticulate package is required for running CellTypist predictions")
+      }
 
-   # get the predicted cell types and the confidence score
-   annotations <- predictions$to_adata()
-   annotations <- annotations$obs %>%
-     select(cell_id, predicted_labels, conf_score) %>%
-     remove_rownames()
- }
+      # load model and data
+      model <- celltypist$models$Model$load(model = reference)
+      obj_h5ad <- scanpy$read_h5ad(filename = seurat_obj)
 
- return(annotations)
+      # run predictions (on a per cell level)
+      predictions <- celltypist$annotate(filename = obj_h5ad, model = model,
+                                         majority_voting = FALSE)
+
+      # get the predicted cell types and the confidence score
+      annotations <- predictions$to_adata()
+      annotations <- annotations$obs %>%
+         select(cell_id, predicted_labels, conf_score) %>%
+         remove_rownames()
+   }
+
+   return(annotations)
 }
 
 
@@ -410,17 +408,17 @@ automated_annotation <- function(seurat_obj, annotation_method,
 #'
 #' @returns A data.frame with a row for each cell type.
 cell_type_clusters <- function(seurat_obj, clusters_col = "seurat_clusters",
-                              annotations_col) {
- seurat_obj[[]] %>%
-   select(!!sym(clusters_col), !!sym(annotations_col)) %>%
-   group_by(!!sym(clusters_col), !!sym(annotations_col)) %>%
-   tally() %>%
-   slice_max(n, with_ties = FALSE) %>%
-   select(-n) %>%
-   group_by(!!sym(annotations_col)) %>%
-   transmute(Clusters = paste0(!!sym(clusters_col), collapse = ", ")) %>%
-   distinct() %>%
-   arrange(!!sym(annotations_col))
+                               annotations_col) {
+   seurat_obj[[]] %>%
+      select(!!sym(clusters_col), !!sym(annotations_col)) %>%
+      group_by(!!sym(clusters_col), !!sym(annotations_col)) %>%
+      tally() %>% # TODO: replace with count
+      slice_max(n, with_ties = FALSE) %>%
+      select(-n) %>%
+      group_by(!!sym(annotations_col)) %>%
+      transmute(Clusters = paste0(!!sym(clusters_col), collapse = ", ")) %>%
+      distinct() %>%
+      arrange(!!sym(annotations_col))
 }
 
 
@@ -432,30 +430,30 @@ cell_type_clusters <- function(seurat_obj, clusters_col = "seurat_clusters",
 #' Seurat object with clusters if successful, or stops if the desired number is exceeded or not found.
 #'
 #' @param seurat_obj The Seurat object.
-#' @param graph_name The name of the graph to use for clustering. Default is "RNA_snn".
+#' @param graph_name The name of the graph to use for clustering.
 #' @param desired_k The desired number of clusters.
 #'
 #' @returns The Seurat object with clusters at the resolution that matches desired_k.
 find_k_clusters <- function(seurat_obj, graph_name = "RNA_snn", desired_k) {
- for (res in seq(0.1, 2, by = 0.1)) {
-   cat(paste0("Checking resolution ", res, ": "))
+   for (res in seq(0.1, 2, by = 0.1)) {
+      cat(paste0("Checking resolution ", res, ": "))
 
-   seurat_obj <-
-     suppressWarnings(FindClusters(seurat_obj, resolution = res,
-                                   graph.name = graph_name, algorithm = 1, # 4
-                                   verbose = FALSE))
-   n_clusters <- n_distinct(seurat_obj$seurat_clusters)
-   cat(paste(n_clusters, "clusters\n"))
+      seurat_obj <-
+         suppressWarnings(FindClusters(seurat_obj, resolution = res,
+                                       graph.name = graph_name, algorithm = 1, # 4
+                                       verbose = FALSE))
+      n_clusters <- n_distinct(seurat_obj$seurat_clusters)
+      cat(paste(n_clusters, "clusters\n"))
 
-   if (n_clusters == desired_k) {
-     # message(paste("Resolution", res, "gives", desired_k, "clusters"))
-     return(seurat_obj)
-   } else if (n_clusters > desired_k) {
-     stop("The number of desired clusters has been exceeded.")
-   } else {
-     # don't keep the other resolutions
-     seurat_obj[[paste0(graph_name, "_res.", res)]] <- c()
+      if (n_clusters == desired_k) {
+         # message(paste("Resolution", res, "gives", desired_k, "clusters"))
+         return(seurat_obj)
+      } else if (n_clusters > desired_k) {
+         stop("The number of desired clusters has been exceeded.")
+      } else {
+         # don't keep the other resolutions
+         seurat_obj[[paste0(graph_name, "_res.", res)]] <- c()
+      }
    }
- }
- stop("Could not find resolution to match desired clusters.")
+   stop("Could not find resolution to match desired clusters.")
 }

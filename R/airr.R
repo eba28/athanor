@@ -34,6 +34,7 @@ process_airrflow <- function(dataset_path, version_airrflow) {
   if (length(rep_files) == 0) {
     stop("No files found, are you sure you're using the correct directory?")
   }
+  # TODO: replace with map or map2
   combined_bcr <- map_df(rep_files, read_tsv, show_col_types = FALSE)
 
   # add in useful columns
@@ -338,7 +339,7 @@ factor_family_info <- function(combined_airr) {
 #' The bins are (most likely) not going to be equal sizes.
 #'
 #' @param seurat_obj The Seurat object.
-#' @param bins The number of bins to split `mu_freq` into. Must be at least one of 2, 3, or 5.
+#' @param num_bins The number of bins to split `mu_freq` into. Must be at least one of 2, 3, or 5.
 #'
 #' @returns The provided Seurat object with a new binned mu_freq column.
 bin_mu_freq <- function(seurat_obj, num_bins = c(2, 3, 5)) {

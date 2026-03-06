@@ -39,7 +39,7 @@ run_wnn(
 
 \item{modality_weights}{Named vector of modality weights. If NULL, Seurat will calculate automatically.}
 
-\item{show_output}{Whether or not to show verbose output from Seurat functions. Default is FALSE.}
+\item{show_output}{Whether or not to show verbose output from Seurat functions.}
 }
 \value{
 A Seurat object with WNN run.

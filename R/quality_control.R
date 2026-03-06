@@ -21,8 +21,8 @@
 create_metrics_summary <- function(meta, path_data_specific,
                                    data_types, samples_list) {
   metrics_summary <- tibble()
-  if (rlang::missing(data_types)) data_types <- unique(meta$DataType) # depends on dataset
-  if (rlang::missing(samples_list)) samples_list <- sort(unique(meta$sample_id))
+  if (rlang::is_missing(data_types)) data_types <- unique(meta$DataType) # depends on dataset
+  if (rlang::is_missing(samples_list)) samples_list <- sort(unique(meta$sample_id))
 
   for (sample in samples_list) {
     for (data_type in data_types) {
@@ -193,6 +193,7 @@ plot_counts <- function(summary_df, data_types = "All", count_type,
 #' @param clrs_specific The specific color palette (should be named).
 #' @param use_hues Use the iwanthue hues instead of the default ggplot colors. Doesn't let you set any other settings.
 #' @param group_col The column to group by.
+#' @param group_label The label for the grouping variable to use in the plot titles and axis labels. If NULL, it will be determined based on the group_col name.
 #' @param doublet_col The column containing the doublets information
 #' @param doublet_package The doublet method being used.
 #' @param details The optional subtitle.

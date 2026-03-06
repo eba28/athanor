@@ -9,7 +9,7 @@ find_k_clusters(seurat_obj, graph_name = "RNA_snn", desired_k)
 \arguments{
 \item{seurat_obj}{The Seurat object.}
 
-\item{graph_name}{The name of the graph to use for clustering. Default is "RNA_snn".}
+\item{graph_name}{The name of the graph to use for clustering.}
 
 \item{desired_k}{The desired number of clusters.}
 }

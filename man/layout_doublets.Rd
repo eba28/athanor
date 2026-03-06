@@ -27,6 +27,8 @@ layout_doublets(
 
 \item{group_col}{The column to group by.}
 
+\item{group_label}{The label for the grouping variable to use in the plot titles and axis labels. If NULL, it will be determined based on the group_col name.}
+
 \item{doublet_col}{The column containing the doublets information}
 
 \item{doublet_package}{The doublet method being used.}

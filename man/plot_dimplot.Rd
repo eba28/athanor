@@ -34,6 +34,8 @@ plot_dimplot(
 
 \item{use_hues}{Use the iwanthue hues instead of the default ggplot colors. Doesn't let you set any other settings.}
 
+\item{pt_size}{The point size.}
+
 \item{assay}{The data type e.g. ADT, GEX, BCR, WNN...}
 
 \item{reduc}{The reduction to use for plotting e.g. wnn.umap}
@@ -53,6 +55,8 @@ plot_dimplot(
 \item{annotations_col}{Which column in the object stores the cell types.}
 
 \item{include_legend}{Include the legend or not.}
+
+\item{legend_label}{The label for the legend.}
 
 \item{factor_idents}{Whether or not to factorize the idents (for proper ordering of the colors). This can mess up the order you want, so be careful.}
 

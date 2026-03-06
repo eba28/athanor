@@ -712,6 +712,7 @@ plot_umap <- function(seurat_obj, tissue_type = "", clrs_specific,
 #' @param data_source The dataset of origin.
 #' @param clrs_specific Specific colors for plotting (make sure it has names).
 #' @param use_hues Use the iwanthue hues instead of the default ggplot colors. Doesn't let you set any other settings.
+#' @param pt_size The point size.
 #' @param assay The data type e.g. ADT, GEX, BCR, WNN...
 #' @param reduc The reduction to use for plotting e.g. wnn.umap
 #' @param plot_label Add labels to the plot (or not).
@@ -722,13 +723,13 @@ plot_umap <- function(seurat_obj, tissue_type = "", clrs_specific,
 #' @param clusters_col Which column in the object stores the clusters.
 #' @param annotations_col Which column in the object stores the cell types.
 #' @param include_legend Include the legend or not.
+#' @param legend_label The label for the legend.
 #' @param factor_idents Whether or not to factorize the idents (for proper ordering of the colors). This can mess up the order you want, so be careful.
 #' @param details A custom subtitle.
 #'
 #' @returns A Seurat UMAPPlot.
 plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
-                         use_hues = FALSE, pt_size = 0.2,
-                         assay, reduc,
+                         use_hues = FALSE, pt_size = 0.2, assay, reduc,
                          plot_label = TRUE, label_box = TRUE, label_size = 3,
                          annotated = FALSE, specific_clusters, # order = FALSE
                          clusters_col = "seurat_clusters",

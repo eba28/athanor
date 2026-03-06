@@ -128,13 +128,12 @@ run_wnn_sims <- function(count_range, sim_var, other_vars,
                 sim_gex_manual(num_genes = other_vars[["Genes"]],
                                num_cells = other_vars[["Cells"]],
                                separator = "-"),
-              bcr_embeddings =
+              embeddings =
                 sim_bcr_manual(num_cells = other_vars[["Cells"]],
                                num_dims = other_vars[["Dimensions"]],
                                separator = "-"),
               pc_gex = other_vars[["GEX PCs"]],
-              pc_bcr = other_vars[["BCR PCs"]],
-              visualize = FALSE)
+              pc_bcr = other_vars[["BCR PCs"]])
     },
     error = function(e) {no_error <<- 0},
     warning = function(w) {no_error <<- 0.5}
@@ -200,7 +199,7 @@ plot_wnn_testing <- function(manual_wnn_test, sim_var,
 #' @param cluster Whether or not to perform clustering.
 #' @param cluster_res Named list of clustering resolutions for GEX, BCR, and joint clustering (JC).
 #' @param modality_weights Named vector of modality weights. If NULL, Seurat will calculate automatically.
-#' @param show_output Whether or not to show verbose output from Seurat functions. Default is FALSE.
+#' @param show_output Whether or not to show verbose output from Seurat functions.
 #'
 #' @returns A Seurat object with WNN run.
 run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
@@ -549,7 +548,7 @@ plot_wnn_umaps <- function(seurat_obj, data_source = "Manual",
 #' @param second_assay List of other assays run through WNN in order.
 #' @param clrs_specific A specific (must have names) color palette.
 #' @param split_by A meta.data column to split the box plots up by.
-#' @param y_axis_label Label for the y-axis. Default is "SHM Frequency Bins".
+#' @param y_axis_label Label for the y-axis.
 #'
 #' @returns A ggplot with the distribution of weights
 plot_mws <- function(seurat_obj, details = "", second_assay = "BCR",

@@ -22,8 +22,6 @@ calc_ext_metrics(
 \item{labels_true}{The name of the column in the metadata that contains the true cluster labels to evaluate.}
 
 \item{labels_pred}{The name of the column in the metadata that contains the predicted cluster labels to evaluate.}
-
-\item{labels_name}{A more descriptive name for the labels to use in plotting (optional).}
 }
 \value{
 A data.frame with a row per metric containing the combined score.

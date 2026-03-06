@@ -24,7 +24,7 @@ plot_mws(
 
 \item{split_by}{A meta.data column to split the box plots up by.}
 
-\item{y_axis_label}{Label for the y-axis. Default is "SHM Frequency Bins".}
+\item{y_axis_label}{Label for the y-axis.}
 }
 \value{
 A ggplot with the distribution of weights
