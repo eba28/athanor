@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/eba28/athanor/blob/master/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/eba28/athanor/blob/main/DESCRIPTION)
 
 Aron E (2026). *athanor: Integration of Single-Cell Gene Expression and
 B Cell Receptor Data*. R package version 0.0.0.9000,
