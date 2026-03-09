@@ -5,7 +5,7 @@ Authors@R:
     person("Edel", "Aron",  email = "edel.aron@yale.edu",
     role = c("aut", "cre"), comment = c(ORCID = "0000-0002-8683-4772"))
 Description: Integrates paired single-cell transcriptomics and B cell receptor sequencing data for improved B cell subtyping.
-URL: https://github.com/eba28/athanor
+URL: https://github.com/eba28/athanor, https://eba28.github.io/athanor/
 BugReports: https://github.com/eba28/athanor/issues
 License: GPL (>= 3)
 Encoding: UTF-8
