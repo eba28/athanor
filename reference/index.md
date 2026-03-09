@@ -1,0 +1,195 @@
+# Package index
+
+## All functions
+
+- [`add_annotations()`](https://eba28.github.io/athanor/reference/add_annotations.md)
+  : Add user-specified list of cluster annotations to a Seurat object
+
+- [`add_family_info()`](https://eba28.github.io/athanor/reference/add_family_info.md)
+  :
+
+  Add in family and gene information from `alakazam.`
+
+- [`add_info_bar()`](https://eba28.github.io/athanor/reference/add_info_bar.md)
+  : Add an information bar on top of a given plot.
+
+- [`automated_annotation()`](https://eba28.github.io/athanor/reference/automated_annotation.md)
+  : This function runs automated annotation using specified methods.
+
+- [`bin_mu_freq()`](https://eba28.github.io/athanor/reference/bin_mu_freq.md)
+  : Bin the mutation frequency
+
+- [`calc_adt_dists()`](https://eba28.github.io/athanor/reference/calc_adt_dists.md)
+  : Compute per-cell mean ADT distance to its k nearest neighbors from a
+  base assay
+
+- [`calc_adt_dists_fast()`](https://eba28.github.io/athanor/reference/calc_adt_dists_fast.md)
+  : Compute per-cell mean ADT distance to its k nearest neighbors from a
+  base assay
+
+- [`calc_adt_nn_within_range()`](https://eba28.github.io/athanor/reference/calc_adt_nn_within_range.md)
+  : calculate the proportion of neighbors within an ADT expression range
+
+- [`calc_adt_scores()`](https://eba28.github.io/athanor/reference/calc_adt_scores.md)
+  : Calculate homogeneity scores for binary ADT feature across
+  embeddings
+
+- [`calc_distances()`](https://eba28.github.io/athanor/reference/calc_distances.md)
+  : This function calculates cluster distances for the given Seurat
+  object.
+
+- [`calc_ext_metrics()`](https://eba28.github.io/athanor/reference/calc_ext_metrics.md)
+  : This function calculates external clustering metrics for the given
+  Seurat object.
+
+- [`calc_int_metrics()`](https://eba28.github.io/athanor/reference/calc_int_metrics.md)
+  : This function calculates internal clustering metrics for the given
+  Seurat object.
+
+- [`calc_neighbor_matches()`](https://eba28.github.io/athanor/reference/calc_neighbor_matches.md)
+  : Calculate the neighbor matching scores across metadata columns.
+
+- [`calc_nn_frac()`](https://eba28.github.io/athanor/reference/calc_nn_frac.md)
+  : This function calculation the proportion of the neighbors that are
+  mutated or unmutated.
+
+- [`calc_pcts()`](https://eba28.github.io/athanor/reference/calc_pcts.md)
+  : Bar plot with stacked percentages.
+
+- [`cell_type_clusters()`](https://eba28.github.io/athanor/reference/cell_type_clusters.md)
+  : This function maps the cell types to the Seurat clusters
+
+- [`concatenate_gex_bcr()`](https://eba28.github.io/athanor/reference/concatenate_gex_bcr.md)
+  : Concatenate GEX and BCR data in a Seurat object
+
+- [`convert_embeddings()`](https://eba28.github.io/athanor/reference/convert_embeddings.md)
+  :
+
+  Convert from the output of an embeddings method to a `Matrix` matrix.
+
+- [`create_metrics_summary()`](https://eba28.github.io/athanor/reference/create_metrics_summary.md)
+  : Create a table with info from 10x's metric summary file(s)
+
+- [`extract_wnn_vars()`](https://eba28.github.io/athanor/reference/extract_wnn_vars.md)
+  : This function gives a summary of the post-WNN object.
+
+- [`factor_family_info()`](https://eba28.github.io/athanor/reference/factor_family_info.md)
+  : Convert family and gene information to factors with proper ordering.
+
+- [`find_k_clusters()`](https://eba28.github.io/athanor/reference/find_k_clusters.md)
+  : Find the right clustering resolution to obtain desired number of
+  clusters
+
+- [`gen_dot_title()`](https://eba28.github.io/athanor/reference/gen_dot_title.md)
+  : Generates a title for the DotPlot
+
+- [`get_cell_types()`](https://eba28.github.io/athanor/reference/get_cell_types.md)
+  :
+
+  Pulls the info needed for
+  [`add_info_bar()`](https://eba28.github.io/athanor/reference/add_info_bar.md)
+  to a `DotPlot`
+
+- [`get_features_from_all()`](https://eba28.github.io/athanor/reference/get_features_from_all.md)
+  : Get specific markers from the marker genes database
+
+- [`gex_add_airr()`](https://eba28.github.io/athanor/reference/gex_add_airr.md)
+  : Add AIRR information to a GEX Seurat object
+
+- [`layout_doublets()`](https://eba28.github.io/athanor/reference/layout_doublets.md)
+  : This function plots an overview of a doublet identification method
+
+- [`plot_color_scale()`](https://eba28.github.io/athanor/reference/plot_color_scale.md)
+  : Generates a proper color scale for a Seurat DotPlot (with white at
+  zero).
+
+- [`plot_counts()`](https://eba28.github.io/athanor/reference/plot_counts.md)
+  : Create bar plots of read or cell counts for quality control
+
+- [`plot_counts_cluster()`](https://eba28.github.io/athanor/reference/plot_counts_cluster.md)
+  : Visualize how many cells are in each Seurat cluster or cell type.
+
+- [`plot_dimplot()`](https://eba28.github.io/athanor/reference/plot_dimplot.md)
+  :
+
+  This function plots a Seurat UMAP using `DimPlot`
+
+- [`plot_dot_airr()`](https://eba28.github.io/athanor/reference/plot_dot_airr.md)
+  : Add AIRR (and other) info along the right side of an existing Seurat
+  DotPlot.
+
+- [`plot_immune_overlay()`](https://eba28.github.io/athanor/reference/plot_immune_overlay.md)
+  : This function plots the annotated UMAPs alongside the BCR/TCR
+  overlays.
+
+- [`plot_metrics()`](https://eba28.github.io/athanor/reference/plot_metrics.md)
+  : This function plots the internal/external clustering metrics.
+
+- [`plot_mws()`](https://eba28.github.io/athanor/reference/plot_mws.md)
+  : This function plots a boxplot of modality weights per cell type.
+
+- [`plot_overview_comps()`](https://eba28.github.io/athanor/reference/plot_overview_comps.md)
+  : Plots several UMAPs side by side for a Seurat object.
+
+- [`plot_pcts()`](https://eba28.github.io/athanor/reference/plot_pcts.md)
+  : Plot percentages.
+
+- [`plot_umap()`](https://eba28.github.io/athanor/reference/plot_umap.md)
+  : This function plots a Seurat UMAP(s) in several useful ways.
+
+- [`plot_umap_condition()`](https://eba28.github.io/athanor/reference/plot_umap_condition.md)
+  : Plot a specific condition on a Seurat UMAPPlot.
+
+- [`plot_wnn_testing()`](https://eba28.github.io/athanor/reference/plot_wnn_testing.md)
+  : Plot the results of the manual WNN testing.
+
+- [`plot_wnn_umaps()`](https://eba28.github.io/athanor/reference/plot_wnn_umaps.md)
+  : This function gives a summary of the post-WNN object.
+
+- [`print_metadata_summary()`](https://eba28.github.io/athanor/reference/print_metadata_summary.md)
+  : Give an overview of the data in terms of files, samples and
+  datasets.
+
+- [`process_airrflow()`](https://eba28.github.io/athanor/reference/process_airrflow.md)
+  : This function reads airrflow's repertoire files, processes them to
+  add subject and sample information, computes CDR3 amino acid
+  properties, and adds gene family information.
+
+- [`process_bcr_features()`](https://eba28.github.io/athanor/reference/process_bcr_features.md)
+  : Process BCR features for integration
+
+- [`reduce_object()`](https://eba28.github.io/athanor/reference/reduce_object.md)
+  : Reduce Seurat object size for efficient storage and apps
+
+- [`reformat_vdj_barcode()`](https://eba28.github.io/athanor/reference/reformat_vdj_barcode.md)
+  : Reformat VDJ barcodes to make them unique across samples
+
+- [`reformat_vdj_barcode_sample()`](https://eba28.github.io/athanor/reference/reformat_vdj_barcode_sample.md)
+  : Reformat VDJ barcodes by adding sample names and removing suffixes
+
+- [`run_wnn()`](https://eba28.github.io/athanor/reference/run_wnn.md) :
+  This function runs Weighted Nearest Neighbor (WNN) analysis on
+  combined GEX and BCR data.
+
+- [`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md)
+  : Runs Seurat's clustering pipeline with given parameters.
+
+- [`sim_bcr_manual()`](https://eba28.github.io/athanor/reference/sim_bcr_manual.md)
+  : This simulates an assay made from BCR embeddings independently of
+  any GEX objects
+
+- [`sim_gex_manual()`](https://eba28.github.io/athanor/reference/sim_gex_manual.md)
+  : Manual simulation of GEX data.
+
+- [`sim_gex_splatter()`](https://eba28.github.io/athanor/reference/sim_gex_splatter.md)
+  : Simulate gene expression data using Splatter and convert to Seurat
+  object
+
+- [`source_markers()`](https://eba28.github.io/athanor/reference/source_markers.md)
+  : Display markers from a filtered marker database as a table
+
+- [`vln_feat_plot()`](https://eba28.github.io/athanor/reference/vln_feat_plot.md)
+  :
+
+  Plots a Seurat `VlnPlot` and a `FeaturePlot` side by side for the same
+  marker

@@ -1,0 +1,33 @@
+# This simulates an assay made from BCR embeddings independently of any GEX objects
+
+This simulates an assay made from BCR embeddings independently of any
+GEX objects
+
+## Usage
+
+``` r
+sim_bcr_manual(num_cells, num_dims, separator)
+```
+
+## Arguments
+
+- num_cells:
+
+  Number of cells to simulate.
+
+- num_dims:
+
+  Number of embedding dimensions to simulate.
+
+- separator:
+
+  Separator for cell and dimension names.
+
+## Value
+
+A Seurat Assay
+
+## Details
+
+The choice of value ranges was based off the real COVID-19 data,
+including having 9 decimal points
