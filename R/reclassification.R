@@ -11,6 +11,7 @@
 #' @param plot_title A string to add to the plot title, e.g. "All Cells" or "Memory B Cells Only".
 #'
 #' @returns A data.frame and a plot.
+#' @export
 calc_nn_frac <- function(seurat_obj, assay = "WNN", plot_title = "",
                          category = "mutated") {
   embedding <- seurat_obj@misc$embedding_type

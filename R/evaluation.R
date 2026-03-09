@@ -31,6 +31,7 @@
 #' @param labels_name A more descriptive name for the labels to use in plotting (optional).
 #'
 #' @returns A data.frame with a row per metric and cluster containing the score.
+#' @export
 calc_distances <- function(seurat_obj, reduction_name, criteria = "Within_Max",
                            labels_true = "annotated_clusters", labels_name) {
   # set up the inputs and output
@@ -162,6 +163,7 @@ calc_distances <- function(seurat_obj, reduction_name, criteria = "Within_Max",
 #' @param return_full If TRUE, return the full silhouette object instead of just the mean silhouette width.
 #'
 #' @returns A data.frame with a row per metric containing the combined score.
+#' @export
 calc_int_metrics <- function(seurat_obj, reduction_name,
                              criteria = "Silhouette",
                              labels_true = "annotated_clusters", labels_name,
@@ -236,6 +238,7 @@ calc_int_metrics <- function(seurat_obj, reduction_name,
 #' @param labels_pred The name of the column in the metadata that contains the predicted cluster labels to evaluate.
 #'
 #' @returns A data.frame with a row per metric containing the combined score.
+#' @export
 calc_ext_metrics <- function(seurat_obj, reduction_name,
                              criteria = c("Completeness", "Homogeneity"),
                              labels_true = "annotated_clusters",
@@ -295,6 +298,7 @@ calc_ext_metrics <- function(seurat_obj, reduction_name,
 #' @param details Additional details to include in the plot title (optional).
 #'
 #' @returns A ggplot showing the metrics across embeddings and reductions, with the best scores outlined.
+#' @export
 plot_metrics <- function(metrics, plot_title = "", best_score = "higher",
                          type = "Internal", y_axis = "Labeling", round_to = 2,
                          details = "") {
@@ -348,6 +352,7 @@ plot_metrics <- function(metrics, plot_title = "", best_score = "higher",
 #' @param adt_cutoff Numeric cutoff for binary classification.
 #'
 #' @return Data frame of scores for each embedding/reduction.
+#' @export
 calc_adt_scores <- function(seurat_objs, meta_res, metric_type, metrics,
                             adt_features = "CD27.1", adt_cutoff = 1) {
   scores <- c()
@@ -418,6 +423,7 @@ calc_adt_scores <- function(seurat_objs, meta_res, metric_type, metrics,
 #' @param exclude_self Drop the cell itself from neighbors if present.
 #'
 #' @returns A single numeric value if `return_mean = TRUE`, or a named numeric vector of per-cell distances if `return_mean = FALSE`.
+#' @export
 calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
                            layer = "data", feature, k, multiple_k = TRUE,
                            distance_metric = "mean_abs", return_mean = TRUE,
@@ -515,6 +521,7 @@ calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
 #' @param features Optional vector of ADT features; if missing, use all features present.
 #' @param neighbors The kNN slot.
 #' @param exclude_self Drop the cell itself from neighbors if present.
+#' @export
 calc_adt_dists_fast <- function(adt_data, features, neighbors,
                                 exclude_self = TRUE) {
   if (!is_missing(features)) {
@@ -579,6 +586,7 @@ calc_adt_dists_fast <- function(adt_data, features, neighbors,
 #'   If \code{return_counts = TRUE}, returns the count of neighbors within
 #'   range. If \code{return_counts = FALSE}, returns the proportion of
 #'   neighbors within range (ranging from 0 to 1). Vector names are cell ids.
+#' @export
 calc_adt_nn_within_range <- function(seurat_obj, adt_assay = "ADT", feature,
                                      base_assay, k = 20, use_k = TRUE,
                                      range = 0.20, return_counts = FALSE) {
@@ -640,6 +648,7 @@ calc_adt_nn_within_range <- function(seurat_obj, adt_assay = "ADT", feature,
 #' @param path_save Where to save the results.
 #'
 #' @return Data frame with these columns: Full_Name, Category, Category_Details, Assay, Meta_Col, Method, Matches
+#' @export
 calc_neighbor_matches <- function(seurat_obj, nn_name,
                                   meta_cols =
                                     c("annotated_clusters_bcr",

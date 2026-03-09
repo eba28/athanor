@@ -26,6 +26,7 @@
 #' p <- ggplot(data, aes(x, y)) + geom_point()
 #' add_info_bar(p, info_type = "Dataset", info = dataset_info)
 #' }
+#' @export
 add_info_bar <- function(plot, method = "contains", info_type, info,
                          sort = TRUE, text_size = 8, label = TRUE, angle = 0,
                          top_side = TRUE) {
@@ -98,6 +99,7 @@ add_info_bar <- function(plot, method = "contains", info_type, info,
 #' @param order_by An optional character string specifying the focus group value to order the results by. If not provided, no ordering is applied.
 #'
 #' @returns A data.frame with the calculated percentages and counts for each group.
+#' @export
 calc_pcts <- function(data, meta_group_by = c("sample_id", "Dataset"),
                       focus_group, order_by) {
   data <- data %>%
@@ -156,6 +158,7 @@ calc_pcts <- function(data, meta_group_by = c("sample_id", "Dataset"),
 #' @param details The optional subtitle.
 #'
 #' @returns A stacked ggplot bar plot
+#' @export
 plot_pcts <- function(pcts, tissue_type, clrs_specific,
                       plot_type = "All", plot_value = "Cell Type",
                       x_axis = "sample_id", x_axis_label = "Sample",
@@ -290,6 +293,7 @@ plot_pcts <- function(pcts, tissue_type, clrs_specific,
 #' @param fill_by One of "color" or "fill".
 #'
 #' @returns A Seurat dot plot or ggplot with an updated color scale.
+#' @export
 plot_color_scale <- function(plot, palette = rev(pals::brewer.rdbu(n = 7)),
                              val_col = "avg.exp.scaled", fill_by = "color") {
   # expression ranges
@@ -340,6 +344,7 @@ plot_color_scale <- function(plot, palette = rev(pals::brewer.rdbu(n = 7)),
 #' p <- DotPlot(seurat_obj, features = genes)
 #' plot_dot_airr(p, seurat_obj, info_to_add = c("cluster_size", "mean_mu_freq"))
 #' }
+#' @export
 plot_dot_airr <- function(plot, seurat_obj, row_identity = "seurat_clusters",
                           facet_col, info_to_add = c("cluster_size")) {
   # get the clusters in order
@@ -476,6 +481,7 @@ plot_dot_airr <- function(plot, seurat_obj, row_identity = "seurat_clusters",
 #' @param rotate Rotate the labels or not.
 #'
 #' @returns Two patchworked Seurat plots.
+#' @export
 vln_feat_plot <- function(seurat_obj, feature, assay = "RNA", group_col = NULL,
                           rotate = FALSE) {
   # set the assay and idents
@@ -525,6 +531,7 @@ vln_feat_plot <- function(seurat_obj, feature, assay = "RNA", group_col = NULL,
 #' @param details A custom subtitle.
 #'
 #' @returns A Seurat UMAPPlot.
+#' @export
 plot_umap <- function(seurat_obj, tissue_type = "", clrs_specific,
                       use_hues = FALSE, plot_by = "all", specific_clusters = c(),
                       specific_col, plot_label = TRUE, label_size = 3,
@@ -728,6 +735,7 @@ plot_umap <- function(seurat_obj, tissue_type = "", clrs_specific,
 #' @param details A custom subtitle.
 #'
 #' @returns A Seurat UMAPPlot.
+#' @export
 plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
                          use_hues = FALSE, pt_size = 0.2, assay, reduc,
                          plot_label = TRUE, label_box = TRUE, label_size = 3,
@@ -839,6 +847,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 #' @param include_legend Include a legend (or not).
 #'
 #' @returns A Seurat UMAPPlot.
+#' @export
 plot_umap_condition <- function(seurat_obj, tissue_type, clrs_specific,
                                 condition_name, operator, condition_val,
                                 color_by = "value", plot_type = "general",
@@ -934,6 +943,7 @@ plot_umap_condition <- function(seurat_obj, tissue_type, clrs_specific,
 #' @param comparisons The labelling of the plots.
 #'
 #' @return patchwork object with overview plots
+#' @export
 plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                                 second_assay = "BCR", assay_name,
                                 reduction = "wnn.umap",

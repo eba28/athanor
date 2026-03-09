@@ -12,6 +12,7 @@
 #' @param version_airrflow The airrflow version (as a string).
 #'
 #' @returns A processed AIRR-formatted data.frame with several columns added.
+#' @export
 process_airrflow <- function(dataset_path, version_airrflow) {
   # deal with possible format e.g. 4.0 or 4.3.1
   version_airrflow_num <-
@@ -139,6 +140,7 @@ process_airrflow <- function(dataset_path, version_airrflow) {
 #' @param ncol_sample The number of columns for sample-wise plots.
 #'
 #' @returns A Seurat UMAP plot with AIRR cells highlighted by the specified grouping.
+#' @export
 plot_immune_overlay <- function(seurat_obj, tissue_type, airr_type,
                                 clrs_specific, plot_by = "all",
                                 barcode_col = "cell_id",
@@ -255,6 +257,7 @@ plot_immune_overlay <- function(seurat_obj, tissue_type, airr_type,
 #' @param combined_airr An AIRR-formatted data.frame.
 #'
 #' @returns A data.frame with six new columns containing gene family and gene information.
+#' @export
 add_family_info <- function(combined_airr) {
   if ("v_call" %in% names(combined_airr)) {
     combined_airr <-
@@ -295,6 +298,7 @@ add_family_info <- function(combined_airr) {
 #' of IGHV1, IGHV10, IGHV2).
 #'
 #' @returns A data.frame with up to six columns converted to properly ordered factors.
+#' @export
 factor_family_info <- function(combined_airr) {
   if ("v_call" %in% names(combined_airr)) {
     combined_airr <-
@@ -342,6 +346,7 @@ factor_family_info <- function(combined_airr) {
 #' @param num_bins The number of bins to split `mu_freq` into. Must be at least one of 2, 3, or 5.
 #'
 #' @returns The provided Seurat object with a new binned mu_freq column.
+#' @export
 bin_mu_freq <- function(seurat_obj, num_bins = c(2, 3, 5)) {
   # get the current mutation frequencies
   mu_freqs <- seurat_obj$mu_freq
@@ -404,6 +409,7 @@ bin_mu_freq <- function(seurat_obj, num_bins = c(2, 3, 5)) {
 #'   - Categorical variables are one-hot encoded (all categories kept)
 #'   - All numeric predictors are normalized to mean = 0 and sd = 1
 #'   - Underscores are removed from feature names (so Seurat doesn't throw a warning)
+#' @export
 process_bcr_features <- function(bcr_features) {
   # TODO: print out what steps were taken
 
@@ -457,6 +463,7 @@ process_bcr_features <- function(bcr_features) {
 #' @param combined_airr_input The data.frame provided to immune2vec; contains translated sequences.
 #'
 #' @returns A `Matrix` of embeddings
+#' @export
 convert_embeddings <- function(embeddings, combined_airr, combined_airr_input) {
   # check just in case
   if (!all(c("cell_id", "cell_id_original") %in% colnames(combined_airr))) {

@@ -20,6 +20,7 @@
 #'
 #' @returns The Seurat object with AIRR columns added to the metadata, including
 #'   Has_BCR, isotype information, mutation frequencies, and pairing status.
+#' @export
 gex_add_airr <- function(seurat_obj, airr_type = "BCR",
                          combined_airr, new_cols, overview = TRUE) {
   # make sure there isn't a format mismatch between cell ids

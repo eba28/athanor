@@ -12,6 +12,7 @@ Integrates paired single-cell transcriptomics and B cell receptor sequencing dat
 Useful links:
 \itemize{
   \item \url{https://github.com/eba28/athanor}
+  \item \url{https://eba28.github.io/athanor/}
   \item Report bugs at \url{https://github.com/eba28/athanor/issues}
 }
 

@@ -17,6 +17,7 @@
 #' @param verbose Print out Seurat's progress messages.
 #'
 #' @returns A processed Seurat object with normalization, scaling, PCA, clustering, and UMAP.
+#' @export
 seurat_pipeline <- function(seurat_obj, nfeatures_RNA = 200, perc_mt = 15,
                             num_features = 2000, num_pcs = 30, num_dims = 20,
                             cluster_res = 0.4, filter_genes = TRUE,
@@ -103,6 +104,7 @@ seurat_pipeline <- function(seurat_obj, nfeatures_RNA = 200, perc_mt = 15,
 #' @param details The optional subtitle.
 #'
 #' @returns A ggplot bar plot of cell counts.
+#' @export
 plot_counts_cluster <- function(seurat_obj, tissue_type = "", clrs_specific,
                                 clusters_col, fill_col, fill_col_name,
                                 x_axis = "Cluster", # add_zeroes = FALSE,
@@ -181,6 +183,7 @@ plot_counts_cluster <- function(seurat_obj, tissue_type = "", clrs_specific,
 #' @param alphabetize_all Whether to return all of the selected markers alphabetized.
 #'
 #' @returns A character vector of unique gene features/markers.
+#' @export
 get_features_from_all <- function(markers_df, sources, contains, tissue_types,
                                   cell_types, alphabetize_types = TRUE,
                                   alphabetize_all = TRUE) {
@@ -217,6 +220,7 @@ get_features_from_all <- function(markers_df, sources, contains, tissue_types,
 #' @param markers_df The markers data.frame filtered to match your input features
 #'
 #' @returns A data.frame with Cell_Type_Full and features.plot columns
+#' @export
 get_cell_types <- function(markers_df) {
    markers_df %>%
       select(Cell_Type_Full, Marker) %>%
@@ -231,6 +235,7 @@ get_cell_types <- function(markers_df) {
 #' @param marker_sources The list of marker sources
 #'
 #' @returns A string with sources comma-separated and in parentheses
+#' @export
 gen_dot_title <- function(plot_title = "", marker_sources) {
    paste0(plot_title, " (",
           str_c(sort(str_replace_all(marker_sources, "_", " ")),
@@ -249,6 +254,7 @@ gen_dot_title <- function(plot_title = "", marker_sources) {
 #'   containing at least Cell_Type and Marker columns.
 #'
 #' @returns A formatted table showing markers grouped by cell type.
+#' @export
 source_markers <- function(filtered_markers_df) {
    filtered_markers_df %>%
       select(Cell_Type, Marker) %>%
@@ -277,6 +283,7 @@ source_markers <- function(filtered_markers_df) {
 #' @param annotations_col The name of the new metadata column for the annotations.
 #'
 #' @returns A Seurat object with added annotation information.
+#' @export
 add_annotations <- function(seurat_obj, annotations_df,
                             cell_types_col = "CellType",
                             relabel = TRUE, relocate = TRUE, alphabetize = TRUE,
@@ -328,6 +335,7 @@ add_annotations <- function(seurat_obj, annotations_df,
 #' @param azimuth_levels Levels to process for Azimuth e.g. c("l1", "l2", "l3")
 #'
 #' @returns A data.frame with the annotations for each cell
+#' @export
 automated_annotation <- function(seurat_obj, annotation_method,
                                  reference = "pbmcref", azimuth_assay = "RNA",
                                  azimuth_levels = c("l1", "l2", "l3")) {
@@ -407,6 +415,7 @@ automated_annotation <- function(seurat_obj, annotation_method,
 #' @param annotations_col The metadata column with the cell types.
 #'
 #' @returns A data.frame with a row for each cell type.
+#' @export
 cell_type_clusters <- function(seurat_obj, clusters_col = "seurat_clusters",
                                annotations_col) {
    seurat_obj[[]] %>%
@@ -434,6 +443,7 @@ cell_type_clusters <- function(seurat_obj, clusters_col = "seurat_clusters",
 #' @param desired_k The desired number of clusters.
 #'
 #' @returns The Seurat object with clusters at the resolution that matches desired_k.
+#' @export
 find_k_clusters <- function(seurat_obj, graph_name = "RNA_snn", desired_k) {
    for (res in seq(0.1, 2, by = 0.1)) {
       cat(paste0("Checking resolution ", res, ": "))

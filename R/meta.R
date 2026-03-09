@@ -8,6 +8,7 @@
 #'   sample, and subject information.
 #'
 #' @returns A text description of the provided metadata file.
+#' @export
 print_metadata_summary <- function(meta_file) {
   for (disease in unique(meta_file$Disease)) {
     meta_disease <- meta_file %>% filter(Disease == disease)

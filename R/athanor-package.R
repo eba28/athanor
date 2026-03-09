@@ -74,6 +74,7 @@
 #' @importFrom ggplot2 scale_y_discrete
 #' @importFrom ggplot2 theme
 #' @importFrom grDevices colorRampPalette
+#' @importFrom knitr kable
 #' @importFrom Matrix Matrix
 #' @importFrom patchwork plot_layout
 #' @importFrom patchwork wrap_plots

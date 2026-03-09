@@ -18,6 +18,7 @@
 #'
 #' @returns A tibble with columns: sample_id, subject_id, SampleType, DataType, Dataset,
 #'   EstimatedNumberofCells, NumberofReads, ReadsPerCell.
+#' @export
 create_metrics_summary <- function(meta, path_data_specific,
                                    data_types, samples_list) {
   metrics_summary <- tibble()
@@ -71,6 +72,7 @@ create_metrics_summary <- function(meta, path_data_specific,
 #' @param barcode_col The column in the data that contains the barcodes.
 #'
 #' @returns A character vector of reformatted barcodes.
+#' @export
 reformat_vdj_barcode_sample <- function(data, sample_name,
                                         barcode_col = "barcode") {
   unlist(lapply(strsplit(as.character(data[[barcode_col]]), "-"),
@@ -89,6 +91,7 @@ reformat_vdj_barcode_sample <- function(data, sample_name,
 #' @param col_output Name for the output column.
 #'
 #' @returns A character vector of unique cell identifiers.
+#' @export
 reformat_vdj_barcode <- function(data, col_samples = "sample_id",
                                  col_barcodes = "cell_id",
                                  col_output = "cell_id") {
@@ -123,6 +126,7 @@ reformat_vdj_barcode <- function(data, col_samples = "sample_id",
 #'   the correct order if plotting barcodes.
 #'
 #' @returns A ggplot2 barplot.
+#' @export
 plot_counts <- function(summary_df, data_types = "All", count_type,
                         aggregation_state = "Unaggregated",
                         fill_type_label = "Data Type",
@@ -199,6 +203,7 @@ plot_counts <- function(summary_df, data_types = "All", count_type,
 #' @param details The optional subtitle.
 #'
 #' @returns A grid of four plots with UMAPs in the left column and bar plots in the right column.
+#' @export
 layout_doublets <- function(seurat_obj, tissue_type, clrs_specific,
                             use_hues = FALSE, group_col = "seurat_clusters",
                             group_label = NULL,

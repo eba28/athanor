@@ -9,6 +9,7 @@
 #' @param separator Separator for gene and cell names.
 #'
 #' @returns A Seurat object
+#' @export
 sim_gex_manual <- function(num_genes = 1000, num_cells = 2000,
                            separator = "-") {
   # set up the counts matrix
@@ -45,6 +46,7 @@ sim_gex_manual <- function(num_genes = 1000, num_cells = 2000,
 #'
 #' @returns A Seurat object containing the simulated gene expression data with
 #'   metadata and cell identifiers
+#' @export
 sim_gex_splatter <- function(num_genes = 1000, num_cells = 2000,
                              splatter_groups = 1, splatter_method = "single",
                              seed = 42, verbose = FALSE) {
@@ -87,6 +89,7 @@ sim_gex_splatter <- function(num_genes = 1000, num_cells = 2000,
 #' @param separator Separator for cell and dimension names.
 #'
 #' @returns A Seurat Assay
+#' @export
 sim_bcr_manual <- function(num_cells, num_dims, separator) {
   # simulate a matrix of immune2vec-style embeddings
   bcr_embeddings <- round(runif(n = num_cells * num_dims,
@@ -106,6 +109,7 @@ sim_bcr_manual <- function(num_cells, num_dims, separator) {
 }
 
 
+#' @export
 run_wnn_sims <- function(count_range, sim_var, other_vars,
                          show_progress = FALSE) {
   # setup
@@ -156,6 +160,7 @@ run_wnn_sims <- function(count_range, sim_var, other_vars,
 #' @param count_range A numeric vector specifying the range of counts that were tested in the manual WNN testing, used for setting the x-axis breaks in the plot.
 #'
 #' @returns A ggplot object showing the step plot of the WNN testing results, with the x-axis representing the count of the varied variable and the y-axis representing whether Seurat's WNN computation passed (1), failed (0), or gave a warning (0.5). The plot includes a title indicating the variable that was varied and a subtitle listing the other variables that were held constant.
+#' @export
 plot_wnn_testing <- function(manual_wnn_test, sim_var,
                              other_vars, count_range) {
   # don't include the test var in the subtitle info
@@ -202,6 +207,7 @@ plot_wnn_testing <- function(manual_wnn_test, sim_var,
 #' @param show_output Whether or not to show verbose output from Seurat functions.
 #'
 #' @returns A Seurat object with WNN run.
+#' @export
 run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                     pc_bcr = 20, k_param = 20, k_main = 20, cluster = TRUE,
                     cluster_res = list("GEX" = 1, "BCR" = 1, "JC" = 1),
@@ -399,6 +405,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
 #' @param other_type The second assay. Defaults to "BCR".
 #'
 #' @returns A text message.
+#' @export
 extract_wnn_vars <- function(seurat_obj, gex_pca = "rpca",
                              other_pca = "bpca", other_type = "BCR") {
   # base message (after AIRR integration)
@@ -478,6 +485,7 @@ extract_wnn_vars <- function(seurat_obj, gex_pca = "rpca",
 #' @param clrs_specific A specific (must have names) color palette for the clusters. If not provided, the default Seurat colors will be used.
 #'
 #' @returns A combined plot of the GEX, BCR, and WNN UMAPs colored by the specified metadata column.
+#' @export
 plot_wnn_umaps <- function(seurat_obj, data_source = "Manual",
                            airr_type = "BCR",
                            airr_processing = "Embeddings",
@@ -551,6 +559,7 @@ plot_wnn_umaps <- function(seurat_obj, data_source = "Manual",
 #' @param y_axis_label Label for the y-axis.
 #'
 #' @returns A ggplot with the distribution of weights
+#' @export
 plot_mws <- function(seurat_obj, details = "", second_assay = "BCR",
                      clrs_specific = named_colors$mu_freq_bins,
                      split_by = "mu_freq_bins",

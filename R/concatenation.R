@@ -32,6 +32,7 @@
 #'   - PCA reduction (`rna_bcr.pca`)
 #'   - UMAP reduction (`rna_bcr.umap`)
 #'   - Neighbor graphs computed on the combined data
+#' @export
 concatenate_gex_bcr <- function(seurat_obj, pca_stage = "Before",
                                 cols_to_include, var_features = FALSE,
                                 normalize = TRUE, num_dims = 20, # k
