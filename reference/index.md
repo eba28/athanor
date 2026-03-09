@@ -146,6 +146,13 @@
 - [`plot_wnn_umaps()`](https://eba28.github.io/athanor/reference/plot_wnn_umaps.md)
   : This function gives a summary of the post-WNN object.
 
+- [`print_dt()`](https://eba28.github.io/athanor/reference/print_dt.md)
+  : Displays a sortable, scrollable DataTable table when the R Markdown
+  file knits.
+
+- [`print_kable()`](https://eba28.github.io/athanor/reference/print_kable.md)
+  : Display a nicely formatted table when the R Markdown file knits
+
 - [`print_metadata_summary()`](https://eba28.github.io/athanor/reference/print_metadata_summary.md)
   : Give an overview of the data in terms of files, samples and
   datasets.

@@ -9,6 +9,8 @@ Useful links:
 
 - <https://github.com/eba28/athanor>
 
+- <https://eba28.github.io/athanor/>
+
 - Report bugs at <https://github.com/eba28/athanor/issues>
 
 ## Author
