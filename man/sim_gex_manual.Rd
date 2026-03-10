@@ -2,7 +2,7 @@
 % Please edit documentation in R/wnn.R
 \name{sim_gex_manual}
 \alias{sim_gex_manual}
-\title{Manual simulation of GEX data.}
+\title{Manually simulate gene expression data}
 \usage{
 sim_gex_manual(num_genes = 1000, num_cells = 2000, separator = "-")
 }
@@ -17,7 +17,9 @@ sim_gex_manual(num_genes = 1000, num_cells = 2000, separator = "-")
 A Seurat object
 }
 \description{
-Manual simulation of GEX data.
+This function simulates gene expression data by generating a matrix of counts using a Poisson distribution, where the rate parameter is set to 0.5.
+The resulting matrix is then converted to a sparse matrix format and formatted with gene and cell names.
+Finally, a Seurat object is created from the counts matrix, and metadata is added with cell identifiers.
 }
 \details{
 Partially based off of \href{http://gateway.training.ncgr.org/single-cell-workshop/seurat.html}{Single Cell workshop: Chapter 6}

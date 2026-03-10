@@ -2,7 +2,7 @@
 % Please edit documentation in R/reclassification.R
 \name{calc_nn_frac}
 \alias{calc_nn_frac}
-\title{This function calculation the proportion of the neighbors that are mutated or unmutated.}
+\title{Calculate the proportion of a cell's neighbors that are mutated or unmutated}
 \usage{
 calc_nn_frac(seurat_obj, assay = "WNN", plot_title = "", category = "mutated")
 }
@@ -19,7 +19,9 @@ calc_nn_frac(seurat_obj, assay = "WNN", plot_title = "", category = "mutated")
 A data.frame and a plot.
 }
 \description{
-This function calculation the proportion of the neighbors that are mutated or unmutated.
+This function calculates the proportion of neighbors that are mutated or unmutated for each cell in a Seurat object.
+It uses the neighbor information stored in the Seurat object to determine the mutation status of neighboring cells and computes the fraction accordingly.
+The function also generates a plot to visualize the distribution of mutated or unmutated neighbors across different cell types.
 }
 \details{
 Assumes that WNN neighbors are stored in "w.nn".

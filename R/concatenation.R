@@ -1,18 +1,21 @@
 #' Concatenate GEX and BCR data in a Seurat object
 #'
+#' @description
 #' Creates a new assay combining gene expression (GEX) and B-cell receptor (BCR)
 #' data by concatenating processed BCR features with RNA data. Runs the standard
 #' Seurat pipeline on the combined data.
 #'
-#' @details The function:
+#' @details
+#' The function:
 #'   1. Extracts specified BCR metadata columns from the Seurat object
-#'   2. Processes BCR features using process_bcr_features()
+#'   2. Processes BCR features using `process_bcr_features()`
 #'   3. Creates a new assay by row-binding RNA and BCR data
 #'   4. Optionally filters out IG/TR genes from variable features
 #'   5. Runs standard Seurat workflow: normalize, scale, PCA, neighbors, UMAP
 #'
-#' @note Currently assumes BCR data is already integrated into object metadata.
-#'   See integrate_gex_airr() for adding AIRR data to a Seurat object.
+#' @note
+#' Currently assumes BCR data is already integrated into object metadata.
+#' See `integrate_gex_airr()` for adding AIRR data to a Seurat object.
 #'
 #' @param seurat_obj A Seurat object containing RNA assay and BCR metadata.
 #' @param pca_stage Add BCR information before PCA or after PCA.
@@ -27,7 +30,8 @@
 #'   T-cell receptor (TR) genes from variable features. Requires `remove_genes`
 #'   to be defined in the environment.
 #'
-#' @return A Seurat object with:
+#' @return
+#' A Seurat object with:
 #'   - New `RNA_BCR` assay containing concatenated GEX and BCR features
 #'   - PCA reduction (`rna_bcr.pca`)
 #'   - UMAP reduction (`rna_bcr.umap`)

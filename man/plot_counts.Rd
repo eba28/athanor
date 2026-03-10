@@ -39,7 +39,6 @@ the correct order if plotting barcodes.}
 A ggplot2 barplot.
 }
 \description{
-This function generates bar plots showing read counts, cell counts, or barcode
-counts for quality control purposes. Can display data split by data type,
-sample, or other grouping variables.
+This function generates bar plots showing read counts, cell counts, or barcode counts for quality control purposes.
+Can display data split by data type, sample, or other grouping variables.
 }

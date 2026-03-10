@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{print_dt}
 \alias{print_dt}
-\title{Displays a sortable, scrollable DataTable table when the R Markdown file knits.}
+\title{Display a sortable, scrollable \code{DataTable} table}
 \usage{
 print_dt(table, dt_width = "800px")
 }
@@ -15,5 +15,5 @@ print_dt(table, dt_width = "800px")
 A DataTable table.
 }
 \description{
-Displays a sortable, scrollable DataTable table when the R Markdown file knits.
+Display a sortable, scrollable \code{DataTable} table
 }

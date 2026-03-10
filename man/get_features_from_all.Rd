@@ -2,7 +2,7 @@
 % Please edit documentation in R/gex.R
 \name{get_features_from_all}
 \alias{get_features_from_all}
-\title{Get specific markers from the marker genes database}
+\title{Get specific markers from a marker genes database}
 \usage{
 get_features_from_all(
   markers_df,

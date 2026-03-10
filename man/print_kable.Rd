@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{print_kable}
 \alias{print_kable}
-\title{Display a nicely formatted table when the R Markdown file knits}
+\title{Display a nicely formatted table}
 \usage{
 print_kable(table, kable_height = "500px", kable_width = "100\%")
 }

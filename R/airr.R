@@ -1,3 +1,6 @@
+#' Read in and process output files from nf-core/airrflow
+#'
+#' @description
 #' This function reads airrflow's repertoire files, processes them to add
 #' subject and sample information, computes CDR3 amino acid properties, and adds
 #' gene family information.
@@ -124,6 +127,9 @@ process_airrflow <- function(dataset_path, version_airrflow) {
 }
 
 
+#' Plot UMAPs with AIRR overlays
+#'
+#' @description
 #' This function plots the annotated UMAPs alongside the BCR/TCR overlays.
 #'
 #' @details
@@ -245,7 +251,7 @@ plot_immune_overlay <- function(seurat_obj, tissue_type, airr_type,
 }
 
 
-#' Add in family and gene information from `alakazam.`
+#' Add in family and gene information from `alakazam`
 #'
 #' @description
 #' Extracts and adds V, D, and J gene family and gene information to an AIRR-formatted
@@ -284,20 +290,20 @@ add_family_info <- function(combined_airr) {
 }
 
 
-#' Convert family and gene information to factors with proper ordering.
+#' Convert family and gene information to sorted factors
 #'
 #' @description
-#' Converts the gene family and gene columns added by add_family_info() to
+#' Converts the gene family and gene columns added by `add_family_info()` to
 #' properly ordered factors using numeric sorting.
 #'
 #' @details
-#' For after add_family_info() has been run
+#' For after `add_family_info()` has been run
 #'
 #' @param combined_airr An AIRR-formatted data.frame. This function ensures that gene
 #' families and genes are ordered correctly (e.g., IGHV1, IGHV2, IGHV10 instead
 #' of IGHV1, IGHV10, IGHV2).
 #'
-#' @returns A data.frame with up to six columns converted to properly ordered factors.
+#' @returns A data.frame with up to six columns converted to sorted factors.
 #' @export
 factor_family_info <- function(combined_airr) {
   if ("v_call" %in% names(combined_airr)) {
@@ -338,6 +344,10 @@ factor_family_info <- function(combined_airr) {
 
 
 #' Bin the mutation frequency
+#'
+#' @description
+#' Bins the `mu_freq` column in a Seurat object into specified categories (e.g., 0%, 0-1%, 1-5%, etc.) for easier visualization and analysis.
+#' The function creates new columns with binned mutation frequencies based on the provided number of bins.
 #'
 #' @details
 #' The bins are (most likely) not going to be equal sizes.
@@ -389,6 +399,7 @@ bin_mu_freq <- function(seurat_obj, num_bins = c(2, 3, 5)) {
 
 #' Process BCR features for integration
 #'
+#' @description
 #' Processes BCR features by renaming columns, converting ordered/categorical
 #' variables to numeric representations, and normalizing all features. This
 #' prepares BCR data for integration with gene expression data in a Seurat object.
@@ -448,7 +459,12 @@ process_bcr_features <- function(bcr_features) {
 }
 
 
-#' Convert from the output of an embeddings method to a `Matrix` matrix.
+#' Convert the output of an embedding method to a matrix
+#'
+#' @description
+#' This function takes the output from an embedding method (e.g., AntiBERTy, ESM2, immune2vec) and converts it into a `Matrix` matrix format that can be used for downstream analysis.
+#' It handles the mapping of cell IDs from the embeddings to the combined AIRR data, ensuring that only cells present in both datasets are retained.
+#' The resulting matrix has features as rows and cells as columns, with appropriate column names based on the number of dimensions in the embeddings.
 #'
 #' @details
 #' Assume that all inputs can be provided as tsv files.

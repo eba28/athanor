@@ -2,7 +2,7 @@
 % Please edit documentation in R/wnn.R
 \name{run_wnn}
 \alias{run_wnn}
-\title{This function runs Weighted Nearest Neighbor (WNN) analysis on combined GEX and BCR data.}
+\title{Runs Weighted Nearest Neighbors (WNN) analysis on combined GEX and BCR data}
 \usage{
 run_wnn(
   seurat_obj,
@@ -45,7 +45,9 @@ run_wnn(
 A Seurat object with WNN run.
 }
 \description{
-This function runs Weighted Nearest Neighbor (WNN) analysis on combined GEX and BCR data.
+This function takes a Seurat object containing gene expression (GEX) data and a matrix of BCR embeddings, and performs WNN analysis to integrate the two modalities.
+It processes each assay separately (normalization, variable feature selection, scaling, PCA, neighbor finding, UMAP), then finds multimodal neighbors and runs clustering if specified.
+The function also adds metadata about modality weights and run information to the resulting Seurat object.
 }
 \details{
 \itemize{

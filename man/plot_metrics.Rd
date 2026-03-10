@@ -2,7 +2,7 @@
 % Please edit documentation in R/evaluation.R
 \name{plot_metrics}
 \alias{plot_metrics}
-\title{This function plots the internal/external clustering metrics.}
+\title{Plot the internal or external clustering metrics}
 \usage{
 plot_metrics(
   metrics,
@@ -33,7 +33,9 @@ plot_metrics(
 A ggplot showing the metrics across embeddings and reductions, with the best scores outlined.
 }
 \description{
-This function plots the internal/external clustering metrics.
+This function creates a ggplot visualization of the internal or external clustering metrics across different embeddings and reductions.
+It uses a color scale to represent the metric scores and outlines the best scores for each label and metric combination, as well as the best scores across reductions.
+The plot is faceted by metric and reduction for easy comparison.
 }
 \details{
 Make sure to check that the best score is consistent across your plotting metrics.

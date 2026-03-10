@@ -2,7 +2,7 @@
 % Please edit documentation in R/airr.R
 \name{factor_family_info}
 \alias{factor_family_info}
-\title{Convert family and gene information to factors with proper ordering.}
+\title{Convert family and gene information to sorted factors}
 \usage{
 factor_family_info(combined_airr)
 }
@@ -12,12 +12,12 @@ families and genes are ordered correctly (e.g., IGHV1, IGHV2, IGHV10 instead
 of IGHV1, IGHV10, IGHV2).}
 }
 \value{
-A data.frame with up to six columns converted to properly ordered factors.
+A data.frame with up to six columns converted to sorted factors.
 }
 \description{
-Converts the gene family and gene columns added by add_family_info() to
+Converts the gene family and gene columns added by \code{add_family_info()} to
 properly ordered factors using numeric sorting.
 }
 \details{
-For after add_family_info() has been run
+For after \code{add_family_info()} has been run
 }

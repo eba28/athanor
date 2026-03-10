@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotting.R
 \name{vln_feat_plot}
 \alias{vln_feat_plot}
-\title{Plots a Seurat \code{VlnPlot} and a \code{FeaturePlot} side by side for the same marker}
+\title{Plot a Seurat \code{VlnPlot} and a \code{FeaturePlot} side by side for the same marker}
 \usage{
 vln_feat_plot(
   seurat_obj,
@@ -27,7 +27,8 @@ vln_feat_plot(
 Two patchworked Seurat plots.
 }
 \description{
-Plots a Seurat \code{VlnPlot} and a \code{FeaturePlot} side by side for the same marker
+This function generates a side-by-side visualization of a Seurat \code{VlnPlot} and a \code{FeaturePlot} for a specified marker, allowing for a comprehensive comparison of expression levels across different groups and spatial distribution on the UMAP.
+The \code{VlnPlot} will display the distribution of expression levels across specified groups, while the \code{FeaturePlot} will show the spatial localization of the marker on the UMAP, with higher expressing cells highlighted on top for better visibility.
 }
 \details{
 Will put the highest expressing cells on top for the latter.

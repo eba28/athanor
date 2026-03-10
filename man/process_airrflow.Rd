@@ -2,9 +2,7 @@
 % Please edit documentation in R/airr.R
 \name{process_airrflow}
 \alias{process_airrflow}
-\title{This function reads airrflow's repertoire files, processes them to add
-subject and sample information, computes CDR3 amino acid properties, and adds
-gene family information.}
+\title{Read in and process output files from nf-core/airrflow}
 \usage{
 process_airrflow(dataset_path, version_airrflow)
 }

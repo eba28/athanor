@@ -2,7 +2,7 @@
 % Please edit documentation in R/evaluation.R
 \name{calc_distances}
 \alias{calc_distances}
-\title{This function calculates cluster distances for the given Seurat object.}
+\title{Calculates cluster distances for a Seurat object}
 \usage{
 calc_distances(
   seurat_obj,
@@ -27,7 +27,9 @@ calc_distances(
 A data.frame with a row per metric and cluster containing the score.
 }
 \description{
-This function calculates cluster distances for the given Seurat object.
+This function calculates various cluster distance metrics using the \code{fpc::cluster.stats} function, which provides a comprehensive set of clustering statistics based on a distance matrix and cluster assignments.
+The function computes both single-value metrics (e.g., Calinski-Harabasz index) and cluster-wise metrics (e.g., average within-cluster distance) depending on the specified criteria.
+The results are returned in a tidy data frame format for easy plotting and comparison across different embeddings and reductions.
 }
 \details{
 The \code{as.factor()} is needed in case you give a categorical cluster col.

@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotting.R
 \name{plot_umap_condition}
 \alias{plot_umap_condition}
-\title{Plot a specific condition on a Seurat UMAPPlot.}
+\title{Plot a specific condition on a Seurat UMAP}
 \usage{
 plot_umap_condition(
   seurat_obj,
@@ -45,7 +45,7 @@ plot_umap_condition(
 A Seurat UMAPPlot.
 }
 \description{
-Plot a specific condition on a Seurat UMAPPlot.
+This function generates a UMAP plot from a Seurat object using \code{DimPlot} with various customizable options for coloring, labeling, and grouping the data based on a specific condition of interest.
 }
 \details{
 Based on: https://github.com/satijalab/seurat/issues/1053

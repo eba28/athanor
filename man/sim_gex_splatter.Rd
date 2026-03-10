@@ -2,7 +2,7 @@
 % Please edit documentation in R/wnn.R
 \name{sim_gex_splatter}
 \alias{sim_gex_splatter}
-\title{Simulate gene expression data using Splatter and convert to Seurat object}
+\title{Simulate gene expression data using Splatter}
 \usage{
 sim_gex_splatter(
   num_genes = 1000,
@@ -22,7 +22,7 @@ sim_gex_splatter(
 
 \item{splatter_method}{Splatter simulation method. Defaults to "single".}
 
-\item{seed}{andom seed for reproducible simulations. Defaults to 42.}
+\item{seed}{Random seed for reproducible simulations. Defaults to 42.}
 
 \item{verbose}{Whether or not to print verbose output. Defaults to FALSE.}
 }
@@ -31,7 +31,9 @@ A Seurat object containing the simulated gene expression data with
 metadata and cell identifiers
 }
 \description{
-Simulate gene expression data using Splatter and convert to Seurat object
+This function simulates gene expression data using the Splatter package, which generates synthetic single-cell RNA-seq data based on a specified set of parameters.
+The function allows for customization of the number of genes, cells, simulation method, group probabilities, and random seed for reproducibility.
+The resulting simulated data is then converted into a Seurat object with appropriate metadata and cell identifiers.
 }
 \details{
 Splatter doesn't use a separator for its fake names.

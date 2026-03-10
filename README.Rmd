@@ -5,12 +5,8 @@ output: github_document
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-",
-  out.width = "100%"
-)
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>",
+                      fig.path = "man/figures/README-", out.width = "100%")
 ```
 
 # athanor
@@ -18,7 +14,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of athanor is to ...
+The goal of athanor is to integrate gene expression (GEX) and B cell receptor (BCR) data to improve B cell subtyping. The package provides functions for data preprocessing, feature extraction, weighted nearest neighbors, and plotting..
 
 ## Installation
 

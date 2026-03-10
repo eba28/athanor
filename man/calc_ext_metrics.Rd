@@ -2,7 +2,7 @@
 % Please edit documentation in R/evaluation.R
 \name{calc_ext_metrics}
 \alias{calc_ext_metrics}
-\title{This function calculates external clustering metrics for the given Seurat object.}
+\title{Calculate external clustering metrics for a Seurat object}
 \usage{
 calc_ext_metrics(
   seurat_obj,
@@ -27,11 +27,11 @@ calc_ext_metrics(
 A data.frame with a row per metric containing the combined score.
 }
 \description{
-This function calculates external clustering metrics for the given Seurat object.
+This function calculates various external clustering metrics using the \code{mclust} and \code{clevr} packages, which provide a comprehensive set of clustering evaluation statistics based on true cluster labels and predicted cluster assignments.
 }
 \details{
 The Satija lab used \code{cluster} for their analyses.
 The \code{as.factor()} is needed in case you give a categorical cluster col.
-sklearn.metrics.cluster has completeness_score and homogeneity_score
+\code{sklearn.metrics.cluster} has \code{completeness_score} and \code{homogeneity_score}
 Assumes you're using the embeddings approach.
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotting.R
 \name{plot_pcts}
 \alias{plot_pcts}
-\title{Plot percentages.}
+\title{Plot percentages in a stacked bar plot}
 \usage{
 plot_pcts(
   pcts,
@@ -25,7 +25,7 @@ plot_pcts(
 )
 }
 \arguments{
-\item{pcts}{The output of \code{calc_pcts}.}
+\item{pcts}{The output of \code{calc_pcts()}.}
 
 \item{tissue_type}{The type of tissue being plotted e.g. Blood or Skin.}
 
@@ -63,13 +63,13 @@ plot_pcts(
 A stacked ggplot bar plot
 }
 \description{
-This function plots a stacked bar plot of percentages with percentages
+This function plots a stacked bar plot of percentages calculated using \code{calc_pcts()} with percentages
 labeled and total counts on top.
 }
 \details{
 Give the percentages already as percents (* 100 in the calculations).
-Make sure pcts includes Dataset if you want to split by dataset.
+Make sure \code{pcts} includes Dataset if you want to split by dataset.
 Note that the percentages may seem inaccurate because of the accuracy.
-There was a big issue with the combo of geom_text() & facet_grid().
+There was a big issue with the combo of \code{geom_text()} & \code{facet_grid()}.
 This assumes that you want to show the counts for binary plots.
 }

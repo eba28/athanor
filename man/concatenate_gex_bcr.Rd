@@ -52,7 +52,7 @@ Seurat pipeline on the combined data.
 The function:
 \enumerate{
 \item Extracts specified BCR metadata columns from the Seurat object
-\item Processes BCR features using process_bcr_features()
+\item Processes BCR features using \code{process_bcr_features()}
 \item Creates a new assay by row-binding RNA and BCR data
 \item Optionally filters out IG/TR genes from variable features
 \item Runs standard Seurat workflow: normalize, scale, PCA, neighbors, UMAP
@@ -60,5 +60,5 @@ The function:
 }
 \note{
 Currently assumes BCR data is already integrated into object metadata.
-See integrate_gex_airr() for adding AIRR data to a Seurat object.
+See \code{integrate_gex_airr()} for adding AIRR data to a Seurat object.
 }

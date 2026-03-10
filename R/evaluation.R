@@ -18,7 +18,12 @@
 # predicted_labels <- seurat_obj$annotated_clusters_simpler
 # distances <- cluster_distances(umap_embeddings, predicted_labels)
 
-#' This function calculates cluster distances for the given Seurat object.
+#' Calculates cluster distances for a Seurat object
+#'
+#' @description
+#' This function calculates various cluster distance metrics using the `fpc::cluster.stats` function, which provides a comprehensive set of clustering statistics based on a distance matrix and cluster assignments.
+#' The function computes both single-value metrics (e.g., Calinski-Harabasz index) and cluster-wise metrics (e.g., average within-cluster distance) depending on the specified criteria.
+#' The results are returned in a tidy data frame format for easy plotting and comparison across different embeddings and reductions.
 #'
 #' @details
 #' The `as.factor()` is needed in case you give a categorical cluster col.
@@ -146,13 +151,16 @@ calc_distances <- function(seurat_obj, reduction_name, criteria = "Within_Max",
 }
 
 
-#' This function calculates internal clustering metrics for the given Seurat object.
+#' Calculate internal clustering metrics for a Seurat object
+#'
+#' @description
+#' This function calculates various internal clustering metrics using the `cluster` package, which provides a comprehensive set of clustering evaluation statistics based on a distance matrix and cluster assignments.
 #'
 #' @details
 #' The Satija lab used `cluster` for their analyses.
 #' The `as.factor()` is needed in case you give a categorical cluster col.
 #' Use the `bluster` package for speed if desired e.g.
-#' bluster::approxSilhouette(x = embeddings, clusters = clusters)
+#' `bluster::approxSilhouette(x = embeddings, clusters = clusters)`
 #' Assumes you're using the embeddings approach.
 #'
 #' @param seurat_obj The post-WNN Seurat object.
@@ -223,12 +231,15 @@ calc_int_metrics <- function(seurat_obj, reduction_name,
 }
 
 
-#' This function calculates external clustering metrics for the given Seurat object.
+#' Calculate external clustering metrics for a Seurat object
+#'
+#' @description
+#' This function calculates various external clustering metrics using the `mclust` and `clevr` packages, which provide a comprehensive set of clustering evaluation statistics based on true cluster labels and predicted cluster assignments.
 #'
 #' @details
 #' The Satija lab used `cluster` for their analyses.
 #' The `as.factor()` is needed in case you give a categorical cluster col.
-#' sklearn.metrics.cluster has completeness_score and homogeneity_score
+#' `sklearn.metrics.cluster` has `completeness_score` and `homogeneity_score`
 #' Assumes you're using the embeddings approach.
 #'
 #' @param seurat_obj The post-WNN Seurat object.
@@ -284,7 +295,12 @@ calc_ext_metrics <- function(seurat_obj, reduction_name,
 }
 
 
-#' This function plots the internal/external clustering metrics.
+#' Plot the internal or external clustering metrics
+#'
+#' @description
+#' This function creates a ggplot visualization of the internal or external clustering metrics across different embeddings and reductions.
+#' It uses a color scale to represent the metric scores and outlines the best scores for each label and metric combination, as well as the best scores across reductions.
+#' The plot is faceted by metric and reduction for easy comparison.
 #'
 #' @details
 #' Make sure to check that the best score is consistent across your plotting metrics.
@@ -342,7 +358,10 @@ plot_metrics <- function(metrics, plot_title = "", best_score = "higher",
 }
 
 
-#' Calculate homogeneity scores for binary ADT feature across embeddings
+#' Calculate homogeneity scores for binary ADT features across embeddings
+#'
+#' @description
+#' This function calculates homogeneity scores for binary ADT features across different embeddings and reductions in a Seurat object.
 #'
 #' @param seurat_objs List of Seurat objects for each embedding type.
 #' @param meta_res Named list of cluster columns for each reduction.
@@ -404,7 +423,10 @@ calc_adt_scores <- function(seurat_objs, meta_res, metric_type, metrics,
 }
 
 
-#' Compute per-cell mean ADT distance to its k nearest neighbors from a base assay
+#' Compute mean ADT distance to each cell's k nearest neighbors
+#'
+#' @description
+#' This function calculates the mean distance (or similarity) of each cell's ADT profile to its k nearest neighbors in a specified neighbor space (e.g., RNA, BCR, WNN) using a chosen distance metric (e.g., mean absolute difference, Manhattan distance, Euclidean distance, or cosine similarity).
 #'
 #' @details
 #' Pearson correlation coefficient measures linear relationships.
@@ -512,7 +534,10 @@ calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
 }
 
 
-#' Compute per-cell mean ADT distance to its k nearest neighbors from a base assay
+#' Compute mean ADT distance to each cell's k nearest neighbors (faster version)
+#'
+#' @description
+#' This function calculates the mean distance of each cell's ADT profile to its k nearest neighbors in a specified neighbor space (e.g., RNA, BCR, WNN) using Euclidean distance. It returns a named numeric vector of per-cell mean distances.
 #'
 #' @details
 #' Only returns the mean.
@@ -552,8 +577,9 @@ calc_adt_dists_fast <- function(adt_data, features, neighbors,
 }
 
 
-#' calculate the proportion of neighbors within an ADT expression range
+#' Calculate the proportion of neighbors within an ADT marker's expression range
 #'
+#' @description
 #' For each cell in a Seurat object, this function calculates how many of its
 #' k nearest neighbors have ADT expression within a specified threshold (default
 #' 20%) of the cell's own ADT expression for a given feature.
@@ -631,7 +657,11 @@ calc_adt_nn_within_range <- function(seurat_obj, adt_assay = "ADT", feature,
 }
 
 
-#' Calculate the neighbor matching scores across metadata columns.
+#' Calculate neighbor matching scores across metadata columns
+#'
+#' @description
+#' This function calculates the proportion of neighbors that match each cell's metadata category for specified metadata columns and ADT features.
+#' It can also perform permutations to generate a random baseline for comparison. The results can be saved to a specified path.
 #'
 #' @details
 #' `cell_id`s are saved for subsetting later if desired.

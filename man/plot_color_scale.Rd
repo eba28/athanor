@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotting.R
 \name{plot_color_scale}
 \alias{plot_color_scale}
-\title{Generates a proper color scale for a Seurat DotPlot (with white at zero).}
+\title{Generate a color scale for a Seurat \code{DotPlot} with white at zero}
 \usage{
 plot_color_scale(
   plot,
@@ -24,7 +24,8 @@ plot_color_scale(
 A Seurat dot plot or ggplot with an updated color scale.
 }
 \description{
-Generates a proper color scale for a Seurat DotPlot (with white at zero).
+This function generates a color scale for a Seurat \code{DotPlot} that accurately reflects the expression values, with white representing zero expression.
+It creates a gradient of colors based on the range of expression values in the plot data and applies it to the specified color or fill aesthetic.
 }
 \details{
 Seurat's \code{col} option frequently is misleading with where the zeroes fall.

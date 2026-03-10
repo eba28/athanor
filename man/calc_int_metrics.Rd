@@ -2,7 +2,7 @@
 % Please edit documentation in R/evaluation.R
 \name{calc_int_metrics}
 \alias{calc_int_metrics}
-\title{This function calculates internal clustering metrics for the given Seurat object.}
+\title{Calculate internal clustering metrics for a Seurat object}
 \usage{
 calc_int_metrics(
   seurat_obj,
@@ -30,12 +30,12 @@ calc_int_metrics(
 A data.frame with a row per metric containing the combined score.
 }
 \description{
-This function calculates internal clustering metrics for the given Seurat object.
+This function calculates various internal clustering metrics using the \code{cluster} package, which provides a comprehensive set of clustering evaluation statistics based on a distance matrix and cluster assignments.
 }
 \details{
 The Satija lab used \code{cluster} for their analyses.
 The \code{as.factor()} is needed in case you give a categorical cluster col.
 Use the \code{bluster} package for speed if desired e.g.
-bluster::approxSilhouette(x = embeddings, clusters = clusters)
+\code{bluster::approxSilhouette(x = embeddings, clusters = clusters)}
 Assumes you're using the embeddings approach.
 }

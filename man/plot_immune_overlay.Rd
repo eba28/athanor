@@ -2,7 +2,7 @@
 % Please edit documentation in R/airr.R
 \name{plot_immune_overlay}
 \alias{plot_immune_overlay}
-\title{This function plots the annotated UMAPs alongside the BCR/TCR overlays.}
+\title{Plot UMAPs with AIRR overlays}
 \usage{
 plot_immune_overlay(
   seurat_obj,

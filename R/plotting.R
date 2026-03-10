@@ -1,4 +1,4 @@
-#' Add an information bar on top of a given plot.
+#' Add an information bar on top of a given ggplot
 #'
 #' @description
 #' This function adds informational strips (facets) to the top of an existing `ggplot2`.
@@ -80,7 +80,7 @@ add_info_bar <- function(plot, method = "contains", info_type, info,
 }
 
 
-#' Bar plot with stacked percentages.
+#' Calculate percentages per metadata group
 #'
 #' @description
 #' This function calculates the percentage of occurrences of a specified focus group within a dataset, grouped by specified metadata columns.
@@ -126,20 +126,20 @@ calc_pcts <- function(data, meta_group_by = c("sample_id", "Dataset"),
 }
 
 
-#' Plot percentages.
+#' Plot percentages in a stacked bar plot
 #'
 #' @description
-#' This function plots a stacked bar plot of percentages with percentages
+#' This function plots a stacked bar plot of percentages calculated using `calc_pcts()` with percentages
 #' labeled and total counts on top.
 #'
 #' @details
 #' Give the percentages already as percents (* 100 in the calculations).
-#' Make sure pcts includes Dataset if you want to split by dataset.
+#' Make sure `pcts` includes Dataset if you want to split by dataset.
 #' Note that the percentages may seem inaccurate because of the accuracy.
-#' There was a big issue with the combo of geom_text() & facet_grid().
+#' There was a big issue with the combo of `geom_text()` & `facet_grid()`.
 #' This assumes that you want to show the counts for binary plots.
 #'
-#' @param pcts The output of `calc_pcts`.
+#' @param pcts The output of `calc_pcts()`.
 #' @param tissue_type The type of tissue being plotted e.g. Blood or Skin.
 #' @param clrs_specific A specific (must have names) color palette.
 #' @param plot_type One of `All`, `Binary`.
@@ -277,7 +277,11 @@ plot_pcts <- function(pcts, tissue_type, clrs_specific,
 }
 
 
-#' Generates a proper color scale for a Seurat DotPlot (with white at zero).
+#' Generate a color scale for a Seurat `DotPlot` with white at zero
+#'
+#' @description
+#' This function generates a color scale for a Seurat `DotPlot` that accurately reflects the expression values, with white representing zero expression.
+#' It creates a gradient of colors based on the range of expression values in the plot data and applies it to the specified color or fill aesthetic.
 #'
 #' @details
 #' Seurat's `col` option frequently is misleading with where the zeroes fall.
@@ -324,14 +328,14 @@ plot_color_scale <- function(plot, palette = rev(pals::brewer.rdbu(n = 7)),
 }
 
 
-#' Add AIRR (and other) info along the right side of an existing Seurat DotPlot.
+#' Add AIRR (and other) info along the right side of an existing Seurat `DotPlot`
 #'
 #' @description
 #' This function enhances dot plots by adding adaptive immune receptor repertoire (AIRR)
 #' information and other metadata along the right side for easy comparison. Currently
 #' supports cluster size, mean mutation frequency, and BCR/TCR percentages.
 #'
-#' @param plot The generated Seurat DotPlot.
+#' @param plot The generated Seurat `DotPlot`.
 #' @param seurat_obj The Seurat object containing the data.
 #' @param row_identity The y axis identities.
 #' @param facet_col The column to facet by e.g. "Cell_Type_Full".
@@ -469,7 +473,11 @@ plot_dot_airr <- function(plot, seurat_obj, row_identity = "seurat_clusters",
 }
 
 
-#' Plots a Seurat `VlnPlot` and a `FeaturePlot` side by side for the same marker
+#' Plot a Seurat `VlnPlot` and a `FeaturePlot` side by side for the same marker
+#'
+#' @description
+#' This function generates a side-by-side visualization of a Seurat `VlnPlot` and a `FeaturePlot` for a specified marker, allowing for a comprehensive comparison of expression levels across different groups and spatial distribution on the UMAP.
+#' The `VlnPlot` will display the distribution of expression levels across specified groups, while the `FeaturePlot` will show the spatial localization of the marker on the UMAP, with higher expressing cells highlighted on top for better visibility.
 #'
 #' @details
 #' Will put the highest expressing cells on top for the latter.
@@ -505,16 +513,19 @@ vln_feat_plot <- function(seurat_obj, feature, assay = "RNA", group_col = NULL,
 }
 
 
-#' This function plots a Seurat UMAP(s) in several useful ways.
+#' Plot Seurat UMAP(s) in several useful ways
+#'
+#' @description
+#' This function generates UMAP plots from a Seurat object with various customizable options for coloring, labeling, and grouping the data.
+#' It allows for flexible visualization based on different metadata columns, cluster annotations, and specific clusters of interest, making it easier to explore and interpret the underlying structure of the data.
 #'
 #' @details
 #' Includes whether or not the object has been annotated with specific cell types.
 #'
-#'
 #' @param seurat_obj The Seurat object.
 #' @param tissue_type Blood, Skin.
 #' @param clrs_specific The specific color palette (should be named).
-#' @param use_hues Use the iwanthue hues instead of the default ggplot colors. Doesn't let you set any other settings.
+#' @param use_hues Use the `iwanthue` hues instead of the default ggplot colors. Doesn't let you set any other settings.
 #' @param plot_by What to plot by: by dataset, by sample type (control vs EM/blood), by cluster, by sample, with all samples, or with all subjects.
 #' @param specific_clusters Can overlay clusters of interest e.g. B cell or by #.
 #' @param specific_col Overlay a specific column in the object e.g. "annotated_clusters" or "sample_id". Overrides the other options.
@@ -713,7 +724,10 @@ plot_umap <- function(seurat_obj, tissue_type = "", clrs_specific,
 }
 
 
-#' This function plots a Seurat UMAP using `DimPlot`
+#' Plot a Seurat UMAP using `DimPlot`
+#'
+#' @description
+#' This function generates a UMAP plot from a Seurat object using `DimPlot` with various customizable options for coloring, labeling, and grouping the data.
 #'
 #' @param seurat_obj The Seurat object.
 #' @param data_source The dataset of origin.
@@ -828,7 +842,10 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 }
 
 
-#' Plot a specific condition on a Seurat UMAPPlot.
+#' Plot a specific condition on a Seurat UMAP
+#'
+#' @description
+#' This function generates a UMAP plot from a Seurat object using `DimPlot` with various customizable options for coloring, labeling, and grouping the data based on a specific condition of interest.
 #'
 #' @details
 #' Based on: https://github.com/satijalab/seurat/issues/1053
@@ -927,12 +944,16 @@ plot_umap_condition <- function(seurat_obj, tissue_type, clrs_specific,
 }
 
 
-#' Plots several UMAPs side by side for a Seurat object.
+#' Plot several UMAPs side by side for a Seurat object
+#'
+#' @description
+#' This function generates multiple UMAP plots from a Seurat object with various customizable options for coloring, labeling, and grouping the data based on different metadata columns, cluster annotations, and specific clusters of interest.
+#' It allows for a comprehensive overview of the data across different embedding types (e.g. RNA, ADT, BCR) and comparisons (e.g. annotated clusters, V call families, isotypes), making it easier to explore and interpret the underlying structure of the data.
 #'
 #' @details
 #' The names of the seurat_objs list correspond with embedding_types.
 #' Assumes that CellTypist is the annotation approach being used.
-#' data_source is set to empty to save on space
+#' `data_source` is set to empty to save on space.
 #'
 #' @param seurat_objs List of WNN objects with different embedding types.
 #' @param data_source Dataset description.
@@ -940,7 +961,7 @@ plot_umap_condition <- function(seurat_obj, tissue_type, clrs_specific,
 #' @param second_assay The second assay to use in the title if plotting a WNN reduction.
 #' @param assay_name The name of the assay to use in the title. By default, it will be set based on the reduction (e.g. "GEX" for "rna.umap", "BCR" for "bcr.umap", and "GEX & BCR" for "wnn.umap").
 #' @param reduction Which reduction to plot ("rna.umap", "bcr.umap", or "wnn.umap").
-#' @param comparisons The labelling of the plots.
+#' @param comparisons The labeling of the plots.
 #'
 #' @return patchwork object with overview plots
 #' @export

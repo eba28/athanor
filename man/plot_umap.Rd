@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotting.R
 \name{plot_umap}
 \alias{plot_umap}
-\title{This function plots a Seurat UMAP(s) in several useful ways.}
+\title{Plot Seurat UMAP(s) in several useful ways}
 \usage{
 plot_umap(
   seurat_obj,
@@ -32,7 +32,7 @@ plot_umap(
 
 \item{clrs_specific}{The specific color palette (should be named).}
 
-\item{use_hues}{Use the iwanthue hues instead of the default ggplot colors. Doesn't let you set any other settings.}
+\item{use_hues}{Use the \code{iwanthue} hues instead of the default ggplot colors. Doesn't let you set any other settings.}
 
 \item{plot_by}{What to plot by: by dataset, by sample type (control vs EM/blood), by cluster, by sample, with all samples, or with all subjects.}
 
@@ -66,7 +66,8 @@ plot_umap(
 A Seurat UMAPPlot.
 }
 \description{
-This function plots a Seurat UMAP(s) in several useful ways.
+This function generates UMAP plots from a Seurat object with various customizable options for coloring, labeling, and grouping the data.
+It allows for flexible visualization based on different metadata columns, cluster annotations, and specific clusters of interest, making it easier to explore and interpret the underlying structure of the data.
 }
 \details{
 Includes whether or not the object has been annotated with specific cell types.

@@ -1,4 +1,4 @@
-#' Give an overview of the data in terms of files, samples and datasets.
+#' Give an overview of the data in terms of files, samples and datasets
 #'
 #' @description
 #' This function provides a summary of metadata files, printing information about the number of subjects, samples, and total files for each disease in the dataset.

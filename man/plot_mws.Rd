@@ -2,7 +2,7 @@
 % Please edit documentation in R/wnn.R
 \name{plot_mws}
 \alias{plot_mws}
-\title{This function plots a boxplot of modality weights per cell type.}
+\title{Plot a box plot of modality weights per cell type}
 \usage{
 plot_mws(
   seurat_obj,
@@ -30,7 +30,7 @@ plot_mws(
 A ggplot with the distribution of weights
 }
 \description{
-This function plots a boxplot of modality weights per cell type.
+This function creates a box plot to visualize the distribution of modality weights (e.g., RNA vs. BCR) across different cell types or clusters in a post-WNN Seurat object.
 }
 \details{
 Assumes annotated_clusters is a column

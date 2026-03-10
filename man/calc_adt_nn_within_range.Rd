@@ -2,7 +2,7 @@
 % Please edit documentation in R/evaluation.R
 \name{calc_adt_nn_within_range}
 \alias{calc_adt_nn_within_range}
-\title{calculate the proportion of neighbors within an ADT expression range}
+\title{Calculate the proportion of neighbors within an ADT marker's expression range}
 \usage{
 calc_adt_nn_within_range(
   seurat_obj,

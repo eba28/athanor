@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{reduce_object}
 \alias{reduce_object}
-\title{Reduce Seurat object size for efficient storage and apps}
+\title{Reduce a Seurat object's size}
 \usage{
 reduce_object(
   seurat_obj,

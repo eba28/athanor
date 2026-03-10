@@ -2,7 +2,7 @@
 % Please edit documentation in R/wnn.R
 \name{extract_wnn_vars}
 \alias{extract_wnn_vars}
-\title{This function gives a summary of the post-WNN object.}
+\title{Give a summary of a Seurat object post-WNN}
 \usage{
 extract_wnn_vars(
   seurat_obj,
@@ -24,7 +24,7 @@ extract_wnn_vars(
 A text message.
 }
 \description{
-This function gives a summary of the post-WNN object.
+This function generates a summary message about the post-WNN Seurat object, including the number of cells, details about the assays (e.g., number of genes, markers, embedding dimensions), information about the reductions used for WNN, and the number of clusters identified in each modality (RNA, BCR, and WNN) based on the largest resolutions.
 }
 \details{
 Assumes that embeddings were used (for now) and that the object has RNA.

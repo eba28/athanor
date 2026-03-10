@@ -2,7 +2,7 @@
 % Please edit documentation in R/gex.R
 \name{automated_annotation}
 \alias{automated_annotation}
-\title{This function runs automated annotation using specified methods.}
+\title{Run automated cell type annotation}
 \usage{
 automated_annotation(
   seurat_obj,
@@ -27,11 +27,11 @@ automated_annotation(
 A data.frame with the annotations for each cell
 }
 \description{
-This function runs automated annotation using specified methods.
+This function runs automated cell type annotation using either \code{Azimuth} or \code{CellTypist}.
 }
 \details{
 Supports Azimuth and CellTypist annotation methods.
 Assumes that the \code{Cells()} of \code{seurat_obj} are properly formatted (i.e. unique).
-For Azimuth with a Seurat v5 object, all of the layers have to be joined.
-For CellTypist, assumes the H5AD file and predictions have already been generated.
+For \code{Azimuth} with a Seurat v5 object, all of the layers have to be joined.
+For \code{CellTypist}, assumes the H5AD file and predictions have already been generated.
 }

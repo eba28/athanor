@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotting.R
 \name{add_info_bar}
 \alias{add_info_bar}
-\title{Add an information bar on top of a given plot.}
+\title{Add an information bar on top of a given ggplot}
 \usage{
 add_info_bar(
   plot,

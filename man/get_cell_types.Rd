@@ -2,7 +2,7 @@
 % Please edit documentation in R/gex.R
 \name{get_cell_types}
 \alias{get_cell_types}
-\title{Pulls the info needed for \code{add_info_bar()} to a \code{DotPlot}}
+\title{Gets the information needed using \code{add_info_bar()} on a \code{DotPlot}}
 \usage{
 get_cell_types(markers_df)
 }
@@ -13,5 +13,6 @@ get_cell_types(markers_df)
 A data.frame with Cell_Type_Full and features.plot columns
 }
 \description{
-Pulls the info needed for \code{add_info_bar()} to a \code{DotPlot}
+This function takes the filtered markers dataframe and selects the relevant columns to be used for adding an info bar to a DotPlot.
+It renames the Marker column to features.plot and formats the Cell_Type_Full column for better readability.
 }

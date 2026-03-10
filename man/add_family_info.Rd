@@ -2,7 +2,7 @@
 % Please edit documentation in R/airr.R
 \name{add_family_info}
 \alias{add_family_info}
-\title{Add in family and gene information from \code{alakazam.}}
+\title{Add in family and gene information from \code{alakazam}}
 \usage{
 add_family_info(combined_airr)
 }

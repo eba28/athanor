@@ -2,7 +2,7 @@
 % Please edit documentation in R/quality_control.R
 \name{layout_doublets}
 \alias{layout_doublets}
-\title{This function plots an overview of a doublet identification method}
+\title{Plot an overview of a doublet identification method}
 \usage{
 layout_doublets(
   seurat_obj,
@@ -23,7 +23,7 @@ layout_doublets(
 
 \item{clrs_specific}{The specific color palette (should be named).}
 
-\item{use_hues}{Use the iwanthue hues instead of the default ggplot colors. Doesn't let you set any other settings.}
+\item{use_hues}{Use the \code{iwanthue} hues instead of the default ggplot colors. Doesn't let you set any other settings.}
 
 \item{group_col}{The column to group by.}
 
@@ -39,10 +39,11 @@ layout_doublets(
 A grid of four plots with UMAPs in the left column and bar plots in the right column.
 }
 \description{
-This function plots an overview of a doublet identification method
+This function creates a grid of four plots to visualize the results of a doublet identification method.
+The left column contains UMAP plots colored by doublet/singlet status and by clusters/annotations, while the right column contains bar plots showing the counts and percentages of doublets across clusters or annotations.
 }
 \details{
-It assumes that named_colors$doublet has been defined.
+It assumes that \code{named_colors$doublet} has been defined.
 Depends on other plots.
 The doublets will be plotted "on top" for the first UMAP.
 }

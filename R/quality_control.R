@@ -1,4 +1,4 @@
-#' Create a table with info from 10x's metric summary file(s)
+#' Create a table with info from 10x Genomics' metric summary file(s)
 #'
 #' @description
 #' This function reads and combines metrics summary files from 10x Genomics Cell Ranger
@@ -7,7 +7,6 @@
 #'
 #' @details
 #' You can provide a specific list of samples or data types to create summaries for if you don't want to use everything in the given metadata file.
-#'
 #'
 #' @param meta The metadata file containing sample and dataset information.
 #' @param path_data_specific Where the data is located (path to the data directory).
@@ -109,9 +108,8 @@ reformat_vdj_barcode <- function(data, col_samples = "sample_id",
 #' Create bar plots of read or cell counts for quality control
 #'
 #' @description
-#' This function generates bar plots showing read counts, cell counts, or barcode
-#' counts for quality control purposes. Can display data split by data type,
-#' sample, or other grouping variables.
+#' This function generates bar plots showing read counts, cell counts, or barcode counts for quality control purposes.
+#' Can display data split by data type, sample, or other grouping variables.
 #'
 #' @param summary_df Output from create_metrics_summary().
 #' @param data_types Vector of data types to include (e.g. "BCR", "GEX", "TCR").
@@ -185,17 +183,21 @@ plot_counts <- function(summary_df, data_types = "All", count_type,
 }
 
 
-#' This function plots an overview of a doublet identification method
+#' Plot an overview of a doublet identification method
+#'
+#' @description
+#' This function creates a grid of four plots to visualize the results of a doublet identification method.
+#' The left column contains UMAP plots colored by doublet/singlet status and by clusters/annotations, while the right column contains bar plots showing the counts and percentages of doublets across clusters or annotations.
 #'
 #' @details
-#' It assumes that named_colors$doublet has been defined.
+#' It assumes that `named_colors$doublet` has been defined.
 #' Depends on other plots.
 #' The doublets will be plotted "on top" for the first UMAP.
 #'
 #' @param seurat_obj The Seurat object.
 #' @param tissue_type Blood, Skin.
 #' @param clrs_specific The specific color palette (should be named).
-#' @param use_hues Use the iwanthue hues instead of the default ggplot colors. Doesn't let you set any other settings.
+#' @param use_hues Use the `iwanthue` hues instead of the default ggplot colors. Doesn't let you set any other settings.
 #' @param group_col The column to group by.
 #' @param group_label The label for the grouping variable to use in the plot titles and axis labels. If NULL, it will be determined based on the group_col name.
 #' @param doublet_col The column containing the doublets information

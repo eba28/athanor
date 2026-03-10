@@ -1,4 +1,4 @@
-#' Display a nicely formatted table when the R Markdown file knits
+#' Display a nicely formatted table
 #'
 #' @description
 #' This function creates a formatted table with scrolling capability for use in
@@ -21,7 +21,7 @@ print_kable <- function(table, kable_height = "500px", kable_width = "100%") {
 }
 
 
-#' Displays a sortable, scrollable DataTable table when the R Markdown file knits.
+#' Display a sortable, scrollable `DataTable` table
 #'
 #' @param table The input data frame to be printed.
 #' @param dt_width The width of the output table.
@@ -34,7 +34,7 @@ print_dt <- function(table, dt_width = "800px") {
 }
 
 
-#' Reduce Seurat object size for efficient storage and apps
+#' Reduce a Seurat object's size
 #'
 #' @description
 #' This function reduces a Seurat object by removing count matrices and keeping only

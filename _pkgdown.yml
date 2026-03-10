@@ -2,5 +2,5 @@ url: https://eba28.github.io/athanor/
 template:
   bootstrap: 5
   # bootswatch: flatly
-  theme: github-light
-  theme-dark: github-dark
+  theme: atom-one-light
+  theme-dark: atom-one-dark

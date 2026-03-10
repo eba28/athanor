@@ -2,7 +2,7 @@
 % Please edit documentation in R/gex.R
 \name{find_k_clusters}
 \alias{find_k_clusters}
-\title{Find the right clustering resolution to obtain desired number of clusters}
+\title{Find the right clustering resolution to obtain the desired number of clusters}
 \usage{
 find_k_clusters(seurat_obj, graph_name = "RNA_snn", desired_k)
 }

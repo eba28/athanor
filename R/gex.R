@@ -1,8 +1,12 @@
-#' Runs Seurat's clustering pipeline with given parameters.
+#' Runs Seurat's standard pipeline
+#'
+#' @description
+#' This function takes a Seurat object containing combined GEX data and runs the standard Seurat pipeline for normalization, scaling, dimensionality reduction, clustering, and UMAP visualization.
+#' It includes optional filtering of IG/TR genes and allows for customization of various parameters such as the number of variable features, principal components, and clustering resolution.
 #'
 #' @details
 #' It is highly recommended to save the resulting object as an RDS or qs file.
-#' For filter_genes, we assume that `features_meta` is already loaded and `remove_genes` defined.
+#' For `filter_genes`, we assume that `features_meta` is already loaded and `remove_genes` defined.
 #' This pipeline is loosely based on [Seurat's pipeline](https://satijalab.org/seurat/articles/pbmc3k_tutorial).
 #' Unlike previous analyses, `features = rownames(obj)` was removed from the `ScaleData` step since the data is too large and only the top variable features are needed to do `RunPCA`.
 #'
@@ -92,7 +96,11 @@ seurat_pipeline <- function(seurat_obj, nfeatures_RNA = 200, perc_mt = 15,
 }
 
 
-#' Visualize how many cells are in each Seurat cluster or cell type.
+#' Visualize how many cells are in each Seurat cluster or cell type
+#'
+#' @description
+#' This function generates a bar plot showing the number of cells in each Seurat cluster or cell type, optionally filled by another annotation (e.g. annotated clusters).
+#' It allows for customization of the x-axis, fill colors, and plot titles.
 #'
 #' @param seurat_obj The Seurat object containing the clusters and/or cell type annotations to plot.
 #' @param tissue_type The tissue type of interest e.g. "Blood" or "Skin".
@@ -168,7 +176,7 @@ plot_counts_cluster <- function(seurat_obj, tissue_type = "", clrs_specific,
 }
 
 
-#' Get specific markers from the marker genes database
+#' Get specific markers from a marker genes database
 #'
 #' @description
 #' This function returns specific markers from the "all" marker genes dataframe
@@ -215,7 +223,11 @@ get_features_from_all <- function(markers_df, sources, contains, tissue_types,
 }
 
 
-#' Pulls the info needed for `add_info_bar()` to a `DotPlot`
+#' Gets the information needed using `add_info_bar()` on a `DotPlot`
+#'
+#' @description
+#' This function takes the filtered markers dataframe and selects the relevant columns to be used for adding an info bar to a DotPlot.
+#' It renames the Marker column to features.plot and formats the Cell_Type_Full column for better readability.
 #'
 #' @param markers_df The markers data.frame filtered to match your input features
 #'
@@ -229,7 +241,11 @@ get_cell_types <- function(markers_df) {
 }
 
 
-#' Generates a title for the DotPlot
+#' Generates a title for a `DotPlot`
+#'
+#' @description
+#' This function generates a title for a DotPlot by combining a provided dataset description with a formatted list of marker sources.
+#' The marker sources are sorted, formatted to replace underscores with spaces, and concatenated into a comma-separated string enclosed in parentheses.
 #'
 #' @param plot_title Dataset description
 #' @param marker_sources The list of marker sources
@@ -244,7 +260,7 @@ gen_dot_title <- function(plot_title = "", marker_sources) {
 }
 
 
-#' Display markers from a filtered marker database as a table
+#' Display markers from a filtered marker genes database as a table
 #'
 #' @description
 #' This function takes a filtered marker genes dataframe and returns a formatted
@@ -264,7 +280,7 @@ source_markers <- function(filtered_markers_df) {
 }
 
 
-#' Add user-specified list of cluster annotations to a Seurat object
+#' Add a user-specified list of cluster annotations to a Seurat object
 #'
 #' @description
 #' This function adds a user-specified list of cluster annotations to the Seurat object.
@@ -320,13 +336,16 @@ add_annotations <- function(seurat_obj, annotations_df,
 }
 
 
-#' This function runs automated annotation using specified methods.
+#' Run automated cell type annotation
+#'
+#' @description
+#' This function runs automated cell type annotation using either `Azimuth` or `CellTypist`.
 #'
 #' @details
 #' Supports Azimuth and CellTypist annotation methods.
 #' Assumes that the `Cells()` of `seurat_obj` are properly formatted (i.e. unique).
-#' For Azimuth with a Seurat v5 object, all of the layers have to be joined.
-#' For CellTypist, assumes the H5AD file and predictions have already been generated.
+#' For `Azimuth` with a Seurat v5 object, all of the layers have to be joined.
+#' For `CellTypist`, assumes the H5AD file and predictions have already been generated.
 #'
 #' @param seurat_obj The Seurat object. Must be the path to a H5AD object if using CellTypist.
 #' @param annotation_method Which method to use: c("Azimuth", "CellTypist")
@@ -408,7 +427,11 @@ automated_annotation <- function(seurat_obj, annotation_method,
 }
 
 
-#' This function maps the cell types to the Seurat clusters
+#' Map cell types to Seurat clusters
+#'
+#' @description
+#' This function maps cell types to Seurat clusters by counting the number of cells in each cluster that belong to each cell type, and then assigning the most common cell type to each cluster.
+#' It returns a data frame with the assigned cell types for each cluster.
 #'
 #' @param seurat_obj The Seurat object.
 #' @param clusters_col The metadata column with the Seurat clusters.
@@ -431,7 +454,7 @@ cell_type_clusters <- function(seurat_obj, clusters_col = "seurat_clusters",
 }
 
 
-#' Find the right clustering resolution to obtain desired number of clusters
+#' Find the right clustering resolution to obtain the desired number of clusters
 #'
 #' @description
 #' This function iteratively tests clustering resolutions in Seurat to find the resolution

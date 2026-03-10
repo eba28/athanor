@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotting.R
 \name{plot_dimplot}
 \alias{plot_dimplot}
-\title{This function plots a Seurat UMAP using \code{DimPlot}}
+\title{Plot a Seurat UMAP using \code{DimPlot}}
 \usage{
 plot_dimplot(
   seurat_obj,
@@ -66,5 +66,5 @@ plot_dimplot(
 A Seurat UMAPPlot.
 }
 \description{
-This function plots a Seurat UMAP using \code{DimPlot}
+This function generates a UMAP plot from a Seurat object using \code{DimPlot} with various customizable options for coloring, labeling, and grouping the data.
 }

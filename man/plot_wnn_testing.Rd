@@ -2,7 +2,7 @@
 % Please edit documentation in R/wnn.R
 \name{plot_wnn_testing}
 \alias{plot_wnn_testing}
-\title{Plot the results of the manual WNN testing.}
+\title{Plot the results of manual WNN testing}
 \usage{
 plot_wnn_testing(manual_wnn_test, sim_var, other_vars, count_range)
 }
@@ -19,5 +19,5 @@ plot_wnn_testing(manual_wnn_test, sim_var, other_vars, count_range)
 A ggplot object showing the step plot of the WNN testing results, with the x-axis representing the count of the varied variable and the y-axis representing whether Seurat's WNN computation passed (1), failed (0), or gave a warning (0.5). The plot includes a title indicating the variable that was varied and a subtitle listing the other variables that were held constant.
 }
 \description{
-Plot the results of the manual WNN testing.
+This function creates a step plot to visualize the results of manual WNN testing, showing how the success of Seurat's WNN computation changes as the count of a specific variable is varied while keeping other variables constant.
 }

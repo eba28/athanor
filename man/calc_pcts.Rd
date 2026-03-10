@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotting.R
 \name{calc_pcts}
 \alias{calc_pcts}
-\title{Bar plot with stacked percentages.}
+\title{Calculate percentages per metadata group}
 \usage{
 calc_pcts(
   data,

@@ -2,7 +2,7 @@
 % Please edit documentation in R/meta.R
 \name{print_metadata_summary}
 \alias{print_metadata_summary}
-\title{Give an overview of the data in terms of files, samples and datasets.}
+\title{Give an overview of the data in terms of files, samples and datasets}
 \usage{
 print_metadata_summary(meta_file)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/gex_airr.R
 \name{gex_add_airr}
 \alias{gex_add_airr}
-\title{Add AIRR information to a GEX Seurat object}
+\title{Add AIRR information to a Seurat object}
 \usage{
 gex_add_airr(
   seurat_obj,

@@ -15,7 +15,8 @@ bin_mu_freq(seurat_obj, num_bins = c(2, 3, 5))
 The provided Seurat object with a new binned mu_freq column.
 }
 \description{
-Bin the mutation frequency
+Bins the \code{mu_freq} column in a Seurat object into specified categories (e.g., 0\%, 0-1\%, 1-5\%, etc.) for easier visualization and analysis.
+The function creates new columns with binned mutation frequencies based on the provided number of bins.
 }
 \details{
 The bins are (most likely) not going to be equal sizes.

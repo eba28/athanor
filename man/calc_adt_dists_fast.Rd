@@ -2,7 +2,7 @@
 % Please edit documentation in R/evaluation.R
 \name{calc_adt_dists_fast}
 \alias{calc_adt_dists_fast}
-\title{Compute per-cell mean ADT distance to its k nearest neighbors from a base assay}
+\title{Compute mean ADT distance to each cell's k nearest neighbors (faster version)}
 \usage{
 calc_adt_dists_fast(adt_data, features, neighbors, exclude_self = TRUE)
 }
@@ -16,7 +16,7 @@ calc_adt_dists_fast(adt_data, features, neighbors, exclude_self = TRUE)
 \item{exclude_self}{Drop the cell itself from neighbors if present.}
 }
 \description{
-Compute per-cell mean ADT distance to its k nearest neighbors from a base assay
+This function calculates the mean distance of each cell's ADT profile to its k nearest neighbors in a specified neighbor space (e.g., RNA, BCR, WNN) using Euclidean distance. It returns a named numeric vector of per-cell mean distances.
 }
 \details{
 Only returns the mean.

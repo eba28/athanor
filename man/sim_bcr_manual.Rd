@@ -2,7 +2,7 @@
 % Please edit documentation in R/wnn.R
 \name{sim_bcr_manual}
 \alias{sim_bcr_manual}
-\title{This simulates an assay made from BCR embeddings independently of any GEX objects}
+\title{Simulate an assay made from BCR embeddings independent of any GEX object}
 \usage{
 sim_bcr_manual(num_cells, num_dims, separator)
 }
@@ -17,8 +17,8 @@ sim_bcr_manual(num_cells, num_dims, separator)
 A Seurat Assay
 }
 \description{
-This simulates an assay made from BCR embeddings independently of any GEX objects
+This function simulates an assay of BCR embeddings by generating a matrix of random values between -0.6 and 0.6, with a specified number of cells and embedding dimensions.
 }
 \details{
-The choice of value ranges was based off the real COVID-19 data, including having 9 decimal points
+The choice of value ranges was based off of real data, including having 9 decimal points.
 }

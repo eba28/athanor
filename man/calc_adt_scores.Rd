@@ -2,7 +2,7 @@
 % Please edit documentation in R/evaluation.R
 \name{calc_adt_scores}
 \alias{calc_adt_scores}
-\title{Calculate homogeneity scores for binary ADT feature across embeddings}
+\title{Calculate homogeneity scores for binary ADT features across embeddings}
 \usage{
 calc_adt_scores(
   seurat_objs,
@@ -30,5 +30,5 @@ calc_adt_scores(
 Data frame of scores for each embedding/reduction.
 }
 \description{
-Calculate homogeneity scores for binary ADT feature across embeddings
+This function calculates homogeneity scores for binary ADT features across different embeddings and reductions in a Seurat object.
 }

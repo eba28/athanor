@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotting.R
 \name{plot_dot_airr}
 \alias{plot_dot_airr}
-\title{Add AIRR (and other) info along the right side of an existing Seurat DotPlot.}
+\title{Add AIRR (and other) info along the right side of an existing Seurat \code{DotPlot}}
 \usage{
 plot_dot_airr(
   plot,
@@ -13,7 +13,7 @@ plot_dot_airr(
 )
 }
 \arguments{
-\item{plot}{The generated Seurat DotPlot.}
+\item{plot}{The generated Seurat \code{DotPlot}.}
 
 \item{seurat_obj}{The Seurat object containing the data.}
 

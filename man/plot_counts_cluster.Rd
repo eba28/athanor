@@ -2,7 +2,7 @@
 % Please edit documentation in R/gex.R
 \name{plot_counts_cluster}
 \alias{plot_counts_cluster}
-\title{Visualize how many cells are in each Seurat cluster or cell type.}
+\title{Visualize how many cells are in each Seurat cluster or cell type}
 \usage{
 plot_counts_cluster(
   seurat_obj,
@@ -36,5 +36,6 @@ plot_counts_cluster(
 A ggplot bar plot of cell counts.
 }
 \description{
-Visualize how many cells are in each Seurat cluster or cell type.
+This function generates a bar plot showing the number of cells in each Seurat cluster or cell type, optionally filled by another annotation (e.g. annotated clusters).
+It allows for customization of the x-axis, fill colors, and plot titles.
 }

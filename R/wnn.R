@@ -1,8 +1,12 @@
-#' Manual simulation of GEX data.
+#' Manually simulate gene expression data
+#'
+#' @description
+#' This function simulates gene expression data by generating a matrix of counts using a Poisson distribution, where the rate parameter is set to 0.5.
+#' The resulting matrix is then converted to a sparse matrix format and formatted with gene and cell names.
+#' Finally, a Seurat object is created from the counts matrix, and metadata is added with cell identifiers.
 #'
 #' @details
 #' Partially based off of [Single Cell workshop: Chapter 6](http://gateway.training.ncgr.org/single-cell-workshop/seurat.html)
-#'
 #'
 #' @param num_genes Number of genes to simulate.
 #' @param num_cells Number of cells to simulate.
@@ -32,7 +36,12 @@ sim_gex_manual <- function(num_genes = 1000, num_cells = 2000,
 }
 
 
-#' Simulate gene expression data using Splatter and convert to Seurat object
+#' Simulate gene expression data using Splatter
+#'
+#' @description
+#' This function simulates gene expression data using the Splatter package, which generates synthetic single-cell RNA-seq data based on a specified set of parameters.
+#' The function allows for customization of the number of genes, cells, simulation method, group probabilities, and random seed for reproducibility.
+#' The resulting simulated data is then converted into a Seurat object with appropriate metadata and cell identifiers.
 #'
 #' @details
 #' Splatter doesn't use a separator for its fake names.
@@ -41,7 +50,7 @@ sim_gex_manual <- function(num_genes = 1000, num_cells = 2000,
 #' @param num_cells Number of cells to simulate. Defaults to 2000.
 #' @param splatter_method Splatter simulation method. Defaults to "single".
 #' @param splatter_groups Group probabilities for Splatter simulation. Defaults to 1.
-#' @param seed andom seed for reproducible simulations. Defaults to 42.
+#' @param seed Random seed for reproducible simulations. Defaults to 42.
 #' @param verbose Whether or not to print verbose output. Defaults to FALSE.
 #'
 #' @returns A Seurat object containing the simulated gene expression data with
@@ -79,10 +88,13 @@ sim_gex_splatter <- function(num_genes = 1000, num_cells = 2000,
 }
 
 
-#' This simulates an assay made from BCR embeddings independently of any GEX objects
+#' Simulate an assay made from BCR embeddings independent of any GEX object
+#'
+#' @description
+#' This function simulates an assay of BCR embeddings by generating a matrix of random values between -0.6 and 0.6, with a specified number of cells and embedding dimensions.
 #'
 #' @details
-#' The choice of value ranges was based off the real COVID-19 data, including having 9 decimal points
+#' The choice of value ranges was based off of real data, including having 9 decimal points.
 #'
 #' @param num_cells Number of cells to simulate.
 #' @param num_dims Number of embedding dimensions to simulate.
@@ -92,8 +104,7 @@ sim_gex_splatter <- function(num_genes = 1000, num_cells = 2000,
 #' @export
 sim_bcr_manual <- function(num_cells, num_dims, separator) {
   # simulate a matrix of immune2vec-style embeddings
-  bcr_embeddings <- round(runif(n = num_cells * num_dims,
-                                -0.6, 0.6), 9)
+  bcr_embeddings <- round(runif(n = num_cells * num_dims, -0.6, 0.6), 9)
   bcr_embeddings <- Matrix(data = bcr_embeddings,
                            nrow = num_cells, ncol = num_dims,
                            sparse = TRUE)
@@ -152,7 +163,10 @@ run_wnn_sims <- function(count_range, sim_var, other_vars,
 }
 
 
-#' Plot the results of the manual WNN testing.
+#' Plot the results of manual WNN testing
+#'
+#' @description
+#' This function creates a step plot to visualize the results of manual WNN testing, showing how the success of Seurat's WNN computation changes as the count of a specific variable is varied while keeping other variables constant.
 #'
 #' @param manual_wnn_test A data frame containing the results of the manual WNN testing, with columns "Count" and "Passed".
 #' @param sim_var The variable that was varied in the manual WNN testing (e.g., "Genes", "Cells", "Dimensions", "GEX PCs", or "BCR PCs").
@@ -183,7 +197,12 @@ plot_wnn_testing <- function(manual_wnn_test, sim_var,
 }
 
 
-#' This function runs Weighted Nearest Neighbor (WNN) analysis on combined GEX and BCR data.
+#' Runs Weighted Nearest Neighbors (WNN) analysis on combined GEX and BCR data
+#'
+#' @description
+#' This function takes a Seurat object containing gene expression (GEX) data and a matrix of BCR embeddings, and performs WNN analysis to integrate the two modalities.
+#' It processes each assay separately (normalization, variable feature selection, scaling, PCA, neighbor finding, UMAP), then finds multimodal neighbors and runs clustering if specified.
+#' The function also adds metadata about modality weights and run information to the resulting Seurat object.
 #'
 #' @details
 #' * Currently only works for the embeddings approach and BCR data.
@@ -394,7 +413,10 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
 }
 
 
-#' This function gives a summary of the post-WNN object.
+#' Give a summary of a Seurat object post-WNN
+#'
+#' @description
+#' This function generates a summary message about the post-WNN Seurat object, including the number of cells, details about the assays (e.g., number of genes, markers, embedding dimensions), information about the reductions used for WNN, and the number of clusters identified in each modality (RNA, BCR, and WNN) based on the largest resolutions.
 #'
 #' @details
 #' Assumes that embeddings were used (for now) and that the object has RNA.
@@ -468,7 +490,12 @@ extract_wnn_vars <- function(seurat_obj, gex_pca = "rpca",
 }
 
 
-#' This function gives a summary of the post-WNN object.
+#' Plot UMAPs of a Seurat object post-WNN
+#'
+#' @description
+#' This function creates a combined plot of the GEX, BCR, and WNN UMAPs from a post-WNN Seurat object, colored by a specified metadata column (e.g., clusters or cell types).
+#' The function allows for customization of the plot title, point size, color palette, and whether to display metadata labels on the UMAPs.
+#' It uses the `plot_dimplot` function to create individual UMAP plots for each assay and then combines them using `patchwork` for a cohesive visualization.
 #'
 #' @details
 #' Should be able to plot ADT instead of BCR too.
@@ -546,7 +573,10 @@ plot_wnn_umaps <- function(seurat_obj, data_source = "Manual",
 }
 
 
-#' This function plots a boxplot of modality weights per cell type.
+#' Plot a box plot of modality weights per cell type
+#'
+#' @description
+#' This function creates a box plot to visualize the distribution of modality weights (e.g., RNA vs. BCR) across different cell types or clusters in a post-WNN Seurat object.
 #'
 #' @details
 #' Assumes annotated_clusters is a column

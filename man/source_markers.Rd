@@ -2,7 +2,7 @@
 % Please edit documentation in R/gex.R
 \name{source_markers}
 \alias{source_markers}
-\title{Display markers from a filtered marker database as a table}
+\title{Display markers from a filtered marker genes database as a table}
 \usage{
 source_markers(filtered_markers_df)
 }

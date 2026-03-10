@@ -2,7 +2,7 @@
 % Please edit documentation in R/gex.R
 \name{gen_dot_title}
 \alias{gen_dot_title}
-\title{Generates a title for the DotPlot}
+\title{Generates a title for a \code{DotPlot}}
 \usage{
 gen_dot_title(plot_title = "", marker_sources)
 }
@@ -15,5 +15,6 @@ gen_dot_title(plot_title = "", marker_sources)
 A string with sources comma-separated and in parentheses
 }
 \description{
-Generates a title for the DotPlot
+This function generates a title for a DotPlot by combining a provided dataset description with a formatted list of marker sources.
+The marker sources are sorted, formatted to replace underscores with spaces, and concatenated into a comma-separated string enclosed in parentheses.
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/quality_control.R
 \name{create_metrics_summary}
 \alias{create_metrics_summary}
-\title{Create a table with info from 10x's metric summary file(s)}
+\title{Create a table with info from 10x Genomics' metric summary file(s)}
 \usage{
 create_metrics_summary(meta, path_data_specific, data_types, samples_list)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/gex.R
 \name{add_annotations}
 \alias{add_annotations}
-\title{Add user-specified list of cluster annotations to a Seurat object}
+\title{Add a user-specified list of cluster annotations to a Seurat object}
 \usage{
 add_annotations(
   seurat_obj,
