@@ -1,6 +1,9 @@
-# Calculate the neighbor matching scores across metadata columns.
+# Calculate neighbor matching scores across metadata columns
 
-Calculate the neighbor matching scores across metadata columns.
+This function calculates the proportion of neighbors that match each
+cell's metadata category for specified metadata columns and ADT
+features. It can also perform permutations to generate a random baseline
+for comparison. The results can be saved to a specified path.
 
 ## Usage
 

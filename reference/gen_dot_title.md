@@ -1,6 +1,9 @@
-# Generates a title for the DotPlot
+# Generates a title for a `DotPlot`
 
-Generates a title for the DotPlot
+This function generates a title for a DotPlot by combining a provided
+dataset description with a formatted list of marker sources. The marker
+sources are sorted, formatted to replace underscores with spaces, and
+concatenated into a comma-separated string enclosed in parentheses.
 
 ## Usage
 

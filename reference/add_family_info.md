@@ -1,4 +1,4 @@
-# Add in family and gene information from `alakazam.`
+# Add in family and gene information from `alakazam`
 
 Extracts and adds V, D, and J gene family and gene information to an
 AIRR-formatted dataframe using the alakazam package functions.

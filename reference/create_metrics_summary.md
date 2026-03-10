@@ -1,4 +1,4 @@
-# Create a table with info from 10x's metric summary file(s)
+# Create a table with info from 10x Genomics' metric summary file(s)
 
 This function reads and combines metrics summary files from 10x Genomics
 Cell Ranger outputs, extracting key quality control metrics like

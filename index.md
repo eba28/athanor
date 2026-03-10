@@ -1,6 +1,9 @@
 # athanor
 
-The goal of athanor is to …
+The goal of athanor is to integrate gene expression (GEX) and B cell
+receptor (BCR) data to improve B cell subtyping. The package provides
+functions for data preprocessing, feature extraction, weighted nearest
+neighbors, and plotting..
 
 ## Installation
 

@@ -1,4 +1,4 @@
-# Display markers from a filtered marker database as a table
+# Display markers from a filtered marker genes database as a table
 
 This function takes a filtered marker genes dataframe and returns a
 formatted table showing markers organized by cell type.

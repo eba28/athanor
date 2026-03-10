@@ -1,4 +1,4 @@
-# Get specific markers from the marker genes database
+# Get specific markers from a marker genes database
 
 This function returns specific markers from the "all" marker genes
 dataframe based on various filtering criteria including source, cell

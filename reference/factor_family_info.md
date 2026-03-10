@@ -1,7 +1,8 @@
-# Convert family and gene information to factors with proper ordering.
+# Convert family and gene information to sorted factors
 
-Converts the gene family and gene columns added by add_family_info() to
-properly ordered factors using numeric sorting.
+Converts the gene family and gene columns added by
+[`add_family_info()`](https://eba28.github.io/athanor/reference/add_family_info.md)
+to properly ordered factors using numeric sorting.
 
 ## Usage
 
@@ -19,9 +20,10 @@ factor_family_info(combined_airr)
 
 ## Value
 
-A data.frame with up to six columns converted to properly ordered
-factors.
+A data.frame with up to six columns converted to sorted factors.
 
 ## Details
 
-For after add_family_info() has been run
+For after
+[`add_family_info()`](https://eba28.github.io/athanor/reference/add_family_info.md)
+has been run

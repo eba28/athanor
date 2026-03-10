@@ -1,4 +1,4 @@
-# Display a nicely formatted table when the R Markdown file knits
+# Display a nicely formatted table
 
 This function creates a formatted table with scrolling capability for
 use in R Markdown documents. It applies striped styling and makes the

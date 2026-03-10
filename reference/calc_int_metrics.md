@@ -1,7 +1,9 @@
-# This function calculates internal clustering metrics for the given Seurat object.
+# Calculate internal clustering metrics for a Seurat object
 
-This function calculates internal clustering metrics for the given
-Seurat object.
+This function calculates various internal clustering metrics using the
+`cluster` package, which provides a comprehensive set of clustering
+evaluation statistics based on a distance matrix and cluster
+assignments.
 
 ## Usage
 
@@ -53,5 +55,6 @@ A data.frame with a row per metric containing the combined score.
 The Satija lab used `cluster` for their analyses. The
 [`as.factor()`](https://rdrr.io/r/base/factor.html) is needed in case
 you give a categorical cluster col. Use the `bluster` package for speed
-if desired e.g. bluster::approxSilhouette(x = embeddings, clusters =
-clusters) Assumes you're using the embeddings approach.
+if desired e.g.
+`bluster::approxSilhouette(x = embeddings, clusters = clusters)` Assumes
+you're using the embeddings approach.

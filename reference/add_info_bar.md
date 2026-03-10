@@ -1,4 +1,4 @@
-# Add an information bar on top of a given plot.
+# Add an information bar on top of a given ggplot
 
 This function adds informational strips (facets) to the top of an
 existing `ggplot2`.

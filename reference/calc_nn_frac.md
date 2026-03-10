@@ -1,7 +1,11 @@
-# This function calculation the proportion of the neighbors that are mutated or unmutated.
+# Calculate the proportion of a cell's neighbors that are mutated or unmutated
 
-This function calculation the proportion of the neighbors that are
-mutated or unmutated.
+This function calculates the proportion of neighbors that are mutated or
+unmutated for each cell in a Seurat object. It uses the neighbor
+information stored in the Seurat object to determine the mutation status
+of neighboring cells and computes the fraction accordingly. The function
+also generates a plot to visualize the distribution of mutated or
+unmutated neighbors across different cell types.
 
 ## Usage
 

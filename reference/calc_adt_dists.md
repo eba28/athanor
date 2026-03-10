@@ -1,7 +1,10 @@
-# Compute per-cell mean ADT distance to its k nearest neighbors from a base assay
+# Compute mean ADT distance to each cell's k nearest neighbors
 
-Compute per-cell mean ADT distance to its k nearest neighbors from a
-base assay
+This function calculates the mean distance (or similarity) of each
+cell's ADT profile to its k nearest neighbors in a specified neighbor
+space (e.g., RNA, BCR, WNN) using a chosen distance metric (e.g., mean
+absolute difference, Manhattan distance, Euclidean distance, or cosine
+similarity).
 
 ## Usage
 

@@ -1,4 +1,4 @@
-# Reduce Seurat object size for efficient storage and apps
+# Reduce a Seurat object's size
 
 This function reduces a Seurat object by removing count matrices and
 keeping only specified dimensionality reductions. This is especially

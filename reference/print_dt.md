@@ -1,7 +1,6 @@
-# Displays a sortable, scrollable DataTable table when the R Markdown file knits.
+# Display a sortable, scrollable `DataTable` table
 
-Displays a sortable, scrollable DataTable table when the R Markdown file
-knits.
+Display a sortable, scrollable `DataTable` table
 
 ## Usage
 

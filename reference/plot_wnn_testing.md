@@ -1,6 +1,9 @@
-# Plot the results of the manual WNN testing.
+# Plot the results of manual WNN testing
 
-Plot the results of the manual WNN testing.
+This function creates a step plot to visualize the results of manual WNN
+testing, showing how the success of Seurat's WNN computation changes as
+the count of a specific variable is varied while keeping other variables
+constant.
 
 ## Usage
 

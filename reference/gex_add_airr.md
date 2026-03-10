@@ -1,4 +1,4 @@
-# Add AIRR information to a GEX Seurat object
+# Add AIRR information to a Seurat object
 
 This function integrates adaptive immune receptor repertoire (AIRR) data
 with gene expression (GEX) data in a Seurat object. Currently built to

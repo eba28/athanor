@@ -1,6 +1,12 @@
-# Plots several UMAPs side by side for a Seurat object.
+# Plot several UMAPs side by side for a Seurat object
 
-Plots several UMAPs side by side for a Seurat object.
+This function generates multiple UMAP plots from a Seurat object with
+various customizable options for coloring, labeling, and grouping the
+data based on different metadata columns, cluster annotations, and
+specific clusters of interest. It allows for a comprehensive overview of
+the data across different embedding types (e.g. RNA, ADT, BCR) and
+comparisons (e.g. annotated clusters, V call families, isotypes), making
+it easier to explore and interpret the underlying structure of the data.
 
 ## Usage
 
@@ -47,7 +53,7 @@ plot_overview_comps(
 
 - comparisons:
 
-  The labelling of the plots.
+  The labeling of the plots.
 
 ## Value
 
@@ -57,4 +63,4 @@ patchwork object with overview plots
 
 The names of the seurat_objs list correspond with embedding_types.
 Assumes that CellTypist is the annotation approach being used.
-data_source is set to empty to save on space
+`data_source` is set to empty to save on space.

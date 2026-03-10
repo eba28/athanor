@@ -1,6 +1,11 @@
-# Manual simulation of GEX data.
+# Manually simulate gene expression data
 
-Manual simulation of GEX data.
+This function simulates gene expression data by generating a matrix of
+counts using a Poisson distribution, where the rate parameter is set to
+0.5. The resulting matrix is then converted to a sparse matrix format
+and formatted with gene and cell names. Finally, a Seurat object is
+created from the counts matrix, and metadata is added with cell
+identifiers.
 
 ## Usage
 

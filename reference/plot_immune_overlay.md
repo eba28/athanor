@@ -1,4 +1,4 @@
-# This function plots the annotated UMAPs alongside the BCR/TCR overlays.
+# Plot UMAPs with AIRR overlays
 
 This function plots the annotated UMAPs alongside the BCR/TCR overlays.
 

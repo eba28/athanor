@@ -1,6 +1,11 @@
-# Runs Seurat's clustering pipeline with given parameters.
+# Runs Seurat's standard pipeline
 
-Runs Seurat's clustering pipeline with given parameters.
+This function takes a Seurat object containing combined GEX data and
+runs the standard Seurat pipeline for normalization, scaling,
+dimensionality reduction, clustering, and UMAP visualization. It
+includes optional filtering of IG/TR genes and allows for customization
+of various parameters such as the number of variable features, principal
+components, and clustering resolution.
 
 ## Usage
 
@@ -64,8 +69,9 @@ and UMAP.
 ## Details
 
 It is highly recommended to save the resulting object as an RDS or qs
-file. For filter_genes, we assume that `features_meta` is already loaded
-and `remove_genes` defined. This pipeline is loosely based on [Seurat's
+file. For `filter_genes`, we assume that `features_meta` is already
+loaded and `remove_genes` defined. This pipeline is loosely based on
+[Seurat's
 pipeline](https://satijalab.org/seurat/articles/pbmc3k_tutorial). Unlike
 previous analyses, `features = rownames(obj)` was removed from the
 `ScaleData` step since the data is too large and only the top variable

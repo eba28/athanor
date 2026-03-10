@@ -1,6 +1,7 @@
-# This function runs automated annotation using specified methods.
+# Run automated cell type annotation
 
-This function runs automated annotation using specified methods.
+This function runs automated cell type annotation using either `Azimuth`
+or `CellTypist`.
 
 ## Usage
 
@@ -46,6 +47,6 @@ A data.frame with the annotations for each cell
 
 Supports Azimuth and CellTypist annotation methods. Assumes that the
 `Cells()` of `seurat_obj` are properly formatted (i.e. unique). For
-Azimuth with a Seurat v5 object, all of the layers have to be joined.
-For CellTypist, assumes the H5AD file and predictions have already been
-generated.
+`Azimuth` with a Seurat v5 object, all of the layers have to be joined.
+For `CellTypist`, assumes the H5AD file and predictions have already
+been generated.

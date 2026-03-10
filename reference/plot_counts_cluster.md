@@ -1,6 +1,9 @@
-# Visualize how many cells are in each Seurat cluster or cell type.
+# Visualize how many cells are in each Seurat cluster or cell type
 
-Visualize how many cells are in each Seurat cluster or cell type.
+This function generates a bar plot showing the number of cells in each
+Seurat cluster or cell type, optionally filled by another annotation
+(e.g. annotated clusters). It allows for customization of the x-axis,
+fill colors, and plot titles.
 
 ## Usage
 

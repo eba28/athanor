@@ -1,6 +1,11 @@
-# This function plots the internal/external clustering metrics.
+# Plot the internal or external clustering metrics
 
-This function plots the internal/external clustering metrics.
+This function creates a ggplot visualization of the internal or external
+clustering metrics across different embeddings and reductions. It uses a
+color scale to represent the metric scores and outlines the best scores
+for each label and metric combination, as well as the best scores across
+reductions. The plot is faceted by metric and reduction for easy
+comparison.
 
 ## Usage
 

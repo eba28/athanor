@@ -1,7 +1,11 @@
-# Simulate gene expression data using Splatter and convert to Seurat object
+# Simulate gene expression data using Splatter
 
-Simulate gene expression data using Splatter and convert to Seurat
-object
+This function simulates gene expression data using the Splatter package,
+which generates synthetic single-cell RNA-seq data based on a specified
+set of parameters. The function allows for customization of the number
+of genes, cells, simulation method, group probabilities, and random seed
+for reproducibility. The resulting simulated data is then converted into
+a Seurat object with appropriate metadata and cell identifiers.
 
 ## Usage
 
@@ -36,7 +40,7 @@ sim_gex_splatter(
 
 - seed:
 
-  andom seed for reproducible simulations. Defaults to 42.
+  Random seed for reproducible simulations. Defaults to 42.
 
 - verbose:
 

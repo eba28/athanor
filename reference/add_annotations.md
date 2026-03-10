@@ -1,4 +1,4 @@
-# Add user-specified list of cluster annotations to a Seurat object
+# Add a user-specified list of cluster annotations to a Seurat object
 
 This function adds a user-specified list of cluster annotations to the
 Seurat object. It can be used for both manual and automated annotation,

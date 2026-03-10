@@ -1,4 +1,4 @@
-# calculate the proportion of neighbors within an ADT expression range
+# Calculate the proportion of neighbors within an ADT marker's expression range
 
 For each cell in a Seurat object, this function calculates how many of
 its k nearest neighbors have ADT expression within a specified threshold

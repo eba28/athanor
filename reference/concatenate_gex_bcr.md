@@ -72,7 +72,8 @@ The function:
 
 1.  Extracts specified BCR metadata columns from the Seurat object
 
-2.  Processes BCR features using process_bcr_features()
+2.  Processes BCR features using
+    [`process_bcr_features()`](https://eba28.github.io/athanor/reference/process_bcr_features.md)
 
 3.  Creates a new assay by row-binding RNA and BCR data
 
@@ -84,4 +85,4 @@ The function:
 ## Note
 
 Currently assumes BCR data is already integrated into object metadata.
-See integrate_gex_airr() for adding AIRR data to a Seurat object.
+See `integrate_gex_airr()` for adding AIRR data to a Seurat object.

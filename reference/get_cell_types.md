@@ -1,8 +1,9 @@
-# Pulls the info needed for `add_info_bar()` to a `DotPlot`
+# Gets the information needed using `add_info_bar()` on a `DotPlot`
 
-Pulls the info needed for
-[`add_info_bar()`](https://eba28.github.io/athanor/reference/add_info_bar.md)
-to a `DotPlot`
+This function takes the filtered markers dataframe and selects the
+relevant columns to be used for adding an info bar to a DotPlot. It
+renames the Marker column to features.plot and formats the
+Cell_Type_Full column for better readability.
 
 ## Usage
 

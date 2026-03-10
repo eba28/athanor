@@ -1,6 +1,12 @@
-# Convert from the output of an embeddings method to a `Matrix` matrix.
+# Convert the output of an embedding method to a matrix
 
-Convert from the output of an embeddings method to a `Matrix` matrix.
+This function takes the output from an embedding method (e.g.,
+AntiBERTy, ESM2, immune2vec) and converts it into a `Matrix` matrix
+format that can be used for downstream analysis. It handles the mapping
+of cell IDs from the embeddings to the combined AIRR data, ensuring that
+only cells present in both datasets are retained. The resulting matrix
+has features as rows and cells as columns, with appropriate column names
+based on the number of dimensions in the embeddings.
 
 ## Usage
 

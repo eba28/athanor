@@ -1,7 +1,13 @@
-# Plots a Seurat `VlnPlot` and a `FeaturePlot` side by side for the same marker
+# Plot a Seurat `VlnPlot` and a `FeaturePlot` side by side for the same marker
 
-Plots a Seurat `VlnPlot` and a `FeaturePlot` side by side for the same
-marker
+This function generates a side-by-side visualization of a Seurat
+`VlnPlot` and a `FeaturePlot` for a specified marker, allowing for a
+comprehensive comparison of expression levels across different groups
+and spatial distribution on the UMAP. The `VlnPlot` will display the
+distribution of expression levels across specified groups, while the
+`FeaturePlot` will show the spatial localization of the marker on the
+UMAP, with higher expressing cells highlighted on top for better
+visibility.
 
 ## Usage
 

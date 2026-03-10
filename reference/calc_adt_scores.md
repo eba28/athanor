@@ -1,6 +1,7 @@
-# Calculate homogeneity scores for binary ADT feature across embeddings
+# Calculate homogeneity scores for binary ADT features across embeddings
 
-Calculate homogeneity scores for binary ADT feature across embeddings
+This function calculates homogeneity scores for binary ADT features
+across different embeddings and reductions in a Seurat object.
 
 ## Usage
 

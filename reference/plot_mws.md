@@ -1,6 +1,8 @@
-# This function plots a boxplot of modality weights per cell type.
+# Plot a box plot of modality weights per cell type
 
-This function plots a boxplot of modality weights per cell type.
+This function creates a box plot to visualize the distribution of
+modality weights (e.g., RNA vs. BCR) across different cell types or
+clusters in a post-WNN Seurat object.
 
 ## Usage
 

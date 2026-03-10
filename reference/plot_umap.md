@@ -1,6 +1,10 @@
-# This function plots a Seurat UMAP(s) in several useful ways.
+# Plot Seurat UMAP(s) in several useful ways
 
-This function plots a Seurat UMAP(s) in several useful ways.
+This function generates UMAP plots from a Seurat object with various
+customizable options for coloring, labeling, and grouping the data. It
+allows for flexible visualization based on different metadata columns,
+cluster annotations, and specific clusters of interest, making it easier
+to explore and interpret the underlying structure of the data.
 
 ## Usage
 
@@ -43,7 +47,7 @@ plot_umap(
 
 - use_hues:
 
-  Use the iwanthue hues instead of the default ggplot colors. Doesn't
+  Use the `iwanthue` hues instead of the default ggplot colors. Doesn't
   let you set any other settings.
 
 - plot_by:

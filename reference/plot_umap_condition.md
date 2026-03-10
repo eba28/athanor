@@ -1,6 +1,8 @@
-# Plot a specific condition on a Seurat UMAPPlot.
+# Plot a specific condition on a Seurat UMAP
 
-Plot a specific condition on a Seurat UMAPPlot.
+This function generates a UMAP plot from a Seurat object using `DimPlot`
+with various customizable options for coloring, labeling, and grouping
+the data based on a specific condition of interest.
 
 ## Usage
 

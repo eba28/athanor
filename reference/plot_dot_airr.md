@@ -1,4 +1,4 @@
-# Add AIRR (and other) info along the right side of an existing Seurat DotPlot.
+# Add AIRR (and other) info along the right side of an existing Seurat `DotPlot`
 
 This function enhances dot plots by adding adaptive immune receptor
 repertoire (AIRR) information and other metadata along the right side
@@ -21,7 +21,7 @@ plot_dot_airr(
 
 - plot:
 
-  The generated Seurat DotPlot.
+  The generated Seurat `DotPlot`.
 
 - seurat_obj:
 

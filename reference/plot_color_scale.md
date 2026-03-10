@@ -1,7 +1,10 @@
-# Generates a proper color scale for a Seurat DotPlot (with white at zero).
+# Generate a color scale for a Seurat `DotPlot` with white at zero
 
-Generates a proper color scale for a Seurat DotPlot (with white at
-zero).
+This function generates a color scale for a Seurat `DotPlot` that
+accurately reflects the expression values, with white representing zero
+expression. It creates a gradient of colors based on the range of
+expression values in the plot data and applies it to the specified color
+or fill aesthetic.
 
 ## Usage
 

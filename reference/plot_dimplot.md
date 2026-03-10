@@ -1,6 +1,8 @@
-# This function plots a Seurat UMAP using `DimPlot`
+# Plot a Seurat UMAP using `DimPlot`
 
-This function plots a Seurat UMAP using `DimPlot`
+This function generates a UMAP plot from a Seurat object using `DimPlot`
+with various customizable options for coloring, labeling, and grouping
+the data.
 
 ## Usage
 

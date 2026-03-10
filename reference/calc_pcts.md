@@ -1,4 +1,4 @@
-# Bar plot with stacked percentages.
+# Calculate percentages per metadata group
 
 This function calculates the percentage of occurrences of a specified
 focus group within a dataset, grouped by specified metadata columns.

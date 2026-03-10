@@ -1,4 +1,4 @@
-# This function reads airrflow's repertoire files, processes them to add subject and sample information, computes CDR3 amino acid properties, and adds gene family information.
+# Read in and process output files from nf-core/airrflow
 
 This function reads airrflow's repertoire files, processes them to add
 subject and sample information, computes CDR3 amino acid properties, and

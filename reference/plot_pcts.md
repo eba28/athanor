@@ -1,7 +1,8 @@
-# Plot percentages.
+# Plot percentages in a stacked bar plot
 
-This function plots a stacked bar plot of percentages with percentages
-labeled and total counts on top.
+This function plots a stacked bar plot of percentages calculated using
+[`calc_pcts()`](https://eba28.github.io/athanor/reference/calc_pcts.md)
+with percentages labeled and total counts on top.
 
 ## Usage
 
@@ -31,7 +32,8 @@ plot_pcts(
 
 - pcts:
 
-  The output of `calc_pcts`.
+  The output of
+  [`calc_pcts()`](https://eba28.github.io/athanor/reference/calc_pcts.md).
 
 - tissue_type:
 
@@ -105,7 +107,7 @@ A stacked ggplot bar plot
 ## Details
 
 Give the percentages already as percents (\* 100 in the calculations).
-Make sure pcts includes Dataset if you want to split by dataset. Note
+Make sure `pcts` includes Dataset if you want to split by dataset. Note
 that the percentages may seem inaccurate because of the accuracy. There
-was a big issue with the combo of geom_text() & facet_grid(). This
+was a big issue with the combo of `geom_text()` & `facet_grid()`. This
 assumes that you want to show the counts for binary plots.

@@ -1,6 +1,9 @@
-# This function maps the cell types to the Seurat clusters
+# Map cell types to Seurat clusters
 
-This function maps the cell types to the Seurat clusters
+This function maps cell types to Seurat clusters by counting the number
+of cells in each cluster that belong to each cell type, and then
+assigning the most common cell type to each cluster. It returns a data
+frame with the assigned cell types for each cluster.
 
 ## Usage
 

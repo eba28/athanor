@@ -1,4 +1,4 @@
-# Find the right clustering resolution to obtain desired number of clusters
+# Find the right clustering resolution to obtain the desired number of clusters
 
 This function iteratively tests clustering resolutions in Seurat to find
 the resolution that yields the desired number of clusters. It uses the

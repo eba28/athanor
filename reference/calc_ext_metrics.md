@@ -1,7 +1,9 @@
-# This function calculates external clustering metrics for the given Seurat object.
+# Calculate external clustering metrics for a Seurat object
 
-This function calculates external clustering metrics for the given
-Seurat object.
+This function calculates various external clustering metrics using the
+`mclust` and `clevr` packages, which provide a comprehensive set of
+clustering evaluation statistics based on true cluster labels and
+predicted cluster assignments.
 
 ## Usage
 
@@ -47,6 +49,6 @@ A data.frame with a row per metric containing the combined score.
 
 The Satija lab used `cluster` for their analyses. The
 [`as.factor()`](https://rdrr.io/r/base/factor.html) is needed in case
-you give a categorical cluster col. sklearn.metrics.cluster has
-completeness_score and homogeneity_score Assumes you're using the
+you give a categorical cluster col. `sklearn.metrics.cluster` has
+`completeness_score` and `homogeneity_score` Assumes you're using the
 embeddings approach.
