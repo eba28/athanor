@@ -1,4 +1,4 @@
-# Gets the information needed using `add_info_bar()` on a `DotPlot`
+# Get the information needed for using `add_info_bar()` on a `DotPlot`
 
 This function takes the filtered markers dataframe and selects the
 relevant columns to be used for adding an info bar to a DotPlot. It

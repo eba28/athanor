@@ -1,4 +1,4 @@
-# Runs Seurat's standard pipeline
+# Run Seurat's standard pipeline
 
 This function takes a Seurat object containing combined GEX data and
 runs the standard Seurat pipeline for normalization, scaling,

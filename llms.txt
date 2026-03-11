@@ -1,13 +1,13 @@
 # athanor
 
-The goal of athanor is to integrate gene expression (GEX) and B cell
+The goal of `athanor` is to integrate gene expression (GEX) and B cell
 receptor (BCR) data to improve B cell subtyping. The package provides
 functions for data preprocessing, feature extraction, weighted nearest
-neighbors, and plotting..
+neighbors, and plotting.
 
 ## Installation
 
-You can install the development version of athanor from
+You can install the development version of `athanor` from
 [GitHub](https://github.com/) with:
 
 ``` r
@@ -59,7 +59,7 @@ library(athanor)
   embeddings
 
 - [`calc_distances()`](https://eba28.github.io/athanor/reference/calc_distances.md)
-  : Calculates cluster distances for a Seurat object
+  : Calculate cluster distances for a Seurat object
 
 - [`calc_ext_metrics()`](https://eba28.github.io/athanor/reference/calc_ext_metrics.md)
   : Calculate external clustering metrics for a Seurat object
@@ -102,12 +102,12 @@ library(athanor)
 - [`gen_dot_title()`](https://eba28.github.io/athanor/reference/gen_dot_title.md)
   :
 
-  Generates a title for a `DotPlot`
+  Generate a title for a `DotPlot`
 
 - [`get_cell_types()`](https://eba28.github.io/athanor/reference/get_cell_types.md)
   :
 
-  Gets the information needed using
+  Get the information needed for using
   [`add_info_bar()`](https://eba28.github.io/athanor/reference/add_info_bar.md)
   on a `DotPlot`
 
@@ -196,11 +196,11 @@ library(athanor)
   : Reformat VDJ barcodes by adding sample names and removing suffixes
 
 - [`run_wnn()`](https://eba28.github.io/athanor/reference/run_wnn.md) :
-  Runs Weighted Nearest Neighbors (WNN) analysis on combined GEX and BCR
+  Run Weighted Nearest Neighbors (WNN) analysis on combined GEX and BCR
   data
 
 - [`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md)
-  : Runs Seurat's standard pipeline
+  : Run Seurat's standard pipeline
 
 - [`sim_bcr_manual()`](https://eba28.github.io/athanor/reference/sim_bcr_manual.md)
   : Simulate an assay made from BCR embeddings independent of any GEX

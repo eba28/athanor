@@ -1,4 +1,4 @@
-# Generates a title for a `DotPlot`
+# Generate a title for a `DotPlot`
 
 This function generates a title for a DotPlot by combining a provided
 dataset description with a formatted list of marker sources. The marker

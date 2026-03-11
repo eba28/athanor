@@ -10,7 +10,7 @@ unmutated neighbors across different cell types.
 ## Usage
 
 ``` r
-calc_nn_frac(seurat_obj, assay = "WNN", plot_title = "", category = "mutated")
+calc_nn_frac(seurat_obj, assay = "WNN", plot_title = "", category = "Mutated")
 ```
 
 ## Arguments
