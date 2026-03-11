@@ -18,7 +18,7 @@
 # predicted_labels <- seurat_obj$annotated_clusters_simpler
 # distances <- cluster_distances(umap_embeddings, predicted_labels)
 
-#' Calculates cluster distances for a Seurat object
+#' Calculate cluster distances for a Seurat object
 #'
 #' @description
 #' This function calculates various cluster distance metrics using the `fpc::cluster.stats` function, which provides a comprehensive set of clustering statistics based on a distance matrix and cluster assignments.

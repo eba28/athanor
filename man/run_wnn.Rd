@@ -2,7 +2,7 @@
 % Please edit documentation in R/wnn.R
 \name{run_wnn}
 \alias{run_wnn}
-\title{Runs Weighted Nearest Neighbors (WNN) analysis on combined GEX and BCR data}
+\title{Run Weighted Nearest Neighbors (WNN) analysis on combined GEX and BCR data}
 \usage{
 run_wnn(
   seurat_obj,

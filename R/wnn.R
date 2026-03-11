@@ -197,7 +197,7 @@ plot_wnn_testing <- function(manual_wnn_test, sim_var,
 }
 
 
-#' Runs Weighted Nearest Neighbors (WNN) analysis on combined GEX and BCR data
+#' Run Weighted Nearest Neighbors (WNN) analysis on combined GEX and BCR data
 #'
 #' @description
 #' This function takes a Seurat object containing gene expression (GEX) data and a matrix of BCR embeddings, and performs WNN analysis to integrate the two modalities.

@@ -12,13 +12,13 @@
 #'
 #' @param seurat_obj A Seurat object with neighbors calculated.
 #' @param assay One of: RNA, BCR, WNN
-#' @param category One of: Mutated, Unmutated
 #' @param plot_title A string to add to the plot title, e.g. "All Cells" or "Memory B Cells Only".
+#' @param category One of: Mutated, Unmutated
 #'
 #' @returns A data.frame and a plot.
 #' @export
 calc_nn_frac <- function(seurat_obj, assay = "WNN", plot_title = "",
-                         category = "mutated") {
+                         category = "Mutated") {
   embedding <- seurat_obj@misc$embedding_type
 
   # use Seurat's neighbor calculations
@@ -70,8 +70,8 @@ calc_nn_frac <- function(seurat_obj, assay = "WNN", plot_title = "",
                   color = annotated_clusters)) +
     geom_jitter(width = 0.5, height = 0.01, size = 0.6) +
     geom_hline(yintercept = 0.5, linewidth = 0.2, color = "black") +
-    labs(title = paste(plot_title, category, "Cells with", category,
-                       "Neighbors"),
+    labs(title =
+           paste(plot_title, category, "Cells with", category, "Neighbors"),
          subtitle = paste(embedding, assay, paste("k =", k),
                           paste0(nrow(nn_frac), " cells (", ncol(seurat_obj),
                                  " total cells)"),

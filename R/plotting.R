@@ -994,10 +994,11 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
     seurat_obj <- seurat_objs[[type]]
 
     # don't require using the embeddings approach
-    if ("embedding_type" %in% names(seurat_obj@misc)) {
-      details <- embedding_types[[seurat_obj@misc$embedding_type]]
-    } else {
+    if (!"embedding_type" %in% names(seurat_obj@misc) |
+        reduction == "rna.umap") {
       details <- NULL
+    } else {
+      details <- embedding_types[[seurat_obj@misc$embedding_type]]
     }
 
     # CellTypist

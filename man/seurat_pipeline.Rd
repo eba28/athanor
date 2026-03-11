@@ -2,7 +2,7 @@
 % Please edit documentation in R/gex.R
 \name{seurat_pipeline}
 \alias{seurat_pipeline}
-\title{Runs Seurat's standard pipeline}
+\title{Run Seurat's standard pipeline}
 \usage{
 seurat_pipeline(
   seurat_obj,

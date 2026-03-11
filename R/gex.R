@@ -1,4 +1,4 @@
-#' Runs Seurat's standard pipeline
+#' Run Seurat's standard pipeline
 #'
 #' @description
 #' This function takes a Seurat object containing combined GEX data and runs the standard Seurat pipeline for normalization, scaling, dimensionality reduction, clustering, and UMAP visualization.
@@ -223,7 +223,7 @@ get_features_from_all <- function(markers_df, sources, contains, tissue_types,
 }
 
 
-#' Gets the information needed using `add_info_bar()` on a `DotPlot`
+#' Get the information needed for using `add_info_bar()` on a `DotPlot`
 #'
 #' @description
 #' This function takes the filtered markers dataframe and selects the relevant columns to be used for adding an info bar to a DotPlot.
@@ -241,7 +241,7 @@ get_cell_types <- function(markers_df) {
 }
 
 
-#' Generates a title for a `DotPlot`
+#' Generate a title for a `DotPlot`
 #'
 #' @description
 #' This function generates a title for a DotPlot by combining a provided dataset description with a formatted list of marker sources.

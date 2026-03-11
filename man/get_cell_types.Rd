@@ -2,7 +2,7 @@
 % Please edit documentation in R/gex.R
 \name{get_cell_types}
 \alias{get_cell_types}
-\title{Gets the information needed using \code{add_info_bar()} on a \code{DotPlot}}
+\title{Get the information needed for using \code{add_info_bar()} on a \code{DotPlot}}
 \usage{
 get_cell_types(markers_df)
 }

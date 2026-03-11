@@ -4,7 +4,7 @@
 \alias{calc_nn_frac}
 \title{Calculate the proportion of a cell's neighbors that are mutated or unmutated}
 \usage{
-calc_nn_frac(seurat_obj, assay = "WNN", plot_title = "", category = "mutated")
+calc_nn_frac(seurat_obj, assay = "WNN", plot_title = "", category = "Mutated")
 }
 \arguments{
 \item{seurat_obj}{A Seurat object with neighbors calculated.}

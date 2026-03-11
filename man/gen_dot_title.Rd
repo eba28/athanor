@@ -2,7 +2,7 @@
 % Please edit documentation in R/gex.R
 \name{gen_dot_title}
 \alias{gen_dot_title}
-\title{Generates a title for a \code{DotPlot}}
+\title{Generate a title for a \code{DotPlot}}
 \usage{
 gen_dot_title(plot_title = "", marker_sources)
 }
