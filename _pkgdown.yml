@@ -4,3 +4,87 @@ template:
   # bootswatch: flatly
   theme: atom-one-light
   theme-dark: atom-one-dark
+reference:
+- title: Metadata
+  desc: Functions for handling metadata.
+- contents:
+  - print_metadata_summary
+- title: Quality Control
+  desc: Functions for QC and filtering.
+- contents:
+  - create_metrics_summary
+  - layout_doublets
+  - plot_counts
+  - reformat_vdj_barcode
+  - reformat_vdj_barcode_sample
+- title: Gene Expression
+  desc: Functions for processing and analyzing gene expression data.
+- contents:
+  - add_annotations
+  - automated_annotation
+  - cell_type_clusters
+  - find_k_clusters
+  - gen_dot_title
+  - get_cell_types
+  - get_features_from_all
+  - plot_counts_cluster
+  - seurat_pipeline
+  - source_markers
+- title: Adaptive Immune Receptors
+  desc: Functions for processing and analyzing adaptive immune receptor data.
+- contents:
+  - add_family_info
+  - bin_mu_freq
+  - convert_embeddings
+  - factor_family_info
+  - plot_immune_overlay
+  - process_airrflow
+  - process_bcr_features
+- title: GEX and AIRR Integration
+  desc: Functions for integrating gene expression and adaptive immune receptor data.
+- subtitle: Metadata
+- contents:
+  - gex_add_airr
+- subtitle: Concatenation
+- contents:
+  - concatenate_gex_bcr
+- subtitle: Weighted Nearest Neighbors
+- contents:
+  - extract_wnn_vars
+  - plot_mws
+  - plot_wnn_testing
+  - plot_wnn_umaps
+  - run_wnn
+- title: Evaluation
+  desc: Functions for evaluating the performance of models and analyses.
+- contents:
+  - calc_adt_dists
+  - calc_adt_dists_fast
+  - calc_adt_nn_within_range
+  - calc_adt_scores
+  - calc_distances
+  - calc_ext_metrics
+  - calc_int_metrics
+  - calc_neighbor_matches
+  - plot_metrics
+- title: Applications
+  desc: Functions for applying the package to specific use cases.
+- subtitle: Reclassification
+- contents:
+  - calc_nn_frac
+- title: Plotting
+  desc: Functions for visualizing data and results.
+- contents:
+  - add_info_bar
+  - calc_pcts
+  - contains("plot")
+- title: Utilities
+  desc: Utility functions for various tasks.
+- contents:
+  - print_dt
+  - print_kable
+  - reduce_object
+- title: Data
+  desc: Simulate data.
+- contents:
+  - contains("sim")
