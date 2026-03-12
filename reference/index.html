@@ -31,9 +31,69 @@
     </div>
 
     <div class="section level2">
-      <h2 id="all-functions">All functions<a class="anchor" aria-label="anchor" href="#all-functions"></a></h2>
+      <h2 id="metadata">Metadata<a class="anchor" aria-label="anchor" href="#metadata"></a></h2>
+
+      <div class="section-desc"><p>Functions for handling metadata.</p></div>
+
+      <dl></dl></div><div class="section level2">
 
 
+
+
+      <dl><dt>
+
+          <code><a href="print_metadata_summary.html">print_metadata_summary()</a></code>
+
+        </dt>
+        <dd>Give an overview of the data in terms of files, samples and datasets</dd>
+      </dl></div><div class="section level2">
+      <h2 id="quality-control">Quality Control<a class="anchor" aria-label="anchor" href="#quality-control"></a></h2>
+
+      <div class="section-desc"><p>Functions for QC and filtering.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="create_metrics_summary.html">create_metrics_summary()</a></code>
+
+        </dt>
+        <dd>Create a table with info from 10x Genomics' metric summary file(s)</dd>
+
+        <dt>
+
+          <code><a href="layout_doublets.html">layout_doublets()</a></code>
+
+        </dt>
+        <dd>Plot an overview of a doublet identification method</dd>
+
+        <dt>
+
+          <code><a href="plot_counts.html">plot_counts()</a></code>
+
+        </dt>
+        <dd>Create bar plots of read or cell counts for quality control</dd>
+
+        <dt>
+
+          <code><a href="reformat_vdj_barcode.html">reformat_vdj_barcode()</a></code>
+
+        </dt>
+        <dd>Reformat VDJ barcodes to make them unique across samples</dd>
+
+        <dt>
+
+          <code><a href="reformat_vdj_barcode_sample.html">reformat_vdj_barcode_sample()</a></code>
+
+        </dt>
+        <dd>Reformat VDJ barcodes by adding sample names and removing suffixes</dd>
+      </dl></div><div class="section level2">
+      <h2 id="gene-expression">Gene Expression<a class="anchor" aria-label="anchor" href="#gene-expression"></a></h2>
+
+      <div class="section-desc"><p>Functions for processing and analyzing gene expression data.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -49,24 +109,82 @@
 
         <dt>
 
-          <code><a href="add_family_info.html">add_family_info()</a></code>
-
-        </dt>
-        <dd>Add in family and gene information from <code>alakazam</code></dd>
-
-        <dt>
-
-          <code><a href="add_info_bar.html">add_info_bar()</a></code>
-
-        </dt>
-        <dd>Add an information bar on top of a given ggplot</dd>
-
-        <dt>
-
           <code><a href="automated_annotation.html">automated_annotation()</a></code>
 
         </dt>
         <dd>Run automated cell type annotation</dd>
+
+        <dt>
+
+          <code><a href="cell_type_clusters.html">cell_type_clusters()</a></code>
+
+        </dt>
+        <dd>Map cell types to Seurat clusters</dd>
+
+        <dt>
+
+          <code><a href="find_k_clusters.html">find_k_clusters()</a></code>
+
+        </dt>
+        <dd>Find the right clustering resolution to obtain the desired number of clusters</dd>
+
+        <dt>
+
+          <code><a href="gen_dot_title.html">gen_dot_title()</a></code>
+
+        </dt>
+        <dd>Generate a title for a <code>DotPlot</code></dd>
+
+        <dt>
+
+          <code><a href="get_cell_types.html">get_cell_types()</a></code>
+
+        </dt>
+        <dd>Get the information needed for using <code><a href="../reference/add_info_bar.html">add_info_bar()</a></code> on a <code>DotPlot</code></dd>
+
+        <dt>
+
+          <code><a href="get_features_from_all.html">get_features_from_all()</a></code>
+
+        </dt>
+        <dd>Get specific markers from a marker genes database</dd>
+
+        <dt>
+
+          <code><a href="plot_counts_cluster.html">plot_counts_cluster()</a></code>
+
+        </dt>
+        <dd>Visualize how many cells are in each Seurat cluster or cell type</dd>
+
+        <dt>
+
+          <code><a href="seurat_pipeline.html">seurat_pipeline()</a></code>
+
+        </dt>
+        <dd>Run Seurat's standard pipeline</dd>
+
+        <dt>
+
+          <code><a href="source_markers.html">source_markers()</a></code>
+
+        </dt>
+        <dd>Display markers from a filtered marker genes database as a table</dd>
+      </dl></div><div class="section level2">
+      <h2 id="adaptive-immune-receptors">Adaptive Immune Receptors<a class="anchor" aria-label="anchor" href="#adaptive-immune-receptors"></a></h2>
+
+      <div class="section-desc"><p>Functions for processing and analyzing adaptive immune receptor data.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="add_family_info.html">add_family_info()</a></code>
+
+        </dt>
+        <dd>Add in family and gene information from <code>alakazam</code></dd>
 
         <dt>
 
@@ -76,6 +194,131 @@
         <dd>Bin the mutation frequency</dd>
 
         <dt>
+
+          <code><a href="convert_embeddings.html">convert_embeddings()</a></code>
+
+        </dt>
+        <dd>Convert the output of an embedding method to a matrix</dd>
+
+        <dt>
+
+          <code><a href="factor_family_info.html">factor_family_info()</a></code>
+
+        </dt>
+        <dd>Convert family and gene information to sorted factors</dd>
+
+        <dt>
+
+          <code><a href="plot_immune_overlay.html">plot_immune_overlay()</a></code>
+
+        </dt>
+        <dd>Plot UMAPs with AIRR overlays</dd>
+
+        <dt>
+
+          <code><a href="process_airrflow.html">process_airrflow()</a></code>
+
+        </dt>
+        <dd>Read in and process output files from nf-core/airrflow</dd>
+
+        <dt>
+
+          <code><a href="process_bcr_features.html">process_bcr_features()</a></code>
+
+        </dt>
+        <dd>Process BCR features for integration</dd>
+      </dl></div><div class="section level2">
+      <h2 id="gex-and-airr-integration">GEX and AIRR Integration<a class="anchor" aria-label="anchor" href="#gex-and-airr-integration"></a></h2>
+
+      <div class="section-desc"><p>Functions for integrating gene expression and adaptive immune receptor data.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+      <h3 id="metadata-1">Metadata<a class="anchor" aria-label="anchor" href="#metadata-1"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="gex_add_airr.html">gex_add_airr()</a></code>
+
+        </dt>
+        <dd>Add AIRR information to a Seurat object</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="concatenation">Concatenation<a class="anchor" aria-label="anchor" href="#concatenation"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="concatenate_gex_bcr.html">concatenate_gex_bcr()</a></code>
+
+        </dt>
+        <dd>Concatenate GEX and BCR data in a Seurat object</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="weighted-nearest-neighbors">Weighted Nearest Neighbors<a class="anchor" aria-label="anchor" href="#weighted-nearest-neighbors"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="extract_wnn_vars.html">extract_wnn_vars()</a></code>
+
+        </dt>
+        <dd>Give a summary of a Seurat object post-WNN</dd>
+
+        <dt>
+
+          <code><a href="plot_mws.html">plot_mws()</a></code>
+
+        </dt>
+        <dd>Plot a box plot of modality weights per cell type</dd>
+
+        <dt>
+
+          <code><a href="plot_wnn_testing.html">plot_wnn_testing()</a></code>
+
+        </dt>
+        <dd>Plot the results of manual WNN testing</dd>
+
+        <dt>
+
+          <code><a href="plot_wnn_umaps.html">plot_wnn_umaps()</a></code>
+
+        </dt>
+        <dd>Plot UMAPs of a Seurat object post-WNN</dd>
+
+        <dt>
+
+          <code><a href="run_wnn.html">run_wnn()</a></code>
+
+        </dt>
+        <dd>Run Weighted Nearest Neighbors (WNN) analysis on combined GEX and BCR data</dd>
+      </dl></div><div class="section level2">
+      <h2 id="evaluation">Evaluation<a class="anchor" aria-label="anchor" href="#evaluation"></a></h2>
+
+      <div class="section-desc"><p>Functions for evaluating the performance of models and analyses.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="calc_adt_dists.html">calc_adt_dists()</a></code>
 
@@ -133,10 +376,47 @@
 
         <dt>
 
+          <code><a href="plot_metrics.html">plot_metrics()</a></code>
+
+        </dt>
+        <dd>Plot the internal or external clustering metrics</dd>
+      </dl></div><div class="section level2">
+      <h2 id="applications">Applications<a class="anchor" aria-label="anchor" href="#applications"></a></h2>
+
+      <div class="section-desc"><p>Functions for applying the package to specific use cases.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+      <h3 id="reclassification">Reclassification<a class="anchor" aria-label="anchor" href="#reclassification"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
           <code><a href="calc_nn_frac.html">calc_nn_frac()</a></code>
 
         </dt>
         <dd>Calculate the proportion of a cell's neighbors that are mutated or unmutated</dd>
+      </dl></div><div class="section level2">
+      <h2 id="plotting">Plotting<a class="anchor" aria-label="anchor" href="#plotting"></a></h2>
+
+      <div class="section-desc"><p>Functions for visualizing data and results.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="add_info_bar.html">add_info_bar()</a></code>
+
+        </dt>
+        <dd>Add an information bar on top of a given ggplot</dd>
 
         <dt>
 
@@ -144,90 +424,6 @@
 
         </dt>
         <dd>Calculate percentages per metadata group</dd>
-
-        <dt>
-
-          <code><a href="cell_type_clusters.html">cell_type_clusters()</a></code>
-
-        </dt>
-        <dd>Map cell types to Seurat clusters</dd>
-
-        <dt>
-
-          <code><a href="concatenate_gex_bcr.html">concatenate_gex_bcr()</a></code>
-
-        </dt>
-        <dd>Concatenate GEX and BCR data in a Seurat object</dd>
-
-        <dt>
-
-          <code><a href="convert_embeddings.html">convert_embeddings()</a></code>
-
-        </dt>
-        <dd>Convert the output of an embedding method to a matrix</dd>
-
-        <dt>
-
-          <code><a href="create_metrics_summary.html">create_metrics_summary()</a></code>
-
-        </dt>
-        <dd>Create a table with info from 10x Genomics' metric summary file(s)</dd>
-
-        <dt>
-
-          <code><a href="extract_wnn_vars.html">extract_wnn_vars()</a></code>
-
-        </dt>
-        <dd>Give a summary of a Seurat object post-WNN</dd>
-
-        <dt>
-
-          <code><a href="factor_family_info.html">factor_family_info()</a></code>
-
-        </dt>
-        <dd>Convert family and gene information to sorted factors</dd>
-
-        <dt>
-
-          <code><a href="find_k_clusters.html">find_k_clusters()</a></code>
-
-        </dt>
-        <dd>Find the right clustering resolution to obtain the desired number of clusters</dd>
-
-        <dt>
-
-          <code><a href="gen_dot_title.html">gen_dot_title()</a></code>
-
-        </dt>
-        <dd>Generate a title for a <code>DotPlot</code></dd>
-
-        <dt>
-
-          <code><a href="get_cell_types.html">get_cell_types()</a></code>
-
-        </dt>
-        <dd>Get the information needed for using <code><a href="../reference/add_info_bar.html">add_info_bar()</a></code> on a <code>DotPlot</code></dd>
-
-        <dt>
-
-          <code><a href="get_features_from_all.html">get_features_from_all()</a></code>
-
-        </dt>
-        <dd>Get specific markers from a marker genes database</dd>
-
-        <dt>
-
-          <code><a href="gex_add_airr.html">gex_add_airr()</a></code>
-
-        </dt>
-        <dd>Add AIRR information to a Seurat object</dd>
-
-        <dt>
-
-          <code><a href="layout_doublets.html">layout_doublets()</a></code>
-
-        </dt>
-        <dd>Plot an overview of a doublet identification method</dd>
 
         <dt>
 
@@ -329,6 +525,22 @@
 
         <dt>
 
+          <code><a href="vln_feat_plot.html">vln_feat_plot()</a></code>
+
+        </dt>
+        <dd>Plot a Seurat <code>VlnPlot</code> and a <code>FeaturePlot</code> side by side for the same marker</dd>
+      </dl></div><div class="section level2">
+      <h2 id="utilities">Utilities<a class="anchor" aria-label="anchor" href="#utilities"></a></h2>
+
+      <div class="section-desc"><p>Utility functions for various tasks.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
           <code><a href="print_dt.html">print_dt()</a></code>
 
         </dt>
@@ -343,61 +555,21 @@
 
         <dt>
 
-          <code><a href="print_metadata_summary.html">print_metadata_summary()</a></code>
-
-        </dt>
-        <dd>Give an overview of the data in terms of files, samples and datasets</dd>
-
-        <dt>
-
-          <code><a href="process_airrflow.html">process_airrflow()</a></code>
-
-        </dt>
-        <dd>Read in and process output files from nf-core/airrflow</dd>
-
-        <dt>
-
-          <code><a href="process_bcr_features.html">process_bcr_features()</a></code>
-
-        </dt>
-        <dd>Process BCR features for integration</dd>
-
-        <dt>
-
           <code><a href="reduce_object.html">reduce_object()</a></code>
 
         </dt>
         <dd>Reduce a Seurat object's size</dd>
+      </dl></div><div class="section level2">
+      <h2 id="data">Data<a class="anchor" aria-label="anchor" href="#data"></a></h2>
 
-        <dt>
+      <div class="section-desc"><p>Simulate data.</p></div>
 
-          <code><a href="reformat_vdj_barcode.html">reformat_vdj_barcode()</a></code>
+      <dl></dl></div><div class="section level2">
 
-        </dt>
-        <dd>Reformat VDJ barcodes to make them unique across samples</dd>
 
-        <dt>
 
-          <code><a href="reformat_vdj_barcode_sample.html">reformat_vdj_barcode_sample()</a></code>
 
-        </dt>
-        <dd>Reformat VDJ barcodes by adding sample names and removing suffixes</dd>
-
-        <dt>
-
-          <code><a href="run_wnn.html">run_wnn()</a></code>
-
-        </dt>
-        <dd>Run Weighted Nearest Neighbors (WNN) analysis on combined GEX and BCR data</dd>
-
-        <dt>
-
-          <code><a href="seurat_pipeline.html">seurat_pipeline()</a></code>
-
-        </dt>
-        <dd>Run Seurat's standard pipeline</dd>
-
-        <dt>
+      <dl><dt>
 
           <code><a href="sim_bcr_manual.html">sim_bcr_manual()</a></code>
 
@@ -417,22 +589,9 @@
 
         </dt>
         <dd>Simulate gene expression data using Splatter</dd>
-
-        <dt>
-
-          <code><a href="source_markers.html">source_markers()</a></code>
-
-        </dt>
-        <dd>Display markers from a filtered marker genes database as a table</dd>
-
-        <dt>
-
-          <code><a href="vln_feat_plot.html">vln_feat_plot()</a></code>
-
-        </dt>
-        <dd>Plot a Seurat <code>VlnPlot</code> and a <code>FeaturePlot</code> side by side for the same marker</dd>
       </dl></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">
