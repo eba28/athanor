@@ -161,6 +161,9 @@ gex_add_airr <- function(seurat_obj, airr_type = "BCR",
                       "Memory B cells", annotated_clusters_simpler))
   }
 
+  # make sure that the levels are okay
+  seurat_obj@meta.data <- seurat_obj@meta.data %>% droplevels()
+
   # print an overview of the integration
   if (overview) {
     count_gex_airr <- nrow(filter(combined_airr_select, get(airr_col)))
@@ -181,6 +184,7 @@ gex_add_airr <- function(seurat_obj, airr_type = "BCR",
                str_c(setdiff(colnames(seurat_obj[[]]), meta_cols_orig),
                      collapse = ", "), "."))
   }
+
 
   # return the updated Seurat object
   seurat_obj

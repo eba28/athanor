@@ -747,6 +747,7 @@ plot_umap <- function(seurat_obj, tissue_type = "", clrs_specific,
 #' @param legend_label The label for the legend.
 #' @param factor_idents Whether or not to factorize the idents (for proper ordering of the colors). This can mess up the order you want, so be careful.
 #' @param details A custom subtitle.
+#' @param ... Any other Seurat parameters.
 #'
 #' @returns A Seurat UMAPPlot.
 #' @export
@@ -757,7 +758,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
                          clusters_col = "seurat_clusters",
                          annotations_col = "annotated_clusters",
                          include_legend = TRUE, legend_label,
-                         factor_idents = TRUE, details) {
+                         factor_idents = TRUE, details, ...) {
   # set identities in case they aren't already set (needed for group.by)
   if (annotated) {
     cluster_legend <- "Cell Type"
@@ -810,7 +811,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
     p <- DimPlot(object = seurat_obj, cols = clrs_specific, pt.size = pt_size,
                  reduction = reduc, label = plot_label,
                  label.size = label_size, label.box = label_box,
-                 repel = TRUE, na.value = "lightgray", raster = FALSE) +
+                 repel = TRUE, na.value = "lightgray", raster = FALSE, ...) +
       labs(title = assay, subtitle = data_source, color = cluster_legend)
   } else {
     p <- DimPlot(object = seurat_obj, pt.size = pt_size,
@@ -818,7 +819,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
                  label.size = label_size, label.box = label_box,
                  cells.highlight = cells_total, cols.highlight = clrs_highlight,
                  sizes.highlight = pt_size,
-                 repel = TRUE, na.value = "lightgray", raster = FALSE) +
+                 repel = TRUE, na.value = "lightgray", raster = FALSE, ...) +
       labs(title = assay, subtitle = data_source, color = "Highlighted") # subtitle = toString(specific_clusters)
   }
 

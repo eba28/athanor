@@ -27,9 +27,13 @@ process_airrflow <- function(dataset_path, version_airrflow) {
   if (version_airrflow_num < 4.2) { # or 4.3.0?
     path_repertoire <- file.path(path_repertoire,
                                  "repertoire_comparison", "repertoires")
-  } else {
+  } else if (version_airrflow_num == "4.3") {
     path_repertoire <- file.path(path_repertoire,
                                  "clonal_analysis", "define_clones",
+                                 "all_reps_clone_report", "repertoires")
+  } else { # v5
+    path_repertoire <- file.path(path_repertoire,
+                                 "clonal_analysis", "clonal_assignment",
                                  "all_reps_clone_report", "repertoires")
   }
 

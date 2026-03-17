@@ -22,7 +22,8 @@ plot_dimplot(
   include_legend = TRUE,
   legend_label,
   factor_idents = TRUE,
-  details
+  details,
+  ...
 )
 }
 \arguments{
@@ -61,6 +62,8 @@ plot_dimplot(
 \item{factor_idents}{Whether or not to factorize the idents (for proper ordering of the colors). This can mess up the order you want, so be careful.}
 
 \item{details}{A custom subtitle.}
+
+\item{...}{Any other Seurat parameters.}
 }
 \value{
 A Seurat UMAPPlot.
