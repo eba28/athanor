@@ -42,13 +42,16 @@ process_airrflow <- function(dataset_path, version_airrflow) {
   if (length(rep_files) == 0) {
     stop("No files found, are you sure you're using the correct directory?")
   }
-  # TODO: replace with map or map2
-  combined_bcr <- map_df(rep_files, read_tsv, show_col_types = FALSE)
+  combined_bcr <- map(rep_files, read_tsv, show_col_types = FALSE,
+                      # sometimes a "sex" column will use M or F which then
+                      # incorrectly reads as logical
+                      col_types = readr::cols(sex = readr::col_character())) %>%
+                  bind_rows()
 
   # add in useful columns
   combined_bcr <-
     combined_bcr %>%
-    # create unique clone IDs (plyr reads clone_id as numeric)
+    # create unique clone IDs (readr reads clone_id as numeric)
     # mutate(clone_id = as.character(clone_id)) %>%
     mutate(clone_id_unique = paste0(subject_id, "_", clone_id), # sample_id
            .after = clone_id)
