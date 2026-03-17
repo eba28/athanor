@@ -68,7 +68,7 @@ concatenate_gex_bcr <- function(seurat_obj, pca_stage = "Before",
     # need counts if we're going to normalize later
     seurat_layer <- ifelse(normalize, "counts", "data")
     seurat_obj@assays$RNA_BCR <-
-      CreateAssayObject(counts = rbind(GetAssayData(seurat_obj, assay = "RNA",
+      CreateAssayObject(counts = rbind(GetAssayData(seurat_obj, assay = "RNA", # CreateAssay5Object
                                                     layer = seurat_layer),
                                        bcr_features))
     DefaultAssay(seurat_obj) <- "RNA_BCR"

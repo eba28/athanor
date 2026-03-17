@@ -211,6 +211,8 @@ layout_doublets <- function(seurat_obj, tissue_type, clrs_specific,
                             group_label = NULL,
                             doublet_col = "scDblFinder.class",
                             doublet_package = "scDblFinder", details = NULL) {
+  # TODO: get rid of this function?
+
   # if you want to use default ggplot2 or generated iwanthue colors
   if (rlang::is_missing(clrs_specific)) {
     n_colors <- n_distinct(seurat_obj[[group_col]])
@@ -267,6 +269,7 @@ layout_doublets <- function(seurat_obj, tissue_type, clrs_specific,
     theme_bw + labels_standard
 
   # UMAP colored by clusters/annotations
+  # TODO: add an option to not plot the labels
   if (grepl("annotated", group_col)) {
     # rotate x-axis labels for annotation plots
     p2 <- p2 + labels_rotate_x

@@ -266,7 +266,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
   seurat_obj@reductions <- list() # pca, umap
 
   # create and format the BCR assay
-  bcr_assay <- CreateAssayObject(counts = embeddings)
+  bcr_assay <- CreateAssayObject(counts = embeddings) # CreateAssay5Object
   # subset down to cells present in both assays
   bcr_assay <- subset(bcr_assay, cells = seurat_obj$cell_id)
 
@@ -278,6 +278,11 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
   seurat_obj@meta.data <-
     seurat_obj[[]] %>%
     relocate(nCount_BCR, nFeature_BCR, .after = nFeature_ADT)
+
+  # make sure that the number of cells match
+  if (ncol(seurat_obj@assays$RNA) != ncol(seurat_obj@assays$BCR)) {
+    stop("The number of cells in the RNA and BCR assays do not match.")
+  }
 
   # BCR processing
   DefaultAssay(seurat_obj) <- "BCR"
@@ -301,7 +306,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                         reduction.name = "bcr.umap", reduction.key = "bcrUMAP_",
                         verbose = show_output)
 
-  # RNA processing
+  # RNA processing (a lot of this was already done)
   DefaultAssay(seurat_obj) <- "RNA"
   seurat_obj <- NormalizeData(object = seurat_obj, verbose = show_output)
   seurat_obj <- FindVariableFeatures(object = seurat_obj, verbose = show_output)
@@ -326,7 +331,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
   # find multimodal neighbors, then do clustering and make a UMAP
   for (k in k_param) {
     mw_name <- str_c(c("RNA", "BCR"), ".weight")
-    mw_name <- ifelse(add_k, str_c(mw_name, "_", k), mw_name)
+    if (add_k) mw_name <- str_c(mw_name, "_", k)
     seurat_obj <-
       FindMultiModalNeighbors(object = seurat_obj,
                               reduction.list = list("rpca", "bpca"),
@@ -355,7 +360,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
     # TODO: don't rerun neighbor detection
     # cluster the BCR assay
     graph_name <- str_c("BCR.", c("", "s"), "nn")
-    graph_name <- ifelse(add_k, str_c(graph_name, "_", k_main), graph_name)
+    if (add_k) graph_name <- str_c(graph_name, "_", k_main)
     seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "bpca",
                                 dims = 1:pc_bcr, k.param = k_main,
                                 compute.SNN = TRUE, verbose = show_output,
@@ -369,7 +374,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
 
     # cluster the RNA assay
     graph_name <- str_c("RNA.", c("", "s"), "nn")
-    graph_name <- ifelse(add_k, str_c(graph_name, "_", k_main), graph_name)
+    if (add_k) graph_name <- str_c(graph_name, "_", k_main)
     seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "rpca",
                                 dims = 1:pc_gex, k.param = k_main,
                                 compute.SNN = TRUE, verbose = show_output,
@@ -467,6 +472,7 @@ extract_wnn_vars <- function(seurat_obj, gex_pca = "rpca",
                      ncol(seurat_obj@reductions[[other_pca]]), other_type, "PCs.")
   }
 
+  # TODO: remove this?
   # clustering info
   # does not account for multiple clustering resolutions
   if ("seurat_clusters" %in% colnames(seurat_obj[[]])) {

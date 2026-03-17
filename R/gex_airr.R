@@ -23,6 +23,9 @@
 #' @export
 gex_add_airr <- function(seurat_obj, airr_type = "BCR",
                          combined_airr, new_cols, overview = TRUE) {
+  # TODO: add back a more detailed printout of the light chains e.g.
+  # There are 118563 heavy chain BCRs being integrated in, of which 111039 have one paired light chain, 6243 have multiple paired light chains, and 1281 have no paired light chains.
+
   # make sure there isn't a format mismatch between cell ids
   if (length(intersect(seurat_obj$cell_id, combined_airr$cell_id)) == 0) {
     stop("Please check the cell id format in the Seurat object or AIRR table.")
