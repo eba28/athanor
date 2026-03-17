@@ -25,7 +25,8 @@ plot_dimplot(
   include_legend = TRUE,
   legend_label,
   factor_idents = TRUE,
-  details
+  details,
+  ...
 )
 ```
 
@@ -105,6 +106,10 @@ plot_dimplot(
 - details:
 
   A custom subtitle.
+
+- ...:
+
+  Any other Seurat parameters.
 
 ## Value
 
