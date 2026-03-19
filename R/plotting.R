@@ -962,16 +962,17 @@ plot_umap_condition <- function(seurat_obj, tissue_type, clrs_specific,
 #' @param second_assay The second assay to use in the title if plotting a WNN reduction.
 #' @param assay_name The name of the assay to use in the title. By default, it will be set based on the reduction (e.g. "GEX" for "rna.umap", "BCR" for "bcr.umap", and "GEX & BCR" for "wnn.umap").
 #' @param reduction Which reduction to plot ("rna.umap", "bcr.umap", or "wnn.umap").
+#' @param use_adt Whether or not the comparisons being plotted represent ADT markers.
 #' @param comparisons The labeling of the plots.
 #'
-#' @return patchwork object with overview plots
+#' @return A patchwork object with overview plots in a grid.
 #' @export
 plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                                 second_assay = "BCR", assay_name,
-                                reduction = "wnn.umap",
-                                comparisons =
-                                  c("annotated_clusters", "v_call_family",
-                                    "light_chains", "isotype", "mu_freq")) {
+                                reduction = "wnn.umap", use_adt = FALSE,
+                                comparisons = c("annotated_clusters_simpler",
+                                                "v_call_family", "light_chains",
+                                                "isotype", "mu_freq")) {
   # validate inputs
   # if (!reduction %in% c("rna.umap", "adt.umap", "bcr.umap", "wnn.umap")) {
   #   stop("reduction must be one of: 'rna.umap', 'adt.umap', 'bcr.umap', 'wnn.umap'")
@@ -1002,109 +1003,138 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       details <- embedding_types[[seurat_obj@misc$embedding_type]]
     }
 
-    # CellTypist
-    if ("annotated_clusters" %in% comparisons) {
-      plots_overview[[paste0("CellType_", type)]] <-
-        plot_dimplot(seurat_obj = seurat_obj,
-                     data_source = data_source, pt_size = pt_size,
-                     clrs_specific = seurat_obj@misc$colors_annotated,
-                     assay = assay_name,
-                     reduc = reduction,
-                     plot_label = FALSE, annotated = TRUE,
-                     annotations_col = "annotated_clusters",
-                     legend_label = "Cell Type", details = details)
-    }
+    if (use_adt) {
+      # plots_overview[[type]] <-
+      #   # plot them together so that the scales are consistent
+      #   suppressMessages(FeaturePlot(seurat_obj, features = str_c("adt_", comparisons),
+      #                                order = TRUE, reduction = reduction, # keep.scale = "all",
+      #                                ncol = 1, raster = FALSE) &
+      #                      labs(subtitle = details) &
+      #                      scale_color_viridis_c(option = "G", direction = -1) &
+      #                      labels_standard & clean_umap)
 
-    if ("annotated_clusters_simpler" %in% comparisons) {
-      plots_overview[[paste0("CellType_", type)]] <-
-        plot_dimplot(seurat_obj = seurat_obj,
-                     data_source = data_source, pt_size = pt_size,
-                     clrs_specific = named_colors$cell_types_celltypist,
-                     assay = assay_name,
-                     reduc = reduction,
-                     plot_label = FALSE, annotated = TRUE,
-                     annotations_col = "annotated_clusters_simpler",
-                     legend_label = "Cell Type", details = details)
-    }
+      for (comparison in comparisons) {
+        plots_overview[[paste0(comparison, "_", type)]] <-
+          suppressMessages(
+            FeaturePlot(seurat_obj, features = str_c("adt_", comparison),
+                        order = TRUE, reduction = reduction, raster = FALSE) +
+              labs(title = paste(assay_name, comparison), subtitle = details) +
+              scale_color_viridis_c(name = comparison, option = "G",
+                                    direction = -1) +
+              labels_standard + clean_umap
+            )
+      }
+    } else {
+      # CellTypist
+      if ("annotated_clusters" %in% comparisons) {
+        plots_overview[[paste0("CellType_", type)]] <-
+          plot_dimplot(seurat_obj = seurat_obj,
+                       data_source = data_source, pt_size = pt_size,
+                       clrs_specific = seurat_obj@misc$colors_annotated,
+                       assay = assay_name,
+                       reduc = reduction,
+                       plot_label = FALSE, annotated = TRUE,
+                       annotations_col = "annotated_clusters",
+                       legend_label = "Cell Type", details = details)
+      }
 
-    # V call families
-    if ("v_call_family" %in% comparisons) {
-      plots_overview[[paste0("v_call_", type)]] <-
-        plot_dimplot(seurat_obj = seurat_obj,
-                     data_source = "", pt_size = pt_size,
-                     clrs_specific = named_colors$v_call_family,
-                     assay = paste(assay_name, "V Call Families"),
-                     reduc = reduction,
-                     plot_label = FALSE, clusters_col = "v_call_family",
-                     legend_label = "V Call Family", details = details)
-    }
+      if ("annotated_clusters_simpler" %in% comparisons) {
+        plots_overview[[paste0("CellTypeSimpler_", type)]] <-
+          plot_dimplot(seurat_obj = seurat_obj,
+                       data_source = data_source, pt_size = pt_size,
+                       clrs_specific = named_colors$cell_types_celltypist,
+                       assay = assay_name,
+                       reduc = reduction,
+                       plot_label = FALSE, annotated = TRUE,
+                       annotations_col = "annotated_clusters_simpler",
+                       legend_label = "Cell Type", details = details)
+      }
 
-    # light chain types
-    if ("light_chains" %in% comparisons) {
-      plots_overview[[paste0("light_chain_", type)]] <-
-        plot_dimplot(seurat_obj = seurat_obj,
-                     data_source = "", pt_size = pt_size,
-                     clrs_specific = named_colors$light,
-                     assay = paste(assay_name, "Light Chain Types"),
-                     reduc = reduction,
-                     plot_label = FALSE, clusters_col = "locus_light",
-                     legend_label = "Light Chain Type", details = details)
-    }
+      # V call families
+      if ("v_call_family" %in% comparisons) {
+        plots_overview[[paste0("v_call_", type)]] <-
+          plot_dimplot(seurat_obj = seurat_obj,
+                       data_source = "", pt_size = pt_size,
+                       clrs_specific = named_colors$v_call_family,
+                       assay = paste(assay_name, "V Call Families"),
+                       reduc = reduction,
+                       plot_label = FALSE, clusters_col = "v_call_family",
+                       legend_label = "V Call Family", details = details)
+      }
 
-    # isotypes
-    if ("isotype" %in% comparisons) {
-      plots_overview[[paste0("isotype_", type)]] <-
-        plot_dimplot(seurat_obj = seurat_obj,
-                     data_source = "", pt_size = pt_size,
-                     clrs_specific = named_colors$isotype,
-                     assay = paste(assay_name, "Isotypes"),
-                     reduc = reduction,
-                     plot_label = FALSE, clusters_col = "isotype",
-                     legend_label = "Isotype", details = details)
-    }
+      # light chain types
+      if ("light_chains" %in% comparisons) {
+        plots_overview[[paste0("light_chain_", type)]] <-
+          plot_dimplot(seurat_obj = seurat_obj,
+                       data_source = "", pt_size = pt_size,
+                       clrs_specific = named_colors$light,
+                       assay = paste(assay_name, "Light Chain Types"),
+                       reduc = reduction,
+                       plot_label = FALSE, clusters_col = "locus_light",
+                       legend_label = "Light Chain Type", details = details)
+      }
 
-    # subisotypes
-    if ("c_call" %in% comparisons) {
-      plots_overview[[paste0("c_call_", type)]] <-
-        plot_dimplot(seurat_obj = seurat_obj,
-                     data_source = "", pt_size = pt_size,
-                     clrs_specific = named_colors$c_call,
-                     assay = paste(assay_name, "Subisotypes"),
-                     reduc = reduction,
-                     plot_label = FALSE, clusters_col = "c_call",
-                     legend_label = "Subisotype", details = details)
-    }
+      # isotypes
+      if ("isotype" %in% comparisons) {
+        plots_overview[[paste0("isotype_", type)]] <-
+          plot_dimplot(seurat_obj = seurat_obj,
+                       data_source = "", pt_size = pt_size,
+                       clrs_specific = named_colors$isotype,
+                       assay = paste(assay_name, "Isotypes"),
+                       reduc = reduction,
+                       plot_label = FALSE, clusters_col = "isotype",
+                       legend_label = "Isotype", details = details)
+      }
 
-    # SHM frequencies
-    if ("mu_freq" %in% comparisons) {
-      plots_overview[[paste0("mu_freq_", type)]] <-
-        plot_dimplot(seurat_obj = seurat_obj,
-                     data_source = "", pt_size = pt_size,
-                     clrs_specific = named_colors$mu_freq_bins,
-                     assay = paste(assay_name, "SHM Frequencies (Binned)"),
-                     reduc = reduction,
-                     plot_label = FALSE, clusters_col = "mu_freq_bins",
-                     legend_label = "Bins", details = details)
-    }
+      # subisotypes
+      if ("c_call" %in% comparisons) {
+        plots_overview[[paste0("c_call_", type)]] <-
+          plot_dimplot(seurat_obj = seurat_obj,
+                       data_source = "", pt_size = pt_size,
+                       clrs_specific = named_colors$c_call,
+                       assay = paste(assay_name, "Subisotypes"),
+                       reduc = reduction,
+                       plot_label = FALSE, clusters_col = "c_call",
+                       legend_label = "Subisotype", details = details)
+      }
 
-    # CDR3 amino acid length
-    if ("cdr3_aa_length" %in% comparisons) {
-      plots_overview[[paste0("cdr3_aa_length_", type)]] <-
-        plot_dimplot(seurat_obj = seurat_obj,
-                     data_source = "", pt_size = pt_size,
-                     clrs_specific = named_colors$cdr3,
-                     assay = paste(assay_name, "CDR3 Length"),
-                     reduc = reduction,
-                     plot_label = FALSE, clusters_col = "cdr3_aa_length",
-                     legend_label = "CDR3 Length", details = details)
+      # SHM frequencies
+      if ("mu_freq" %in% comparisons) {
+        plots_overview[[paste0("mu_freq_", type)]] <-
+          plot_dimplot(seurat_obj = seurat_obj,
+                       data_source = "", pt_size = pt_size,
+                       clrs_specific = named_colors$mu_freq_bins,
+                       assay = paste(assay_name, "SHM Frequencies (Binned)"),
+                       reduc = reduction,
+                       plot_label = FALSE, clusters_col = "mu_freq_bins",
+                       legend_label = "Bins", details = details)
+      }
+
+      # CDR3 amino acid length
+      if ("cdr3_aa_length" %in% comparisons) {
+        plots_overview[[paste0("cdr3_aa_length_", type)]] <-
+          plot_dimplot(seurat_obj = seurat_obj,
+                       data_source = "", pt_size = pt_size,
+                       clrs_specific = named_colors$cdr3,
+                       assay = paste(assay_name, "CDR3 Length"),
+                       reduc = reduction,
+                       plot_label = FALSE, clusters_col = "cdr3_aa_length",
+                       legend_label = "CDR3 Length", details = details)
+      }
     }
   }
 
   # combine all of the plots
   if (length(seurat_objs) == 1) {
-    # plot as a single row instead
-    wrap_plots(plots_overview, nrow = 1, byrow = FALSE) + plot_anno
+    wrap_plots(plots_overview, ncol = min(length(comparisons), 5)) + plot_anno
   } else {
+    # if (use_adt) {
+    #   wrap_plots(plots_overview, ncol = length(seurat_objs)) +
+    #     plot_anno # + plot_layout(guides = "collect")
+    # } else {
+    #   wrap_plots(plots_overview, nrow = length(comparisons), byrow = FALSE) +
+    #     plot_anno + plot_layout(guides = "collect")
+    # }
     wrap_plots(plots_overview, nrow = length(comparisons), byrow = FALSE) +
       plot_anno + plot_layout(guides = "collect")
   }

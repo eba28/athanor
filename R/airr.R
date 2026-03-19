@@ -519,7 +519,7 @@ convert_embeddings <- function(embeddings, combined_airr, combined_airr_input) {
     embeddings <- filter(embeddings, !cell_id %in% embeddings_only_cell_ids)
   }
   cat(paste(length(embeddings_only_cell_ids), "cells in the embedding with no",
-            "corresponding cell ids in the combined AIRR file were removed."))
+            "corresponding cell ids in the combined AIRR file were removed.\n"))
 
   # depending on how AMULETy was run and read in, there might be sample names
   # in their own column

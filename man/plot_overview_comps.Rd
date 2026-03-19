@@ -11,8 +11,9 @@ plot_overview_comps(
   second_assay = "BCR",
   assay_name,
   reduction = "wnn.umap",
-  comparisons = c("annotated_clusters", "v_call_family", "light_chains", "isotype",
-    "mu_freq")
+  use_adt = FALSE,
+  comparisons = c("annotated_clusters_simpler", "v_call_family", "light_chains",
+    "isotype", "mu_freq")
 )
 }
 \arguments{
@@ -28,10 +29,12 @@ plot_overview_comps(
 
 \item{reduction}{Which reduction to plot ("rna.umap", "bcr.umap", or "wnn.umap").}
 
+\item{use_adt}{Whether or not the comparisons being plotted represent ADT markers.}
+
 \item{comparisons}{The labeling of the plots.}
 }
 \value{
-patchwork object with overview plots
+A patchwork object with overview plots in a grid.
 }
 \description{
 This function generates multiple UMAP plots from a Seurat object with various customizable options for coloring, labeling, and grouping the data based on different metadata columns, cluster annotations, and specific clusters of interest.
