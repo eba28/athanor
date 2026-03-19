@@ -18,8 +18,9 @@ plot_overview_comps(
   second_assay = "BCR",
   assay_name,
   reduction = "wnn.umap",
-  comparisons = c("annotated_clusters", "v_call_family", "light_chains", "isotype",
-    "mu_freq")
+  use_adt = FALSE,
+  comparisons = c("annotated_clusters_simpler", "v_call_family", "light_chains",
+    "isotype", "mu_freq")
 )
 ```
 
@@ -51,13 +52,17 @@ plot_overview_comps(
 
   Which reduction to plot ("rna.umap", "bcr.umap", or "wnn.umap").
 
+- use_adt:
+
+  Whether or not the comparisons being plotted represent ADT markers.
+
 - comparisons:
 
   The labeling of the plots.
 
 ## Value
 
-patchwork object with overview plots
+A patchwork object with overview plots in a grid.
 
 ## Details
 
