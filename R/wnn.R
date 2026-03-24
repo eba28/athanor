@@ -169,8 +169,8 @@ run_wnn_sims <- function(count_range, sim_var, other_vars,
 #' This function creates a step plot to visualize the results of manual WNN testing, showing how the success of Seurat's WNN computation changes as the count of a specific variable is varied while keeping other variables constant.
 #'
 #' @param manual_wnn_test A data frame containing the results of the manual WNN testing, with columns "Count" and "Passed".
-#' @param sim_var The variable that was varied in the manual WNN testing (e.g., "Genes", "Cells", "Dimensions", "GEX PCs", or "BCR PCs").
-#' @param other_vars A named list of the other variables that were held constant in the manual WNN testing, with names corresponding to the variable names (e.g., "Genes", "Cells", "Dimensions", "GEX PCs", or "BCR PCs") and values corresponding to the constant values used in the testing.
+#' @param sim_var The variable that was varied in the manual WNN testing (e.g. "Genes", "Cells", "Dimensions", "GEX PCs", or "BCR PCs").
+#' @param other_vars A named list of the other variables that were held constant in the manual WNN testing, with names corresponding to the variable names (e.g. "Genes", "Cells", "Dimensions", "GEX PCs", or "BCR PCs") and values corresponding to the constant values used in the testing.
 #' @param count_range A numeric vector specifying the range of counts that were tested in the manual WNN testing, used for setting the x-axis breaks in the plot.
 #'
 #' @returns A ggplot object showing the step plot of the WNN testing results, with the x-axis representing the count of the varied variable and the y-axis representing whether Seurat's WNN computation passed (1), failed (0), or gave a warning (0.5). The plot includes a title indicating the variable that was varied and a subtitle listing the other variables that were held constant.
@@ -221,15 +221,15 @@ plot_wnn_testing <- function(manual_wnn_test, sim_var,
 #' @param k_param The number of neighbors to use for each modality. Can be a single value or a vector of values to test.
 #' @param k_main The main number of neighbors to use for the final WNN UMAP and clustering.
 #' @param cluster Whether or not to perform clustering.
-#' @param cluster_res Named list of clustering resolutions for GEX, BCR, and joint clustering (JC).
+#' @param cluster_res Named list of clustering resolutions for GEX, BCR, and WNN.
 #' @param modality_weights Named vector of modality weights. If NULL, Seurat will calculate automatically.
 #' @param show_output Whether or not to show verbose output from Seurat functions.
 #'
 #' @returns A Seurat object with WNN run.
 #' @export
 run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
-                    pc_bcr = 20, k_param = 20, k_main = 20, cluster = TRUE,
-                    cluster_res = list("GEX" = 1, "BCR" = 1, "JC" = 1),
+                    pc_bcr = 20, k_param = 20, k_main = 20, cluster = FALSE,
+                    cluster_res = list("GEX" = 1, "BCR" = 1, "WNN" = 1),
                     modality_weights = NULL, show_output = FALSE) {
   # input validation
   if (!inherits(seurat_obj, "Seurat")) {
@@ -293,10 +293,19 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                        npcs = pc_bcr, reduction.name = "bpca",
                        reduction.key = "bpca_", verbose = show_output)
   for (k in k_param) {
-    graph_name <- ifelse(add_k, paste0("BCR.nn_", k), "BCR.nn")
+    # fill the neighbors slot
+    neighbor_name <- ifelse(add_k, paste0("BCR.nn_", k), "BCR.nn")
     seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "bpca",
                                 assay = "BCR", k.param = k,
                                 return.neighbor = TRUE, verbose = show_output,
+                                graph.name = neighbor_name)
+
+    # fill the graphs slot
+    graph_name <- str_c("BCR_", c("", "s"), "nn")
+    if (add_k) graph_name <- str_c(graph_name, "_", k_main)
+    seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "bpca",
+                                dims = 1:pc_bcr, k.param = k_main,
+                                compute.SNN = TRUE, verbose = show_output,
                                 graph.name = graph_name)
   }
   nn_name <- ifelse(add_k, paste0("BCR.nn_", k_main), "BCR.nn")
@@ -315,11 +324,21 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                        npcs = pc_gex, reduction.name = "rpca",
                        reduction.key = "rpca_", verbose = show_output)
   for (k in k_param) {
-    graph_name <- ifelse(add_k, paste0("RNA.nn_", k), "RNA.nn")
+    # fill the neighbors slot
+    neighbor_name <- ifelse(add_k, paste0("RNA.nn_", k), "RNA.nn")
     seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "rpca",
                                 assay = "RNA", k.param = k,
                                 return.neighbor = TRUE, verbose = show_output,
+                                graph.name = neighbor_name)
+
+    # fill the graphs slot
+    graph_name <- str_c("RNA_", c("", "s"), "nn")
+    if (add_k) graph_name <- str_c(graph_name, "_", k_main)
+    seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "rpca",
+                                dims = 1:pc_gex, k.param = k_main,
+                                compute.SNN = TRUE, verbose = show_output,
                                 graph.name = graph_name)
+
   }
   nn_name <- ifelse(add_k, paste0("RNA.nn_", k_main), "RNA.nn")
   seurat_obj <- RunUMAP(object = seurat_obj, # dims = 1:pc_gex,
@@ -357,30 +376,15 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
 
   # use the "main" k for clustering
   if (cluster) {
-    # TODO: don't rerun neighbor detection
     # cluster the BCR assay
-    graph_name <- str_c("BCR.", c("", "s"), "nn")
-    if (add_k) graph_name <- str_c(graph_name, "_", k_main)
-    seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "bpca",
-                                dims = 1:pc_bcr, k.param = k_main,
-                                compute.SNN = TRUE, verbose = show_output,
-                                graph.name = graph_name)
-
-    graph_name <- ifelse(add_k, paste0("BCR.snn_", k_main), "BCR.snn")
+    graph_name <- ifelse(add_k, paste0("BCR_snn_", k_main), "BCR_snn")
     seurat_obj <- FindClusters(object = seurat_obj,
                                graph.name = graph_name,
                                resolution = cluster_res[["BCR"]],
                                algorithm = 1, verbose = show_output)
 
-    # cluster the RNA assay
-    graph_name <- str_c("RNA.", c("", "s"), "nn")
-    if (add_k) graph_name <- str_c(graph_name, "_", k_main)
-    seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "rpca",
-                                dims = 1:pc_gex, k.param = k_main,
-                                compute.SNN = TRUE, verbose = show_output,
-                                graph.name = graph_name)
-
-    graph_name <- ifelse(add_k, paste0("RNA.snn_", k_main), "RNA.snn")
+    # cluster the GEX assay
+    graph_name <- ifelse(add_k, paste0("RNA_snn_", k_main), "RNA_snn")
     seurat_obj <- FindClusters(object = seurat_obj,
                                graph.name = graph_name,
                                resolution = cluster_res[["GEX"]],
@@ -390,13 +394,13 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
     graph_name <- ifelse(add_k, paste0("w_snn_", k_main), "w_snn")
     seurat_obj <- FindClusters(object = seurat_obj,
                                graph.name = graph_name,
-                               resolution = cluster_res[["JC"]],
+                               resolution = cluster_res[["WNN"]],
                                algorithm = 1, verbose = show_output)
 
     # set the cluster identities and fix the order (RNA and BCR are fine)
-    meta_res_jc <- paste0("w_snn_res.", cluster_res[["JC"]])
-    seurat_obj[[]][[meta_res_jc]] <- fct_inseq(seurat_obj[[]][[meta_res_jc]])
-    Idents(seurat_obj) <- meta_res_jc
+    meta_res_wnn <- paste0("w_snn_res.", cluster_res[["WNN"]])
+    seurat_obj[[]][[meta_res_wnn]] <- fct_inseq(seurat_obj[[]][[meta_res_wnn]])
+    Idents(seurat_obj) <- meta_res_wnn
   }
 
   # add a metadata column listing which assay was chosen for each cell
@@ -421,7 +425,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
 #' Give a summary of a Seurat object post-WNN
 #'
 #' @description
-#' This function generates a summary message about the post-WNN Seurat object, including the number of cells, details about the assays (e.g., number of genes, markers, embedding dimensions), information about the reductions used for WNN, and the number of clusters identified in each modality (RNA, BCR, and WNN) based on the largest resolutions.
+#' This function generates a summary message about the post-WNN Seurat object, including the number of cells, details about the assays (e.g. number of genes, markers, embedding dimensions), information about the reductions used for WNN, and the number of clusters identified in each modality (RNA, BCR, and WNN) based on the largest resolutions.
 #'
 #' @details
 #' Assumes that embeddings were used (for now) and that the object has RNA.
@@ -499,7 +503,7 @@ extract_wnn_vars <- function(seurat_obj, gex_pca = "rpca",
 #' Plot UMAPs of a Seurat object post-WNN
 #'
 #' @description
-#' This function creates a combined plot of the GEX, BCR, and WNN UMAPs from a post-WNN Seurat object, colored by a specified metadata column (e.g., clusters or cell types).
+#' This function creates a combined plot of the GEX, BCR, and WNN UMAPs from a post-WNN Seurat object, colored by a specified metadata column (e.g. clusters or cell types).
 #' The function allows for customization of the plot title, point size, color palette, and whether to display metadata labels on the UMAPs.
 #' It uses the `plot_dimplot` function to create individual UMAP plots for each assay and then combines them using `patchwork` for a cohesive visualization.
 #'
@@ -582,7 +586,7 @@ plot_wnn_umaps <- function(seurat_obj, data_source = "Manual",
 #' Plot a box plot of modality weights per cell type
 #'
 #' @description
-#' This function creates a box plot to visualize the distribution of modality weights (e.g., RNA vs. BCR) across different cell types or clusters in a post-WNN Seurat object.
+#' This function creates a box plot to visualize the distribution of modality weights (e.g. RNA vs. BCR) across different cell types or clusters in a post-WNN Seurat object.
 #'
 #' @details
 #' Assumes annotated_clusters is a column

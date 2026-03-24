@@ -22,7 +22,7 @@
 #'
 #' @description
 #' This function calculates various cluster distance metrics using the `fpc::cluster.stats` function, which provides a comprehensive set of clustering statistics based on a distance matrix and cluster assignments.
-#' The function computes both single-value metrics (e.g., Calinski-Harabasz index) and cluster-wise metrics (e.g., average within-cluster distance) depending on the specified criteria.
+#' The function computes both single-value metrics (e.g. Calinski-Harabasz index) and cluster-wise metrics (e.g. average within-cluster distance) depending on the specified criteria.
 #' The results are returned in a tidy data frame format for easy plotting and comparison across different embeddings and reductions.
 #'
 #' @details
@@ -309,7 +309,7 @@ calc_ext_metrics <- function(seurat_obj, reduction_name,
 #' @param plot_title Title to use for the plot.
 #' @param best_score One of "higher" or "lower" to indicate whether higher or lower scores are better for the metrics being plotted. This is used to determine which scores to outline in the plot.
 #' @param type One of "Internal" or "External" to indicate the type of metrics being plotted, used for the plot title.
-#' @param y_axis The name of the column in the metrics data frame to use for the y-axis (e.g., "Labeling").
+#' @param y_axis The name of the column in the metrics data frame to use for the y-axis (e.g. "Labeling").
 #' @param round_to Number of decimal places to round the score labels to in the plot.
 #' @param details Additional details to include in the plot title (optional).
 #'
@@ -426,7 +426,7 @@ calc_adt_scores <- function(seurat_objs, meta_res, metric_type, metrics,
 #' Compute mean ADT distance to each cell's k nearest neighbors
 #'
 #' @description
-#' This function calculates the mean distance (or similarity) of each cell's ADT profile to its k nearest neighbors in a specified neighbor space (e.g., RNA, BCR, WNN) using a chosen distance metric (e.g., mean absolute difference, Manhattan distance, Euclidean distance, or cosine similarity).
+#' This function calculates the mean distance (or similarity) of each cell's ADT profile to its k nearest neighbors in a specified neighbor space (e.g. RNA, BCR, WNN) using a chosen distance metric (e.g. mean absolute difference, Manhattan distance, Euclidean distance, or cosine similarity).
 #'
 #' @details
 #' Pearson correlation coefficient measures linear relationships.
@@ -434,12 +434,12 @@ calc_adt_scores <- function(seurat_objs, meta_res, metric_type, metrics,
 #' Cosine similarity measures the cosine of the angle between two vectors, with values closer to 1 meaning that they are more similar.
 #'
 #' @param seurat_obj Seurat object that contains neighbor slots for different k's.
-#' @param base_assay Which neighbor space to use (e.g., "RNA", "BCR", "w").
+#' @param base_assay Which neighbor space to use (e.g. "RNA", "BCR", "w").
 #' @param adt_assay ADT assay name (ADT, ADTnorm).
 #' @param layer Data layer to pull from (data, counts, or scale.data).
 #' @param feature Optional vector of ADT features; if missing, use all features present.
 #' @param k Number of nearest neighbors.
-#' @param multiple_k Whether to look for a neighbor slot specific to the provided k (e.g., "RNA.nn_20") or just use the generic one (e.g., "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.
+#' @param multiple_k Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.
 #' @param distance_metric One of `c(mean_abs, manhattan, euclidean, cosine)`.
 #' @param return_mean If TRUE, return the mean across all cells; else return per-cell.
 #' @param exclude_self Drop the cell itself from neighbors if present.
@@ -537,7 +537,7 @@ calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
 #' Compute mean ADT distance to each cell's k nearest neighbors (faster version)
 #'
 #' @description
-#' This function calculates the mean distance of each cell's ADT profile to its k nearest neighbors in a specified neighbor space (e.g., RNA, BCR, WNN) using Euclidean distance. It returns a named numeric vector of per-cell mean distances.
+#' This function calculates the mean distance of each cell's ADT profile to its k nearest neighbors in a specified neighbor space (e.g. RNA, BCR, WNN) using Euclidean distance. It returns a named numeric vector of per-cell mean distances.
 #'
 #' @details
 #' Only returns the mean.
@@ -594,14 +594,13 @@ calc_adt_dists_fast <- function(adt_data, features, neighbors,
 #'
 #' @param seurat_obj A Seurat object containing ADT data and computed neighbor
 #'   graphs.
-#' @param adt_assay Character. Name of the assay containing ADT data.
-#' @param feature Character. Name of the ADT feature to evaluate (e.g., "CD27.1",
-#'   "CD38.1").
-#' @param base_assay Character. The assay used to compute neighbors. One of
+#' @param adt_assay Name of the assay containing ADT data.
+#' @param feature Name of the ADT feature to evaluate (e.g. "CD27.1", "CD38").
+#' @param base_assay The assay used to compute neighbors. One of
 #'   "RNA", "GEX", "BCR", or "WNN".
 #' @param k Numeric. Number of nearest neighbors to evaluate. Must match the k
 #'   used when computing the neighbor graph.
-#' @param use_k Logical. Whether to look for a neighbor slot specific to the provided k (e.g., "RNA.nn_20") or just use the generic one (e.g., "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.
+#' @param use_k Logical. Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.
 #' @param range Numeric. The relative threshold for considering neighbors
 #'   similar. A value of 0.20 means neighbors within ±20% of the cell's
 #'   expression are counted.
@@ -616,6 +615,8 @@ calc_adt_dists_fast <- function(adt_data, features, neighbors,
 calc_adt_nn_within_range <- function(seurat_obj, adt_assay = "ADT", feature,
                                      base_assay, k = 20, use_k = TRUE,
                                      range = 0.20, return_counts = FALSE) {
+  # TODO: standardize "feature" vs. "adt_features"
+
   # get the neighbors for the specified assay
   if (rlang::is_missing(base_assay)) base_assay <- DefaultAssay(seurat_obj)
   assay_name <- recode_values(base_assay, "GEX" ~ "RNA", "WNN" ~ "w",

@@ -11,7 +11,8 @@ concatenate_gex_bcr(
   var_features = FALSE,
   normalize = TRUE,
   num_dims = 20,
-  filter_genes = TRUE
+  filter_genes,
+  ensembl_version = NULL
 )
 }
 \arguments{
@@ -22,17 +23,15 @@ concatenate_gex_bcr(
 \item{cols_to_include}{Character vector of BCR metadata column names to include
 in the concatenated assay e.g. c("mu_freq", "isotype") or embedded dimensions.}
 
-\item{var_features}{Logical; if TRUE, run FindVariableFeatures on the combined
+\item{var_features}{If TRUE, run FindVariableFeatures on the combined
 assay. If FALSE, concatenate BCR features onto existing variable features.}
 
-\item{normalize}{Logical; if TRUE, normalize the combined assay using
+\item{normalize}{If TRUE, normalize the combined assay using
 LogNormalize. If FALSE, skip normalization.}
 
-\item{num_dims}{Integer; number of dimensions to use for PCA and neighbor finding.}
+\item{num_dims}{number of dimensions to use for PCA and neighbor finding.}
 
-\item{filter_genes}{Logical; if TRUE, filter out immunoglobulin (IG) and
-T-cell receptor (TR) genes from variable features. Requires \code{remove_genes}
-to be defined in the environment.}
+\item{filter_genes}{If specified, filter out genes from this category (e.g. "IG" and/or "TR")}
 }
 \value{
 A Seurat object with:

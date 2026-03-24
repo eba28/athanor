@@ -39,7 +39,7 @@ plot_wnn_umaps(
 A combined plot of the GEX, BCR, and WNN UMAPs colored by the specified metadata column.
 }
 \description{
-This function creates a combined plot of the GEX, BCR, and WNN UMAPs from a post-WNN Seurat object, colored by a specified metadata column (e.g., clusters or cell types).
+This function creates a combined plot of the GEX, BCR, and WNN UMAPs from a post-WNN Seurat object, colored by a specified metadata column (e.g. clusters or cell types).
 The function allows for customization of the plot title, point size, color palette, and whether to display metadata labels on the UMAPs.
 It uses the \code{plot_dimplot} function to create individual UMAP plots for each assay and then combines them using \code{patchwork} for a cohesive visualization.
 }

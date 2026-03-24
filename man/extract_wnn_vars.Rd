@@ -24,7 +24,7 @@ extract_wnn_vars(
 A text message.
 }
 \description{
-This function generates a summary message about the post-WNN Seurat object, including the number of cells, details about the assays (e.g., number of genes, markers, embedding dimensions), information about the reductions used for WNN, and the number of clusters identified in each modality (RNA, BCR, and WNN) based on the largest resolutions.
+This function generates a summary message about the post-WNN Seurat object, including the number of cells, details about the assays (e.g. number of genes, markers, embedding dimensions), information about the reductions used for WNN, and the number of clusters identified in each modality (RNA, BCR, and WNN) based on the largest resolutions.
 }
 \details{
 Assumes that embeddings were used (for now) and that the object has RNA.

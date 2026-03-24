@@ -7,7 +7,7 @@
 process_bcr_features(bcr_features)
 }
 \arguments{
-\item{bcr_features}{A data frame containing BCR features (e.g., isotype, mutation
+\item{bcr_features}{A data frame containing BCR features (e.g. isotype, mutation
 frequency). May contain ordered factors, numeric, or categorical variables.}
 }
 \value{

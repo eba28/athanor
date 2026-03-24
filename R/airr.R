@@ -307,7 +307,7 @@ add_family_info <- function(combined_airr) {
 #' For after `add_family_info()` has been run
 #'
 #' @param combined_airr An AIRR-formatted data.frame. This function ensures that gene
-#' families and genes are ordered correctly (e.g., IGHV1, IGHV2, IGHV10 instead
+#' families and genes are ordered correctly (e.g. IGHV1, IGHV2, IGHV10 instead
 #' of IGHV1, IGHV10, IGHV2).
 #'
 #' @returns A data.frame with up to six columns converted to sorted factors.
@@ -353,7 +353,7 @@ factor_family_info <- function(combined_airr) {
 #' Bin the mutation frequency
 #'
 #' @description
-#' Bins the `mu_freq` column in a Seurat object into specified categories (e.g., 0%, 0-1%, 1-5%, etc.) for easier visualization and analysis.
+#' Bins the `mu_freq` column in a Seurat object into specified categories (e.g. 0%, 0-1%, 1-5%, etc.) for easier visualization and analysis.
 #' The function creates new columns with binned mutation frequencies based on the provided number of bins.
 #'
 #' @details
@@ -418,7 +418,7 @@ bin_mu_freq <- function(seurat_obj, num_bins = c(2, 3, 5)) {
 #'   4. Transpose the result for compatibility with Seurat assays
 #'  You could do something like janitor::clean_names(bcr_features) to remove the underscores from the column names right off the bat, but one-hot encoding will add names with underscores automatically unless you messing with the `naming` argument in `step_dummy()`.
 #'
-#' @param bcr_features A data frame containing BCR features (e.g., isotype, mutation
+#' @param bcr_features A data frame containing BCR features (e.g. isotype, mutation
 #'   frequency). May contain ordered factors, numeric, or categorical variables.
 #'
 #' @return A transposed matrix of processed features where:
@@ -469,7 +469,7 @@ process_bcr_features <- function(bcr_features) {
 #' Convert the output of an embedding method to a matrix
 #'
 #' @description
-#' This function takes the output from an embedding method (e.g., AntiBERTy, ESM2, immune2vec) and converts it into a `Matrix` matrix format that can be used for downstream analysis.
+#' This function takes the output from an embedding method (e.g. AntiBERTy, ESM2, immune2vec) and converts it into a `Matrix` matrix format that can be used for downstream analysis.
 #' It handles the mapping of cell IDs from the embeddings to the combined AIRR data, ensuring that only cells present in both datasets are retained.
 #' The resulting matrix has features as rows and cells as columns, with appropriate column names based on the number of dimensions in the embeddings.
 #'

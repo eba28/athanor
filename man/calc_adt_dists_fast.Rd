@@ -16,7 +16,7 @@ calc_adt_dists_fast(adt_data, features, neighbors, exclude_self = TRUE)
 \item{exclude_self}{Drop the cell itself from neighbors if present.}
 }
 \description{
-This function calculates the mean distance of each cell's ADT profile to its k nearest neighbors in a specified neighbor space (e.g., RNA, BCR, WNN) using Euclidean distance. It returns a named numeric vector of per-cell mean distances.
+This function calculates the mean distance of each cell's ADT profile to its k nearest neighbors in a specified neighbor space (e.g. RNA, BCR, WNN) using Euclidean distance. It returns a named numeric vector of per-cell mean distances.
 }
 \details{
 Only returns the mean.

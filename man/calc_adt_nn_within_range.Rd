@@ -19,18 +19,17 @@ calc_adt_nn_within_range(
 \item{seurat_obj}{A Seurat object containing ADT data and computed neighbor
 graphs.}
 
-\item{adt_assay}{Character. Name of the assay containing ADT data.}
+\item{adt_assay}{Name of the assay containing ADT data.}
 
-\item{feature}{Character. Name of the ADT feature to evaluate (e.g., "CD27.1",
-"CD38.1").}
+\item{feature}{Name of the ADT feature to evaluate (e.g. "CD27.1", "CD38").}
 
-\item{base_assay}{Character. The assay used to compute neighbors. One of
+\item{base_assay}{The assay used to compute neighbors. One of
 "RNA", "GEX", "BCR", or "WNN".}
 
 \item{k}{Numeric. Number of nearest neighbors to evaluate. Must match the k
 used when computing the neighbor graph.}
 
-\item{use_k}{Logical. Whether to look for a neighbor slot specific to the provided k (e.g., "RNA.nn_20") or just use the generic one (e.g., "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.}
+\item{use_k}{Logical. Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.}
 
 \item{range}{Numeric. The relative threshold for considering neighbors
 similar. A value of 0.20 means neighbors within ±20\% of the cell's

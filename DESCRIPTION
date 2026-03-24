@@ -17,6 +17,7 @@ Suggests:
 Config/testthat/edition: 3
 Imports: 
     alakazam,
+    biomaRt,
     dplyr,
     forcats,
     ggplot2,

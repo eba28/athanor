@@ -23,7 +23,7 @@ plot_metrics(
 
 \item{type}{One of "Internal" or "External" to indicate the type of metrics being plotted, used for the plot title.}
 
-\item{y_axis}{The name of the column in the metrics data frame to use for the y-axis (e.g., "Labeling").}
+\item{y_axis}{The name of the column in the metrics data frame to use for the y-axis (e.g. "Labeling").}
 
 \item{round_to}{Number of decimal places to round the score labels to in the plot.}
 

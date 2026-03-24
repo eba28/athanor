@@ -21,14 +21,12 @@
 #' @param pca_stage Add BCR information before PCA or after PCA.
 #' @param cols_to_include Character vector of BCR metadata column names to include
 #'   in the concatenated assay e.g. c("mu_freq", "isotype") or embedded dimensions.
-#' @param var_features Logical; if TRUE, run FindVariableFeatures on the combined
+#' @param var_features If TRUE, run FindVariableFeatures on the combined
 #'   assay. If FALSE, concatenate BCR features onto existing variable features.
-#' @param normalize Logical; if TRUE, normalize the combined assay using
+#' @param normalize If TRUE, normalize the combined assay using
 #'   LogNormalize. If FALSE, skip normalization.
-#' @param num_dims Integer; number of dimensions to use for PCA and neighbor finding.
-#' @param filter_genes Logical; if TRUE, filter out immunoglobulin (IG) and
-#'   T-cell receptor (TR) genes from variable features. Requires `remove_genes`
-#'   to be defined in the environment.
+#' @param num_dims number of dimensions to use for PCA and neighbor finding.
+#' @param filter_genes If specified, filter out genes from this category (e.g. "IG" and/or "TR")
 #'
 #' @return
 #' A Seurat object with:
@@ -40,13 +38,8 @@
 concatenate_gex_bcr <- function(seurat_obj, pca_stage = "Before",
                                 cols_to_include, var_features = FALSE,
                                 normalize = TRUE, num_dims = 20, # k
-                                filter_genes = TRUE) {
-  # check that we have everything we need
-  if (filter_genes) {
-    if (!exists("remove_genes")) {
-      stop("Make sure that `remove_genes` has been defined.")
-    }
-  }
+                                filter_genes, ensembl_version = NULL) {
+  # double check the formatting of filter genes
 
   if (pca_stage == "Before") {
     # TODO: check if the RNA assay contains the names of the BCR assay
@@ -100,14 +93,17 @@ concatenate_gex_bcr <- function(seurat_obj, pca_stage = "Before",
     # TODO: add the option to not filter out the IG genes
     # so I'd have to rerun FindVariableFeatures on the RNA alone
 
-    # filter out the IG and TR genes
-    # (assumes that features_meta is already loaded and remove_genes defined)
-    # see the "Features to be filtered out" section
-    if (filter_genes) {
-      remove_feats <- VariableFeatures(seurat_obj) %in% remove_genes
+    # filter out the IG and/or TR genes
+    if (!rlang::is_missing(filter_genes)) {
+      # TODO: check the object for the species, ensembl version
+      airr_genes <- get_airr_genes(category = filter_genes,
+                                   ensembl_version = ensembl_version)
+
+      remove_feats <- VariableFeatures(seurat_obj) %in% airr_genes$remove_genes
       VariableFeatures(seurat_obj) <- VariableFeatures(seurat_obj)[!remove_feats]
 
-      cat(paste0("After removing IG/TR genes, the total number of variable features is: ",
+      cat(paste0("After removing ", str_c(filter_genes, collapse = "/"),
+                 " genes, the total number of variable features is: ",
                  length(VariableFeatures(seurat_obj)), ". Of these, ",
                  length(setdiff(VariableFeatures(seurat_obj),
                                 str_replace_all(rownames(bcr_features), "_", "-"))),

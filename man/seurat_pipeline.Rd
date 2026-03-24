@@ -12,7 +12,8 @@ seurat_pipeline(
   num_pcs = 30,
   num_dims = 20,
   cluster_res = 0.4,
-  filter_genes = TRUE,
+  filter_genes,
+  ensembl_version = NULL,
   verbose = TRUE
 )
 }
@@ -31,7 +32,7 @@ seurat_pipeline(
 
 \item{cluster_res}{Clustering resolution parameter.}
 
-\item{filter_genes}{Whether to filter out IG/TR genes.}
+\item{filter_genes}{If specified, filter out genes from this category (e.g. "IG" and/or "TR")}
 
 \item{verbose}{Print out Seurat's progress messages.}
 }
@@ -44,7 +45,6 @@ It includes optional filtering of IG/TR genes and allows for customization of va
 }
 \details{
 It is highly recommended to save the resulting object as an RDS or qs file.
-For \code{filter_genes}, we assume that \code{features_meta} is already loaded and \code{remove_genes} defined.
 This pipeline is loosely based on \href{https://satijalab.org/seurat/articles/pbmc3k_tutorial}{Seurat's pipeline}.
 Unlike previous analyses, \code{features = rownames(obj)} was removed from the \code{ScaleData} step since the data is too large and only the top variable features are needed to do \code{RunPCA}.
 }
