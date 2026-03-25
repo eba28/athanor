@@ -26,7 +26,6 @@ Imports:
     knitr,
     magrittr,
     Matrix,
-    MERINGUE,
     pals,
     patchwork,
     purrr,
@@ -43,4 +42,6 @@ Imports:
     tidyr,
     tidyselect,
     utils
+Remotes:
+    github::JEFworks-Lab/MERINGUE
 VignetteBuilder: knitr
