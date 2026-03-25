@@ -26,6 +26,7 @@ Imports:
     knitr,
     magrittr,
     Matrix,
+    MERINGUE,
     pals,
     patchwork,
     purrr,

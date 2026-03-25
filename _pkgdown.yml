@@ -24,6 +24,7 @@ reference:
   - automated_annotation
   - cell_type_clusters
   - find_k_clusters
+  - get_airr_genes
   - gen_dot_title
   - get_cell_types
   - get_features_from_all
@@ -65,6 +66,7 @@ reference:
   - calc_distances
   - calc_ext_metrics
   - calc_int_metrics
+  - calc_moran
   - calc_neighbor_matches
   - plot_metrics
 - title: Applications

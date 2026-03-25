@@ -82,6 +82,7 @@
 #' @importFrom grDevices colorRampPalette
 #' @importFrom knitr kable
 #' @importFrom Matrix Matrix
+#' @importFrom MERINGUE moranTest
 #' @importFrom patchwork plot_layout
 #' @importFrom patchwork wrap_plots
 #' @importFrom purrr map_df

@@ -907,3 +907,60 @@ calc_neighbor_matches <- function(seurat_obj, nn_name,
     return(neighbor_matches)
   }
 }
+
+
+#' Calculate Moran's i for a Seurat object
+#'
+#' @description
+#' This function calculates the global Moran's i index.
+#'
+#' @details
+#' We are using `MERINGUE`'s implementation instead of `ape`'s because it runs faster.
+#' Row standardization makes sure that the resulting score will always be between -1 and 1.
+#'
+#' @param seurat_obj The Seurat object. Must have `FindNeighbors()` already run and an assay named "ADT".
+#' @param feature Name of the ADT feature to evaluate (e.g. "CD27.1", "CD38").
+#' @param graph_name Name of the neighbor graph slot to use for the weights matrix (e.g. "RNA.nn", "BCR.nn", "w.nn").
+#' @param row_standardize Whether or not to row-standardize the weights matrix (i.e. make each row sum to 1).
+#'
+#' @returns A single numeric value representing the observed Moran's i index for the specified feature and neighbor graph.
+#' @export
+calc_moran <- function(seurat_obj, feature, graph_name, row_standardize = TRUE) {
+  # TODO: provide multiple features
+  # TODO: provide multiple graphs
+
+  # make sure that the ADT feature is in the object
+  if (!feature %in% rownames(seurat_obj@assays$ADT)) {
+    stop("The requested ADT feature is not present in assay 'ADT'. Available features: ",
+         paste(sort(rownames(seurat_obj@assays$ADT)), collapse = ", "))
+  }
+  # make sure that the graph is in the object
+  if (!graph_name %in% names(seurat_obj@graphs)) {
+    stop("Graph '", graph_name, "' not found in object. Available graphs: ",
+         paste(names(seurat_obj@graphs), collapse = ", "))
+  }
+
+  # get the (normalized) expression
+  x <- GetAssayData(seurat_obj, assay = "ADT", layer = "data")
+  x <- x[feature, ]
+
+  # get the weights matrix
+  w <- seurat_obj@graphs[[graph_name]] # as.matrix
+
+  # row-standardize the weights (so each row sums to 1)
+  # this shouldn't be necessary because we are comparing graphs with the same k
+  if (row_standardize) w <- w / rowSums(w)
+
+  # calculate Moran's i
+  moran <- MERINGUE::moranTest(x, w)
+
+  # if you want to calculate the local value:
+  # list_w <- mat2listw(as.matrix(w)) # spdep
+  # local_m <- localmoran(marker_vector, list_w) # produces a value for each cell
+  # add to Seurat metadata for plotting
+  # seurat_obj@meta.data[[paste0("local_i_", feature)]] <-
+  #   local_m[, "Ii"] # 'Ii' is the local Moran statistic
+
+  # just return the observed Moran's i value, not the expected value, sd, or p-value
+  return(moran[["observed"]])
+}
