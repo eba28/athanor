@@ -34,6 +34,8 @@ seurat_pipeline(
 
 \item{filter_genes}{If specified, filter out genes from this category (e.g. "IG" and/or "TR")}
 
+\item{ensembl_version}{If filtering genes, specify the Ensembl version to use for gene annotations (e.g. "GRCh38.104"). If NULL, uses the default version in \code{get_airr_genes()}.}
+
 \item{verbose}{Print out Seurat's progress messages.}
 }
 \value{

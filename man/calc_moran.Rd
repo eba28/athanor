@@ -23,5 +23,6 @@ This function calculates the global Moran's i index.
 }
 \details{
 We are using \code{MERINGUE}'s implementation instead of \code{ape}'s because it runs faster.
+However, \code{MERINGUE} is not on CRAN, which means this package could not be published on CRAN.
 Row standardization makes sure that the resulting score will always be between -1 and 1.
 }

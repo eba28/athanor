@@ -17,15 +17,26 @@ Suggests:
 Config/testthat/edition: 3
 Imports: 
     alakazam,
+    ape,
+    Azimuth,
     biomaRt,
+    clevr,
+    cluster,
+    clusterSim,
+    clv,
+    clValid,
     dplyr,
+    DT,
     forcats,
+    fpc,
     ggplot2,
     grDevices,
     hues,
     knitr,
+    lsa,
     magrittr,
     Matrix,
+    mclust,
     pals,
     patchwork,
     purrr,
@@ -41,7 +52,6 @@ Imports:
     tibble,
     tidyr,
     tidyselect,
-    utils
-Remotes:
-    github::JEFworks-Lab/MERINGUE
+    utils,
+    xfun
 VignetteBuilder: knitr

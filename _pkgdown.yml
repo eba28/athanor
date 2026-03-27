@@ -61,7 +61,8 @@ reference:
 - contents:
   - calc_adt_dists
   - calc_adt_dists_fast
-  - calc_adt_nn_within_range
+  - calc_adt_nn_within_quantile
+  - calc_adt_quantile
   - calc_adt_scores
   - calc_distances
   - calc_ext_metrics

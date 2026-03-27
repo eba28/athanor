@@ -27,6 +27,7 @@
 #'   LogNormalize. If FALSE, skip normalization.
 #' @param num_dims number of dimensions to use for PCA and neighbor finding.
 #' @param filter_genes If specified, filter out genes from this category (e.g. "IG" and/or "TR")
+#' @param ensembl_version If filtering genes, specify the Ensembl version to use for gene annotations (e.g. "GRCh38.104"). If NULL, uses the default version in `get_airr_genes()`.
 #'
 #' @return
 #' A Seurat object with:

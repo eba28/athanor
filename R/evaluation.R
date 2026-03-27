@@ -630,6 +630,10 @@ calc_adt_nn_within_range <- function(seurat_obj, adt_assay = "ADT", feature,
   neighbors <- seurat_obj@neighbors[[assay_name]]
   nn_idx <- Indices(neighbors)
 
+  if (is.null(neighbors)) {
+    stop(paste("No neighbors found for assay", base_assay, "with k =", k))
+  }
+
   # get ADT expression for the given feature
   adt_expr <- seurat_obj@assays[[adt_assay]]@data[feature, ]
 
@@ -645,6 +649,76 @@ calc_adt_nn_within_range <- function(seurat_obj, adt_assay = "ADT", feature,
     # count neighbors within the range
     within_range <-
       sum(neighbor_expr >= lower_bound & neighbor_expr <= upper_bound)
+
+    if (return_counts) {
+      return(within_range)
+    } else {
+      return(within_range / k)
+    }
+  })
+
+  names(results) <- Cells(seurat_obj)
+  return(results)
+}
+
+
+#' Calculate the proportion of neighbors within an ADT marker's quantile by expression
+#'
+#' @description
+#' For each cell in a Seurat object, this function calculates how many of its
+#' k nearest neighbors have ADT expression within the same quantile as the cell's own ADT expression for a given feature.
+#'
+#'
+#' @param seurat_obj A Seurat object containing ADT data and computed neighbor
+#'   graphs.
+#' @param adt_assay Name of the assay containing ADT data.
+#' @param feature Name of the ADT feature to evaluate (e.g. "CD27.1", "CD38").
+#' @param base_assay The assay used to compute neighbors. One of
+#'   "RNA", "GEX", "BCR", or "WNN".
+#' @param k Numeric. Number of nearest neighbors to evaluate. Must match the k
+#'   used when computing the neighbor graph.
+#' @param use_k Logical. Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.
+#' @param n_quantile Numeric. The number of quantiles to divide the ADT expression into. Neighbors are considered "within range" if they fall into the same quantile as the cell.
+#' @param return_counts Logical. If TRUE, returns the count of neighbors within
+#'   range. If FALSE, returns the proportion (count/k).
+#'
+#' @return A named numeric vector with one value per cell in the Seurat object.
+#'   If \code{return_counts = TRUE}, returns the count of neighbors within
+#'   the same quantile If \code{return_counts = FALSE}, returns the proportion of
+#'   neighbors within the same quantile (ranging from 0 to 1). Vector names are cell ids.
+#' @export
+calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", feature,
+                              base_assay, k = 20, use_k = TRUE, n_quantile = 10,
+                              return_counts = FALSE) {
+  # get the neighbors for the specified assay
+  if (rlang::is_missing(base_assay)) base_assay <- DefaultAssay(seurat_obj)
+  assay_name <- recode_values(base_assay, "GEX" ~ "RNA", "WNN" ~ "w",
+                              default = base_assay)
+  assay_name <- paste0(assay_name, ".nn")
+
+  # just don't include k
+  if (use_k) assay_name <- paste0(assay_name, "_", k)
+
+  # pull the nn information from the object
+  neighbors <- seurat_obj@neighbors[[assay_name]]
+  nn_idx <- Indices(neighbors)
+
+  if (is.null(neighbors)) {
+    stop(paste("No neighbors found for assay", base_assay, "with k =", k))
+  }
+
+  # get ADT quantiles for the given feature
+  adt_expr <- seurat_obj@assays[[adt_assay]]@data[feature, ]
+  adt_quantiles <- cut_interval(adt_expr, n = n_quantile)
+  adt_quantiles <- as.numeric(adt_quantiles)
+
+  # calculate the counts or proportion for each cell in the object
+  results <- sapply(1:nrow(nn_idx), function(i) {
+    cell_quantile <- adt_quantiles[i]
+    neighbor_quantile <- adt_quantiles[nn_idx[i, ]]
+
+    # count neighbors within the range
+    within_range <- sum(neighbor_quantile == cell_quantile)
 
     if (return_counts) {
       return(within_range)
@@ -916,6 +990,7 @@ calc_neighbor_matches <- function(seurat_obj, nn_name,
 #'
 #' @details
 #' We are using `MERINGUE`'s implementation instead of `ape`'s because it runs faster.
+#' However, `MERINGUE` is not on CRAN, which means this package could not be published on CRAN.
 #' Row standardization makes sure that the resulting score will always be between -1 and 1.
 #'
 #' @param seurat_obj The Seurat object. Must have `FindNeighbors()` already run and an assay named "ADT".
@@ -952,7 +1027,8 @@ calc_moran <- function(seurat_obj, feature, graph_name, row_standardize = TRUE) 
   if (row_standardize) w <- w / rowSums(w)
 
   # calculate Moran's i
-  moran <- MERINGUE::moranTest(x, w)
+  moran <- ape::Moran.I(x, w)
+  # moran <- MERINGUE::moranTest(x, w)
 
   # if you want to calculate the local value:
   # list_w <- mat2listw(as.matrix(w)) # spdep

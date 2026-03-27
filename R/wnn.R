@@ -119,7 +119,7 @@ sim_bcr_manual <- function(num_cells, num_dims, separator) {
   return(bcr_embeddings)
 }
 
-
+#' Run manual WNN simulations by varying a specific variable while keeping others constant
 #' @export
 run_wnn_sims <- function(count_range, sim_var, other_vars,
                          show_progress = FALSE) {

@@ -88,6 +88,7 @@ get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
 #' @param num_dims Number of dimensions to use for neighbor finding and UMAP.
 #' @param cluster_res Clustering resolution parameter.
 #' @param filter_genes If specified, filter out genes from this category (e.g. "IG" and/or "TR")
+#' @param ensembl_version If filtering genes, specify the Ensembl version to use for gene annotations (e.g. "GRCh38.104"). If NULL, uses the default version in `get_airr_genes()`.
 #' @param verbose Print out Seurat's progress messages.
 #'
 #' @returns A processed Seurat object with normalization, scaling, PCA, clustering, and UMAP.
