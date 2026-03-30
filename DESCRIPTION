@@ -45,6 +45,8 @@ Imports:
     rlang,
     scales,
     Seurat,
+    SeuratData (>= 0.2.2.9002),
+    SeuratDisk (>= 0.0.0.9021),
     splatter,
     stats,
     stringr,
@@ -53,6 +55,8 @@ Imports:
     tidyselect,
     utils,
     xfun
-Remotes:
-    Azimuth=github::satijalab/azimuth
+Remotes:  
+    Azimuth=github::satijalab/azimuth,
+    SeuratData=github::satijalab/seurat-data,
+    SeuratDisk=github::mojaveazure/seurat-disk
 VignetteBuilder: knitr
