@@ -49,7 +49,8 @@ It includes optional filtering of IG/TR genes and allows for customization of va
 <span>  num_pcs <span class="op">=</span> <span class="fl">30</span>,</span>
 <span>  num_dims <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  cluster_res <span class="op">=</span> <span class="fl">0.4</span>,</span>
-<span>  filter_genes <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">filter_genes</span>,</span>
+<span>  ensembl_version <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -87,7 +88,11 @@ It includes optional filtering of IG/TR genes and allows for customization of va
 
 
 <dt id="arg-filter-genes">filter_genes<a class="anchor" aria-label="anchor" href="#arg-filter-genes"></a></dt>
-<dd><p>Whether to filter out IG/TR genes.</p></dd>
+<dd><p>If specified, filter out genes from this category (e.g. "IG" and/or "TR")</p></dd>
+
+
+<dt id="arg-ensembl-version">ensembl_version<a class="anchor" aria-label="anchor" href="#arg-ensembl-version"></a></dt>
+<dd><p>If filtering genes, specify the Ensembl version to use for gene annotations (e.g. "GRCh38.104"). If NULL, uses the default version in <code><a href="get_airr_genes.html">get_airr_genes()</a></code>.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
@@ -101,7 +106,6 @@ It includes optional filtering of IG/TR genes and allows for customization of va
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>It is highly recommended to save the resulting object as an RDS or qs file.
-For <code>filter_genes</code>, we assume that <code>features_meta</code> is already loaded and <code>remove_genes</code> defined.
 This pipeline is loosely based on <a href="https://satijalab.org/seurat/articles/pbmc3k_tutorial" class="external-link">Seurat's pipeline</a>.
 Unlike previous analyses, <code>features = rownames(obj)</code> was removed from the <code>ScaleData</code> step since the data is too large and only the top variable features are needed to do <code>RunPCA</code>.</p>
     </div>

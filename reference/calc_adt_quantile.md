@@ -1,20 +1,20 @@
-# Calculate the proportion of neighbors within an ADT marker's expression range
+# Calculate the proportion of neighbors within an ADT marker's quantile by expression
 
 For each cell in a Seurat object, this function calculates how many of
-its k nearest neighbors have ADT expression within a specified threshold
-(default 20%) of the cell's own ADT expression for a given feature.
+its k nearest neighbors have ADT expression within the same quantile as
+the cell's own ADT expression for a given feature.
 
 ## Usage
 
 ``` r
-calc_adt_nn_within_range(
+calc_adt_quantile(
   seurat_obj,
   adt_assay = "ADT",
   feature,
   base_assay,
   k = 20,
   use_k = TRUE,
-  range = 0.2,
+  n_quantile = 10,
   return_counts = FALSE
 )
 ```
@@ -50,11 +50,11 @@ calc_adt_nn_within_range(
   former allows you to have multiple neighbor graphs with different k's,
   while the latter assumes you only have one neighbor graph per assay.
 
-- range:
+- n_quantile:
 
-  Numeric. The relative threshold for considering neighbors similar. A
-  value of 0.20 means neighbors within ±20% of the cell's expression are
-  counted.
+  Numeric. The number of quantiles to divide the ADT expression into.
+  Neighbors are considered "within range" if they fall into the same
+  quantile as the cell.
 
 - return_counts:
 
@@ -64,15 +64,7 @@ calc_adt_nn_within_range(
 ## Value
 
 A named numeric vector with one value per cell in the Seurat object. If
-`return_counts = TRUE`, returns the count of neighbors within range. If
-`return_counts = FALSE`, returns the proportion of neighbors within
-range (ranging from 0 to 1). Vector names are cell ids.
-
-## Details
-
-The range is symmetric around the cell's expression value. For example,
-with range = 0.20:
-
-- Lower bound = cell_expr \* 0.80
-
-- Upper bound = cell_expr \* 1.20
+`return_counts = TRUE`, returns the count of neighbors within the same
+quantile If `return_counts = FALSE`, returns the proportion of neighbors
+within the same quantile (ranging from 0 to 1). Vector names are cell
+ids.

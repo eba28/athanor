@@ -15,7 +15,7 @@ process_bcr_features(bcr_features)
 
 - bcr_features:
 
-  A data frame containing BCR features (e.g., isotype, mutation
+  A data frame containing BCR features (e.g. isotype, mutation
   frequency). May contain ordered factors, numeric, or categorical
   variables.
 

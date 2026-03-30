@@ -1,7 +1,7 @@
 # Give a summary of a Seurat object post-WNN
 
 This function generates a summary message about the post-WNN Seurat
-object, including the number of cells, details about the assays (e.g.,
+object, including the number of cells, details about the assays (e.g.
 number of genes, markers, embedding dimensions), information about the
 reductions used for WNN, and the number of clusters identified in each
 modality (RNA, BCR, and WNN) based on the largest resolutions.

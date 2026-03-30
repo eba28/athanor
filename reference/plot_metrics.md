@@ -46,7 +46,7 @@ plot_metrics(
 - y_axis:
 
   The name of the column in the metrics data frame to use for the y-axis
-  (e.g., "Labeling").
+  (e.g. "Labeling").
 
 - round_to:
 

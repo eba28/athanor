@@ -63,6 +63,9 @@ Functions for processing and analyzing gene expression data.
   : Find the right clustering resolution to obtain the desired number of
   clusters
 
+- [`get_airr_genes()`](https://eba28.github.io/athanor/reference/get_airr_genes.md)
+  : Get IG and TR genes from Ensembl using biomaRt.
+
 - [`gen_dot_title()`](https://eba28.github.io/athanor/reference/gen_dot_title.md)
   :
 
@@ -155,6 +158,9 @@ Functions for evaluating the performance of models and analyses.
 - [`calc_adt_nn_within_range()`](https://eba28.github.io/athanor/reference/calc_adt_nn_within_range.md)
   : Calculate the proportion of neighbors within an ADT marker's
   expression range
+- [`calc_adt_quantile()`](https://eba28.github.io/athanor/reference/calc_adt_quantile.md)
+  : Calculate the proportion of neighbors within an ADT marker's
+  quantile by expression
 - [`calc_adt_scores()`](https://eba28.github.io/athanor/reference/calc_adt_scores.md)
   : Calculate homogeneity scores for binary ADT features across
   embeddings
@@ -164,6 +170,8 @@ Functions for evaluating the performance of models and analyses.
   : Calculate external clustering metrics for a Seurat object
 - [`calc_int_metrics()`](https://eba28.github.io/athanor/reference/calc_int_metrics.md)
   : Calculate internal clustering metrics for a Seurat object
+- [`calc_moran()`](https://eba28.github.io/athanor/reference/calc_moran.md)
+  : Calculate Moran's i for a Seurat object
 - [`calc_neighbor_matches()`](https://eba28.github.io/athanor/reference/calc_neighbor_matches.md)
   : Calculate neighbor matching scores across metadata columns
 - [`plot_metrics()`](https://eba28.github.io/athanor/reference/plot_metrics.md)
@@ -263,6 +271,9 @@ Utility functions for various tasks.
 
 Simulate data.
 
+- [`run_wnn_sims()`](https://eba28.github.io/athanor/reference/run_wnn_sims.md)
+  : Run manual WNN simulations by varying a specific variable while
+  keeping others constant
 - [`sim_bcr_manual()`](https://eba28.github.io/athanor/reference/sim_bcr_manual.md)
   : Simulate an assay made from BCR embeddings independent of any GEX
   object

@@ -19,8 +19,8 @@ run_wnn(
   pc_bcr = 20,
   k_param = 20,
   k_main = 20,
-  cluster = TRUE,
-  cluster_res = list(GEX = 1, BCR = 1, JC = 1),
+  cluster = FALSE,
+  cluster_res = list(GEX = 1, BCR = 1, WNN = 1),
   modality_weights = NULL,
   show_output = FALSE
 )
@@ -64,8 +64,7 @@ run_wnn(
 
 - cluster_res:
 
-  Named list of clustering resolutions for GEX, BCR, and joint
-  clustering (JC).
+  Named list of clustering resolutions for GEX, BCR, and WNN.
 
 - modality_weights:
 

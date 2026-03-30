@@ -51,7 +51,8 @@ Seurat pipeline on the combined data.</p>
 <span>  var_features <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  normalize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  num_dims <span class="op">=</span> <span class="fl">20</span>,</span>
-<span>  filter_genes <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  <span class="va">filter_genes</span>,</span>
+<span>  ensembl_version <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -73,23 +74,25 @@ in the concatenated assay e.g. c("mu_freq", "isotype") or embedded dimensions.</
 
 
 <dt id="arg-var-features">var_features<a class="anchor" aria-label="anchor" href="#arg-var-features"></a></dt>
-<dd><p>Logical; if TRUE, run FindVariableFeatures on the combined
+<dd><p>If TRUE, run FindVariableFeatures on the combined
 assay. If FALSE, concatenate BCR features onto existing variable features.</p></dd>
 
 
 <dt id="arg-normalize">normalize<a class="anchor" aria-label="anchor" href="#arg-normalize"></a></dt>
-<dd><p>Logical; if TRUE, normalize the combined assay using
+<dd><p>If TRUE, normalize the combined assay using
 LogNormalize. If FALSE, skip normalization.</p></dd>
 
 
 <dt id="arg-num-dims">num_dims<a class="anchor" aria-label="anchor" href="#arg-num-dims"></a></dt>
-<dd><p>Integer; number of dimensions to use for PCA and neighbor finding.</p></dd>
+<dd><p>number of dimensions to use for PCA and neighbor finding.</p></dd>
 
 
 <dt id="arg-filter-genes">filter_genes<a class="anchor" aria-label="anchor" href="#arg-filter-genes"></a></dt>
-<dd><p>Logical; if TRUE, filter out immunoglobulin (IG) and
-T-cell receptor (TR) genes from variable features. Requires <code>remove_genes</code>
-to be defined in the environment.</p></dd>
+<dd><p>If specified, filter out genes from this category (e.g. "IG" and/or "TR")</p></dd>
+
+
+<dt id="arg-ensembl-version">ensembl_version<a class="anchor" aria-label="anchor" href="#arg-ensembl-version"></a></dt>
+<dd><p>If filtering genes, specify the Ensembl version to use for gene annotations (e.g. "GRCh38.104"). If NULL, uses the default version in <code><a href="get_airr_genes.html">get_airr_genes()</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

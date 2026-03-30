@@ -2,7 +2,7 @@
 
 This function calculates the mean distance (or similarity) of each
 cell's ADT profile to its k nearest neighbors in a specified neighbor
-space (e.g., RNA, BCR, WNN) using a chosen distance metric (e.g., mean
+space (e.g. RNA, BCR, WNN) using a chosen distance metric (e.g. mean
 absolute difference, Manhattan distance, Euclidean distance, or cosine
 similarity).
 
@@ -31,7 +31,7 @@ calc_adt_dists(
 
 - base_assay:
 
-  Which neighbor space to use (e.g., "RNA", "BCR", "w").
+  Which neighbor space to use (e.g. "RNA", "BCR", "w").
 
 - adt_assay:
 
@@ -51,8 +51,8 @@ calc_adt_dists(
 
 - multiple_k:
 
-  Whether to look for a neighbor slot specific to the provided k (e.g.,
-  "RNA.nn_20") or just use the generic one (e.g., "RNA.nn"). The former
+  Whether to look for a neighbor slot specific to the provided k (e.g.
+  "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former
   allows you to have multiple neighbor graphs with different k's, while
   the latter assumes you only have one neighbor graph per assay.
 

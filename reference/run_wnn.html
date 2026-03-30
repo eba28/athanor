@@ -52,8 +52,8 @@ The function also adds metadata about modality weights and run information to th
 <span>  pc_bcr <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  k_param <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  k_main <span class="op">=</span> <span class="fl">20</span>,</span>
-<span>  cluster <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  cluster_res <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>GEX <span class="op">=</span> <span class="fl">1</span>, BCR <span class="op">=</span> <span class="fl">1</span>, JC <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  cluster <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  cluster_res <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>GEX <span class="op">=</span> <span class="fl">1</span>, BCR <span class="op">=</span> <span class="fl">1</span>, WNN <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  modality_weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  show_output <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -96,7 +96,7 @@ The function also adds metadata about modality weights and run information to th
 
 
 <dt id="arg-cluster-res">cluster_res<a class="anchor" aria-label="anchor" href="#arg-cluster-res"></a></dt>
-<dd><p>Named list of clustering resolutions for GEX, BCR, and joint clustering (JC).</p></dd>
+<dd><p>Named list of clustering resolutions for GEX, BCR, and WNN.</p></dd>
 
 
 <dt id="arg-modality-weights">modality_weights<a class="anchor" aria-label="anchor" href="#arg-modality-weights"></a></dt>

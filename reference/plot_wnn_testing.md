@@ -20,14 +20,14 @@ plot_wnn_testing(manual_wnn_test, sim_var, other_vars, count_range)
 
 - sim_var:
 
-  The variable that was varied in the manual WNN testing (e.g., "Genes",
+  The variable that was varied in the manual WNN testing (e.g. "Genes",
   "Cells", "Dimensions", "GEX PCs", or "BCR PCs").
 
 - other_vars:
 
   A named list of the other variables that were held constant in the
   manual WNN testing, with names corresponding to the variable names
-  (e.g., "Genes", "Cells", "Dimensions", "GEX PCs", or "BCR PCs") and
+  (e.g. "Genes", "Cells", "Dimensions", "GEX PCs", or "BCR PCs") and
   values corresponding to the constant values used in the testing.
 
 - count_range:

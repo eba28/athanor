@@ -1,7 +1,7 @@
 # Bin the mutation frequency
 
 Bins the `mu_freq` column in a Seurat object into specified categories
-(e.g., 0%, 0-1%, 1-5%, etc.) for easier visualization and analysis. The
+(e.g. 0%, 0-1%, 1-5%, etc.) for easier visualization and analysis. The
 function creates new columns with binned mutation frequencies based on
 the provided number of bins.
 

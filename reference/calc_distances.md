@@ -1,13 +1,14 @@
 # Calculate cluster distances for a Seurat object
 
 This function calculates various cluster distance metrics using the
-`fpc::cluster.stats` function, which provides a comprehensive set of
-clustering statistics based on a distance matrix and cluster
-assignments. The function computes both single-value metrics (e.g.,
-Calinski-Harabasz index) and cluster-wise metrics (e.g., average
-within-cluster distance) depending on the specified criteria. The
-results are returned in a tidy data frame format for easy plotting and
-comparison across different embeddings and reductions.
+[`fpc::cluster.stats`](https://rdrr.io/pkg/fpc/man/cluster.stats.html)
+function, which provides a comprehensive set of clustering statistics
+based on a distance matrix and cluster assignments. The function
+computes both single-value metrics (e.g. Calinski-Harabasz index) and
+cluster-wise metrics (e.g. average within-cluster distance) depending on
+the specified criteria. The results are returned in a tidy data frame
+format for easy plotting and comparison across different embeddings and
+reductions.
 
 ## Usage
 

@@ -18,7 +18,8 @@ seurat_pipeline(
   num_pcs = 30,
   num_dims = 20,
   cluster_res = 0.4,
-  filter_genes = TRUE,
+  filter_genes,
+  ensembl_version = NULL,
   verbose = TRUE
 )
 ```
@@ -55,7 +56,14 @@ seurat_pipeline(
 
 - filter_genes:
 
-  Whether to filter out IG/TR genes.
+  If specified, filter out genes from this category (e.g. "IG" and/or
+  "TR")
+
+- ensembl_version:
+
+  If filtering genes, specify the Ensembl version to use for gene
+  annotations (e.g. "GRCh38.104"). If NULL, uses the default version in
+  [`get_airr_genes()`](https://eba28.github.io/athanor/reference/get_airr_genes.md).
 
 - verbose:
 
@@ -69,9 +77,7 @@ and UMAP.
 ## Details
 
 It is highly recommended to save the resulting object as an RDS or qs
-file. For `filter_genes`, we assume that `features_meta` is already
-loaded and `remove_genes` defined. This pipeline is loosely based on
-[Seurat's
+file. This pipeline is loosely based on [Seurat's
 pipeline](https://satijalab.org/seurat/articles/pbmc3k_tutorial). Unlike
 previous analyses, `features = rownames(obj)` was removed from the
 `ScaleData` step since the data is too large and only the top variable

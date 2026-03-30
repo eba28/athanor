@@ -14,7 +14,8 @@ concatenate_gex_bcr(
   var_features = FALSE,
   normalize = TRUE,
   num_dims = 20,
-  filter_genes = TRUE
+  filter_genes,
+  ensembl_version = NULL
 )
 ```
 
@@ -36,23 +37,28 @@ concatenate_gex_bcr(
 
 - var_features:
 
-  Logical; if TRUE, run FindVariableFeatures on the combined assay. If
-  FALSE, concatenate BCR features onto existing variable features.
+  If TRUE, run FindVariableFeatures on the combined assay. If FALSE,
+  concatenate BCR features onto existing variable features.
 
 - normalize:
 
-  Logical; if TRUE, normalize the combined assay using LogNormalize. If
-  FALSE, skip normalization.
+  If TRUE, normalize the combined assay using LogNormalize. If FALSE,
+  skip normalization.
 
 - num_dims:
 
-  Integer; number of dimensions to use for PCA and neighbor finding.
+  number of dimensions to use for PCA and neighbor finding.
 
 - filter_genes:
 
-  Logical; if TRUE, filter out immunoglobulin (IG) and T-cell receptor
-  (TR) genes from variable features. Requires `remove_genes` to be
-  defined in the environment.
+  If specified, filter out genes from this category (e.g. "IG" and/or
+  "TR")
+
+- ensembl_version:
+
+  If filtering genes, specify the Ensembl version to use for gene
+  annotations (e.g. "GRCh38.104"). If NULL, uses the default version in
+  [`get_airr_genes()`](https://eba28.github.io/athanor/reference/get_airr_genes.md).
 
 ## Value
 
