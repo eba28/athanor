@@ -18,12 +18,10 @@ Config/testthat/edition: 3
 Imports: 
     alakazam,
     ape,
-    Azimuth,
     biomaRt,
     clevr,
     cluster,
     clusterSim,
-    clv,
     clValid,
     dplyr,
     DT,
@@ -54,4 +52,6 @@ Imports:
     tidyselect,
     utils,
     xfun
+Remotes:
+    satijalab/azimuth
 VignetteBuilder: knitr

@@ -833,7 +833,11 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 
   # give white background to the boxes
   if (label_box) {
-    p <- p + scale_fill_manual(values = rep("#FFFFFF", length(clrs_specific)))
+    p <- p + scale_fill_manual(values = rep("white", length(clrs_specific)))
+    # okay this seems to be broken right now, so do this too
+    if ("geom.use" %in% names(p@layers)) {
+      p@layers$geom.use$aes_params$fill <- rep("white", length(clrs_specific))
+    }
   }
 
   # standardize the labels

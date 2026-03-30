@@ -16,7 +16,6 @@
 #' @importFrom clevr homogeneity
 #' @importFrom cluster silhouette
 #' @importFrom clusterSim index.DB
-#' @importFrom clv cls.scatt.data
 #' @importFrom clValid dunn
 #' @importFrom dplyr across
 #' @importFrom dplyr arrange

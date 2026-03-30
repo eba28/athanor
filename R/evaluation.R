@@ -200,10 +200,11 @@ calc_int_metrics <- function(seurat_obj, reduction_name,
   }
 
   if ("Intra_Complete" %in% criteria) {
+    # clv is no longer on CRAN
     # cls.scatt.diss.mx
-    score_intra_complete <- clv::cls.scatt.data(data = embeddings,
-                                                clust = clusters_int,
-                                                dist = "euclidean")
+    # score_intra_complete <- clv::cls.scatt.data(data = embeddings,
+    #                                             clust = clusters_int,
+    #                                             dist = "euclidean")
     score_intra_complete <- mean(score_intra_complete$intracls.complete)
 
     metrics <- bind_rows(metrics,
