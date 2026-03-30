@@ -54,5 +54,5 @@ Imports:
     utils,
     xfun
 Remotes:
-    Azimuth=github::satijalab/azimuth-r
+    Azimuth=github::satijalab/azimuth
 VignetteBuilder: knitr
