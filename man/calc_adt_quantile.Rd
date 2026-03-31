@@ -12,6 +12,7 @@ calc_adt_quantile(
   k = 20,
   use_k = TRUE,
   n_quantile = 10,
+  method = c("quantile", "percentile_diff"),
   return_counts = FALSE
 )
 }
@@ -26,21 +27,28 @@ graphs.}
 \item{base_assay}{The assay used to compute neighbors. One of
 "RNA", "GEX", "BCR", or "WNN".}
 
-\item{k}{Numeric. Number of nearest neighbors to evaluate. Must match the k
+\item{k}{Number of nearest neighbors to evaluate. Must match the k
 used when computing the neighbor graph.}
 
-\item{use_k}{Logical. Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.}
+\item{use_k}{Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.}
 
-\item{n_quantile}{Numeric. The number of quantiles to divide the ADT expression into. Neighbors are considered "within range" if they fall into the same quantile as the cell.}
+\item{n_quantile}{The number of quantiles to divide the ADT expression into. Neighbors are considered "within range" if they fall into the same quantile as the cell.}
 
-\item{return_counts}{Logical. If TRUE, returns the count of neighbors within
-range. If FALSE, returns the proportion (count/k).}
+\item{method}{One of \code{c("quantile", "percentile_diff")}.
+\code{"quantile"} compares discrete quantile bins (current behavior).
+\code{"percentile_diff"} returns mean absolute percentile rank difference per cell.}
+
+\item{return_counts}{If TRUE, returns the count of neighbors within
+the same quantile (only applies to \code{method = "quantile"}). If FALSE, returns
+the proportion (count/k). Ignored when \code{method = "percentile_diff"}.}
 }
 \value{
 A named numeric vector with one value per cell in the Seurat object.
-If \code{return_counts = TRUE}, returns the count of neighbors within
-the same quantile If \code{return_counts = FALSE}, returns the proportion of
-neighbors within the same quantile (ranging from 0 to 1). Vector names are cell ids.
+For \code{method = "quantile"}: If \code{return_counts = TRUE}, returns the count
+of neighbors within the same quantile bin. If \code{return_counts = FALSE},
+returns the proportion (ranging from 0 to 1). For \code{method = "percentile_diff"}:
+returns mean absolute percentile rank difference per cell (ranging from 0 to 1).
+Vector names are cell ids.
 }
 \description{
 For each cell in a Seurat object, this function calculates how many of its

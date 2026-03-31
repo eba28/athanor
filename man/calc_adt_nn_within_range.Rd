@@ -26,16 +26,16 @@ graphs.}
 \item{base_assay}{The assay used to compute neighbors. One of
 "RNA", "GEX", "BCR", or "WNN".}
 
-\item{k}{Numeric. Number of nearest neighbors to evaluate. Must match the k
+\item{k}{Number of nearest neighbors to evaluate. Must match the k
 used when computing the neighbor graph.}
 
-\item{use_k}{Logical. Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.}
+\item{use_k}{Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.}
 
-\item{range}{Numeric. The relative threshold for considering neighbors
+\item{range}{The relative threshold for considering neighbors
 similar. A value of 0.20 means neighbors within ±20\% of the cell's
 expression are counted.}
 
-\item{return_counts}{Logical. If TRUE, returns the count of neighbors within
+\item{return_counts}{If TRUE, returns the count of neighbors within
 range. If FALSE, returns the proportion (count/k).}
 }
 \value{

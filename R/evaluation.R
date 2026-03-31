@@ -599,13 +599,13 @@ calc_adt_dists_fast <- function(adt_data, features, neighbors,
 #' @param feature Name of the ADT feature to evaluate (e.g. "CD27.1", "CD38").
 #' @param base_assay The assay used to compute neighbors. One of
 #'   "RNA", "GEX", "BCR", or "WNN".
-#' @param k Numeric. Number of nearest neighbors to evaluate. Must match the k
+#' @param k Number of nearest neighbors to evaluate. Must match the k
 #'   used when computing the neighbor graph.
-#' @param use_k Logical. Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.
-#' @param range Numeric. The relative threshold for considering neighbors
+#' @param use_k Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.
+#' @param range The relative threshold for considering neighbors
 #'   similar. A value of 0.20 means neighbors within ±20% of the cell's
 #'   expression are counted.
-#' @param return_counts Logical. If TRUE, returns the count of neighbors within
+#' @param return_counts If TRUE, returns the count of neighbors within
 #'   range. If FALSE, returns the proportion (count/k).
 #'
 #' @return A named numeric vector with one value per cell in the Seurat object.
@@ -669,28 +669,36 @@ calc_adt_nn_within_range <- function(seurat_obj, adt_assay = "ADT", feature,
 #' For each cell in a Seurat object, this function calculates how many of its
 #' k nearest neighbors have ADT expression within the same quantile as the cell's own ADT expression for a given feature.
 #'
-#'
 #' @param seurat_obj A Seurat object containing ADT data and computed neighbor
 #'   graphs.
 #' @param adt_assay Name of the assay containing ADT data.
 #' @param feature Name of the ADT feature to evaluate (e.g. "CD27.1", "CD38").
 #' @param base_assay The assay used to compute neighbors. One of
 #'   "RNA", "GEX", "BCR", or "WNN".
-#' @param k Numeric. Number of nearest neighbors to evaluate. Must match the k
+#' @param k Number of nearest neighbors to evaluate. Must match the k
 #'   used when computing the neighbor graph.
-#' @param use_k Logical. Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.
-#' @param n_quantile Numeric. The number of quantiles to divide the ADT expression into. Neighbors are considered "within range" if they fall into the same quantile as the cell.
-#' @param return_counts Logical. If TRUE, returns the count of neighbors within
-#'   range. If FALSE, returns the proportion (count/k).
+#' @param use_k Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.
+#' @param n_quantile The number of quantiles to divide the ADT expression into. Neighbors are considered "within range" if they fall into the same quantile as the cell.
+#' @param method One of `c("quantile", "percentile_diff")`.
+#'   `"quantile"` compares discrete quantile bins (current behavior).
+#'   `"percentile_diff"` returns mean absolute percentile rank difference per cell.
+#' @param return_counts If TRUE, returns the count of neighbors within
+#'   the same quantile (only applies to `method = "quantile"`). If FALSE, returns
+#'   the proportion (count/k). Ignored when `method = "percentile_diff"`.
 #'
 #' @return A named numeric vector with one value per cell in the Seurat object.
-#'   If \code{return_counts = TRUE}, returns the count of neighbors within
-#'   the same quantile If \code{return_counts = FALSE}, returns the proportion of
-#'   neighbors within the same quantile (ranging from 0 to 1). Vector names are cell ids.
+#'   For `method = "quantile"`: If \code{return_counts = TRUE}, returns the count
+#'   of neighbors within the same quantile bin. If \code{return_counts = FALSE},
+#'   returns the proportion (ranging from 0 to 1). For `method = "percentile_diff"`:
+#'   returns mean absolute percentile rank difference per cell (ranging from 0 to 1).
+#'   Vector names are cell ids.
 #' @export
 calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", feature,
                               base_assay, k = 20, use_k = TRUE, n_quantile = 10,
+                              method = c("quantile", "percentile_diff"),
                               return_counts = FALSE) {
+  method <- match.arg(method)
+
   # get the neighbors for the specified assay
   if (rlang::is_missing(base_assay)) base_assay <- DefaultAssay(seurat_obj)
   assay_name <- recode_values(base_assay, "GEX" ~ "RNA", "WNN" ~ "w",
@@ -702,34 +710,65 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", feature,
 
   # pull the nn information from the object
   neighbors <- seurat_obj@neighbors[[assay_name]]
-  nn_idx <- Indices(neighbors)
 
   if (is.null(neighbors)) {
     stop(paste("No neighbors found for assay", base_assay, "with k =", k))
   }
+  nn_idx <- Indices(neighbors)
 
-  # get ADT quantiles for the given feature
+  # get ADT expression for the given feature
   adt_expr <- seurat_obj@assays[[adt_assay]]@data[feature, ]
-  adt_quantiles <- cut_interval(adt_expr, n = n_quantile)
-  adt_quantiles <- as.numeric(adt_quantiles)
+  adt_expr <- as.numeric(adt_expr)
 
-  # calculate the counts or proportion for each cell in the object
-  results <- sapply(1:nrow(nn_idx), function(i) {
-    cell_quantile <- adt_quantiles[i]
-    neighbor_quantile <- adt_quantiles[nn_idx[i, ]]
+  if (method == "quantile") {
+    adt_quantiles <- cut_interval(adt_expr, n = n_quantile)
+    adt_quantiles <- as.numeric(adt_quantiles)
 
-    # count neighbors within the range
-    within_range <- sum(neighbor_quantile == cell_quantile)
+    # calculate the counts or proportion for each cell in the object
+    results <- sapply(1:nrow(nn_idx), function(i) {
+      cell_quantile <- adt_quantiles[i]
+      neighbor_quantile <- adt_quantiles[nn_idx[i, ]]
+
+      # count neighbors within the same quantile bin
+      within_range <- sum(neighbor_quantile == cell_quantile, na.rm = TRUE)
+
+      if (return_counts) {
+        return(within_range)
+      } else {
+        return(within_range / k)
+      }
+    })
+  } else {
+    # empirical percentile rank in [0, 1]
+    adt_percentiles <- rep(NA, length(adt_expr))
+    valid <- !is.na(adt_expr)
+    n_valid <- sum(valid)
+
+    if (n_valid <= 1) {
+      adt_percentiles[valid] <- 0
+    } else {
+      ranked <- rank(adt_expr[valid], ties.method = "average")
+      adt_percentiles[valid] <- (ranked - 1) / (n_valid - 1)
+    }
+
+    results <- sapply(1:nrow(nn_idx), function(i) {
+      cell_percentile <- adt_percentiles[i]
+      neighbor_percentile <- adt_percentiles[nn_idx[i, ]]
+
+      if (is.na(cell_percentile)) return(NA)
+
+      pct_diff <- abs(neighbor_percentile - cell_percentile)
+      mean(pct_diff, na.rm = TRUE)
+    })
 
     if (return_counts) {
-      return(within_range)
-    } else {
-      return(within_range / k)
+      warning("return_counts = TRUE is not applicable for method = 'percentile_diff'. Returning mean absolute percentile rank difference instead.")
     }
-  })
 
-  names(results) <- Cells(seurat_obj)
-  return(results)
+    # convert to similarity by subtracting from 1
+    # results <- 1 - results
+    return(results)
+  }
 }
 
 
