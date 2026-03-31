@@ -40,26 +40,25 @@ calc_adt_nn_within_range(
 
 - k:
 
-  Numeric. Number of nearest neighbors to evaluate. Must match the k
-  used when computing the neighbor graph.
+  Number of nearest neighbors to evaluate. Must match the k used when
+  computing the neighbor graph.
 
 - use_k:
 
-  Logical. Whether to look for a neighbor slot specific to the provided
-  k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The
-  former allows you to have multiple neighbor graphs with different k's,
-  while the latter assumes you only have one neighbor graph per assay.
+  Whether to look for a neighbor slot specific to the provided k (e.g.
+  "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former
+  allows you to have multiple neighbor graphs with different k's, while
+  the latter assumes you only have one neighbor graph per assay.
 
 - range:
 
-  Numeric. The relative threshold for considering neighbors similar. A
-  value of 0.20 means neighbors within ±20% of the cell's expression are
-  counted.
+  The relative threshold for considering neighbors similar. A value of
+  0.20 means neighbors within ±20% of the cell's expression are counted.
 
 - return_counts:
 
-  Logical. If TRUE, returns the count of neighbors within range. If
-  FALSE, returns the proportion (count/k).
+  If TRUE, returns the count of neighbors within range. If FALSE,
+  returns the proportion (count/k).
 
 ## Value
 

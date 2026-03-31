@@ -1,5 +1,7 @@
 # athanor
 
+**Last Updated:** 2026-03-31
+
 The goal of `athanor` is to integrate gene expression (GEX) and B cell
 receptor (BCR) data to improve B cell subtyping. The package provides
 functions for data preprocessing, feature extraction, weighted nearest
@@ -19,6 +21,11 @@ pak::pak("eba28/athanor")
 
 ``` r
 library(athanor)
+#> Registered S3 method overwritten by 'SeuratDisk':
+#>   method            from  
+#>   as.sparse.H5Group Seurat
+#> Attaching shinyBS
+
 ## basic example code
 ```
 
@@ -173,7 +180,8 @@ Functions for evaluating the performance of models and analyses.
 - [`calc_moran()`](https://eba28.github.io/athanor/reference/calc_moran.md)
   : Calculate Moran's i for a Seurat object
 - [`calc_neighbor_matches()`](https://eba28.github.io/athanor/reference/calc_neighbor_matches.md)
-  : Calculate neighbor matching scores across metadata columns
+  : Calculate the proportion of neighbors that match metadata categories
+  or ADT expression thresholds
 - [`plot_metrics()`](https://eba28.github.io/athanor/reference/plot_metrics.md)
   : Plot the internal or external clustering metrics
 

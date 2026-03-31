@@ -79,22 +79,22 @@ graphs.</p></dd>
 
 
 <dt id="arg-k">k<a class="anchor" aria-label="anchor" href="#arg-k"></a></dt>
-<dd><p>Numeric. Number of nearest neighbors to evaluate. Must match the k
+<dd><p>Number of nearest neighbors to evaluate. Must match the k
 used when computing the neighbor graph.</p></dd>
 
 
 <dt id="arg-use-k">use_k<a class="anchor" aria-label="anchor" href="#arg-use-k"></a></dt>
-<dd><p>Logical. Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.</p></dd>
+<dd><p>Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.</p></dd>
 
 
 <dt id="arg-range">range<a class="anchor" aria-label="anchor" href="#arg-range"></a></dt>
-<dd><p>Numeric. The relative threshold for considering neighbors
+<dd><p>The relative threshold for considering neighbors
 similar. A value of 0.20 means neighbors within ±20% of the cell's
 expression are counted.</p></dd>
 
 
 <dt id="arg-return-counts">return_counts<a class="anchor" aria-label="anchor" href="#arg-return-counts"></a></dt>
-<dd><p>Logical. If TRUE, returns the count of neighbors within
+<dd><p>If TRUE, returns the count of neighbors within
 range. If FALSE, returns the proportion (count/k).</p></dd>
 
 </dl></div>

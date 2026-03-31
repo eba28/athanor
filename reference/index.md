@@ -149,7 +149,8 @@ Functions for evaluating the performance of models and analyses.
 - [`calc_moran()`](https://eba28.github.io/athanor/reference/calc_moran.md)
   : Calculate Moran's i for a Seurat object
 - [`calc_neighbor_matches()`](https://eba28.github.io/athanor/reference/calc_neighbor_matches.md)
-  : Calculate neighbor matching scores across metadata columns
+  : Calculate the proportion of neighbors that match metadata categories
+  or ADT expression thresholds
 - [`plot_metrics()`](https://eba28.github.io/athanor/reference/plot_metrics.md)
   : Plot the internal or external clustering metrics
 

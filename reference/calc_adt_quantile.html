@@ -49,6 +49,7 @@ k nearest neighbors have ADT expression within the same quantile as the cell's o
 <span>  k <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  use_k <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  n_quantile <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"quantile"</span>, <span class="st">"percentile_diff"</span><span class="op">)</span>,</span>
 <span>  return_counts <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -76,29 +77,38 @@ graphs.</p></dd>
 
 
 <dt id="arg-k">k<a class="anchor" aria-label="anchor" href="#arg-k"></a></dt>
-<dd><p>Numeric. Number of nearest neighbors to evaluate. Must match the k
+<dd><p>Number of nearest neighbors to evaluate. Must match the k
 used when computing the neighbor graph.</p></dd>
 
 
 <dt id="arg-use-k">use_k<a class="anchor" aria-label="anchor" href="#arg-use-k"></a></dt>
-<dd><p>Logical. Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.</p></dd>
+<dd><p>Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.</p></dd>
 
 
 <dt id="arg-n-quantile">n_quantile<a class="anchor" aria-label="anchor" href="#arg-n-quantile"></a></dt>
-<dd><p>Numeric. The number of quantiles to divide the ADT expression into. Neighbors are considered "within range" if they fall into the same quantile as the cell.</p></dd>
+<dd><p>The number of quantiles to divide the ADT expression into. Neighbors are considered "within range" if they fall into the same quantile as the cell.</p></dd>
+
+
+<dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
+<dd><p>One of <code>c("quantile", "percentile_diff")</code>.
+<code>"quantile"</code> compares discrete quantile bins (current behavior).
+<code>"percentile_diff"</code> returns mean absolute percentile rank difference per cell.</p></dd>
 
 
 <dt id="arg-return-counts">return_counts<a class="anchor" aria-label="anchor" href="#arg-return-counts"></a></dt>
-<dd><p>Logical. If TRUE, returns the count of neighbors within
-range. If FALSE, returns the proportion (count/k).</p></dd>
+<dd><p>If TRUE, returns the count of neighbors within
+the same quantile (only applies to <code>method = "quantile"</code>). If FALSE, returns
+the proportion (count/k). Ignored when <code>method = "percentile_diff"</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A named numeric vector with one value per cell in the Seurat object.
-If <code>return_counts = TRUE</code>, returns the count of neighbors within
-the same quantile If <code>return_counts = FALSE</code>, returns the proportion of
-neighbors within the same quantile (ranging from 0 to 1). Vector names are cell ids.</p>
+For <code>method = "quantile"</code>: If <code>return_counts = TRUE</code>, returns the count
+of neighbors within the same quantile bin. If <code>return_counts = FALSE</code>,
+returns the proportion (ranging from 0 to 1). For <code>method = "percentile_diff"</code>:
+returns mean absolute percentile rank difference per cell (ranging from 0 to 1).
+Vector names are cell ids.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

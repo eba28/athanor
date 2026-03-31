@@ -2,7 +2,7 @@ pandoc: 3.1.11
 pkgdown: 2.2.0
 pkgdown_sha: ~
 articles: {}
-last_built: 2026-03-30T18:39Z
+last_built: 2026-03-31T19:33Z
 urls:
   reference: https://eba28.github.io/athanor/reference
   article: https://eba28.github.io/athanor/articles
