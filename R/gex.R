@@ -135,14 +135,15 @@ seurat_pipeline <- function(seurat_obj, nfeatures_RNA = 200, perc_mt = 15,
       remove_feats <- VariableFeatures(seurat_obj) %in% airr_genes$remove_genes
       VariableFeatures(seurat_obj) <- VariableFeatures(seurat_obj)[!remove_feats]
 
+      # TODO: specify how many IG vs. TR genes were removed
       cat(paste("After removing", str_c(filter_genes, collapse = "/"),
                 "genes, the total number of variable features is:",
                 length(VariableFeatures(seurat_obj)), "\n"))
-   }
 
-   # TODO: pull from get_airr_genes, list latest if NULL
-   # save the Ensembl version
-   Misc(seurat_obj, slot = "ensembl_version") <- airr_genes$ensembl_version
+      # TODO: pull from get_airr_genes, list latest if NULL
+      # save the Ensembl version
+      Misc(seurat_obj, slot = "ensembl_version") <- airr_genes$ensembl_version
+   }
 
    # TODO: call this rpca instead
    # dimensionality reduction
@@ -151,6 +152,7 @@ seurat_pipeline <- function(seurat_obj, nfeatures_RNA = 200, perc_mt = 15,
    # neighbor detection
    seurat_obj <- FindNeighbors(seurat_obj, reduction = "pca", dims = 1:num_dims,
                                verbose = verbose)
+   # TODO: save the neighbors graph too
 
    # might not always want to perform clustering, so make it optional
    if (!rlang::is_missing(cluster_res)) {

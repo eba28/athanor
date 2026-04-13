@@ -316,6 +316,8 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                         verbose = show_output)
 
   # RNA processing (a lot of this was already done)
+  # TODO: use seurat_pipeline()
+  # TODO: filter out genes
   DefaultAssay(seurat_obj) <- "RNA"
   seurat_obj <- NormalizeData(object = seurat_obj, verbose = show_output)
   seurat_obj <- FindVariableFeatures(object = seurat_obj, verbose = show_output)

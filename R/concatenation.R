@@ -40,7 +40,8 @@ concatenate_gex_bcr <- function(seurat_obj, pca_stage = "Before",
                                 cols_to_include, var_features = FALSE,
                                 normalize = TRUE, num_dims = 20, # k
                                 filter_genes, ensembl_version = NULL) {
-  # double check the formatting of filter genes
+  # TODO: double check the formatting of filter genes
+  # TODO: give an option to use a pre-defined list of filter_genes
 
   if (pca_stage == "Before") {
     # TODO: check if the RNA assay contains the names of the BCR assay

@@ -784,6 +784,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
   }
 
   # specific legend
+  # TODO: use the column name instead
   if (!rlang::is_missing(legend_label)) cluster_legend <- legend_label
 
   # if you want to use default ggplot2 or generated iwanthue colors
