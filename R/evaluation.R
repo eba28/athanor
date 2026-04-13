@@ -1080,3 +1080,61 @@ calc_moran <- function(seurat_obj, feature, graph_name, row_standardize = TRUE) 
   # just return the observed Moran's i value, not the expected value, sd, or p-value
   return(moran[["observed"]])
 }
+
+
+#' Calculate the correlation between each cell's expression and the mean of its neighbors' expression
+#'
+#' @details
+#' The Seurat object must have `FindNeighbors()` already run at least one time and an assay named "ADT".
+#'
+#' @param seurat_obj The Seurat object.
+#' @param features_adt Name of the ADT features to evaluate on (e.g. "CD27.1").
+#' @param cor_method Correlation method to use (e.g. "pearson", "spearman").
+#'
+#' @returns A data frame with columns: Graph, Feature, Score (correlation value).
+calc_correlation <- function(seurat_obj, features_adt, cor_method = "spearman") {
+  # TODO: return values or a df
+  # TODO: run for each feature or all features
+  # TODO: run in parallel
+
+  # make sure that the ADT feature is in the object
+  if (rlang::is_missing(features_adt)) {
+    features_adt <- rownames(seurat_obj@assays$ADT)
+  }
+
+  if (any(!(features_adt %in% rownames(seurat_obj@assays$ADT)))) {
+    stop("The requested ADT feature is not present in assay 'ADT'. Available features: ",
+         paste(sort(rownames(seurat_obj@assays$ADT)), collapse = ", "))
+  }
+  # make sure that the object has at least one neighbor graph
+  if (length(seurat_obj@neighbors) == 0) {
+    stop("No neighbor graphs found in object. Please run FindNeighbors() first.")
+  }
+
+  # get the (normalized) ADT expression
+  adt_data <- GetAssayData(seurat_obj, assay = "ADT", layer = "data")
+  metrics_df <- c()
+
+  for (nn_name in names(seurat_obj@neighbors)) {
+    # create a matrix for the neighbor-averaged ADT expression
+    nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
+    neighbor_adt_mean <- sapply(1:nrow(nn_idx), function(i) {
+      rowMeans(adt_data[, nn_idx[i, ]])
+    })
+    colnames(neighbor_adt_mean) <- colnames(seurat_obj)
+
+    # calculate correlations for each feature across all of the cells
+    for (feature_adt in features_adt) {
+      cell_expr <- adt_data[feature_adt, ]
+      neighbor_expr <- neighbor_adt_mean[feature_adt, ]
+
+      correlation <- cor(cell_expr, neighbor_expr, method = cor_method)
+
+      metrics_df <- bind_rows(metrics_df,
+                              data.frame(Graph = nn_name, Feature = feature_adt,
+                                         Score = correlation))
+    }
+  }
+
+  return(metrics_df)
+}

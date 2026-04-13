@@ -3,16 +3,16 @@
 
 # athanor
 
+**Last Updated:** 2026-04-13
+
 <!-- badges: start -->
 
 <!-- badges: end -->
 
-**Last Updated:** 2026-03-31
-
 The goal of `athanor` is to integrate gene expression (GEX) and B cell
 receptor (BCR) data to improve B cell subtyping. The package provides
-functions for data preprocessing, feature extraction, weighted nearest
-neighbors, and plotting.
+functions for data preprocessing, feature extraction, concatenation,
+weighted nearest neighbors, and plotting.
 
 ## Installation
 

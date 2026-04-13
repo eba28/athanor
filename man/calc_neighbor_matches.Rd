@@ -2,7 +2,7 @@
 % Please edit documentation in R/evaluation.R
 \name{calc_neighbor_matches}
 \alias{calc_neighbor_matches}
-\title{Calculate the proportion of neighbors that match metadata categories or ADT expression thresholds}
+\title{Calculate neighbor matching scores across metadata columns}
 \usage{
 calc_neighbor_matches(
   seurat_obj,
@@ -45,7 +45,8 @@ calc_neighbor_matches(
 Data frame with these columns: Full_Name, Category, Category_Details, Assay, Meta_Col, Method, Matches
 }
 \description{
-Calculate the proportion of neighbors that match metadata categories or ADT expression thresholds
+This function calculates the proportion of neighbors that match each cell's metadata category for specified metadata columns and ADT features.
+It can also perform permutations to generate a random baseline for comparison. The results can be saved to a specified path.
 }
 \details{
 \code{cell_id}s are saved for subsetting later if desired.

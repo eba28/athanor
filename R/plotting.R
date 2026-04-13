@@ -1125,6 +1125,17 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        plot_label = FALSE, clusters_col = "cdr3_aa_length",
                        legend_label = "CDR3 Length", details = details)
       }
+
+      if ("weight_assay" %in% comparisons) {
+        plots_overview[[paste0("weight_assay_", type)]] <-
+          plot_dimplot(seurat_obj = seurat_obj,
+                       data_source = "", pt_size = pt_size,
+                       clrs_specific = named_colors$weight_assay,
+                       assay = paste(assay_name, "Modality Weights"),
+                       reduc = reduction,
+                       plot_label = FALSE, clusters_col = "weight_assay",
+                       legend_label = "Chosen Assay", details = details)
+      }
     }
   }
 
