@@ -1,3 +1,126 @@
+#' Plot UMAPs with AIRR overlays
+#'
+#' @description
+#' This function plots the annotated UMAPs alongside the BCR/TCR overlays.
+#'
+#' @details
+#' lightgray is Seurat's default background color and cells_total has to be a list for the labels to work later.
+#' This could probably be replaced with `plot_umap()`.
+#'
+#' @param seurat_obj The Seurat object (must contain Has_BCR/Has_TCR cols)
+#' @param tissue_type The tissue type of interest.
+#' @param airr_type BCR or TCR
+#' @param clrs_specific The specific color palette (should be named).
+#' @param barcode_col The barcode column name: barcode, cell_id, or Cell_ID_Unique.
+#' @param plot_label Whether or not to include the labels.
+#' @param plot_by The grouping method: all samples, by dataset, by sample, by isotype.
+#' @param ncol_sample The number of columns for sample-wise plots.
+#'
+#' @returns A Seurat UMAP plot with AIRR cells highlighted by the specified grouping.
+#' @export
+plot_immune_overlay <- function(seurat_obj, tissue_type, airr_type,
+                                clrs_specific, plot_by = "all",
+                                barcode_col = "cell_id",
+                                plot_label = FALSE, ncol_sample = 6) {
+  # plot options
+  pt_size <- 0.2
+  label_size <- 4
+  sizes_highlight <- 0.2 # should probably be the same size as the points
+  plot_title <- paste(tissue_type, airr_type, "Overlay")
+
+  # if you want to use the default Seurat colors
+  # if (rlang::is_missing(clrs_specific)) clrs_specific <- hue_pal()(num_clusts)
+
+  # AIRR info
+  airr_col <- paste0("Has_", airr_type)
+  combined_vdj_gex <- filter(seurat_obj[[]], !!rlang::sym(airr_col))
+
+  if (plot_by == "dataset" || plot_by == "sample") {
+    # set up the cells to be highlighted
+    cells_total <- c()
+    datasets <- as.character(unique(combined_vdj_gex$Dataset))
+
+    for (dataset in datasets) {
+      cells_dataset <- filter(combined_vdj_gex,
+                              Dataset == dataset)[[barcode_col]]
+      cells_total[dataset] <- list(cells_dataset)
+    }
+
+    # main plot (coloring the samples by dataset is helpful)
+    if (plot_by == "sample") {
+      p <- UMAPPlot(object = seurat_obj, pt.size = pt_size,
+                    split.by = "sample_id",
+                    repel = TRUE,
+                    cells.highlight = cells_total,
+                    sizes.highlight = sizes_highlight,
+                    ncol = ncol_sample, raster = FALSE) +
+        labs(title = paste(plot_title, "by Sample"), color = "Dataset")
+    } else { # dataset
+      p <- UMAPPlot(object = seurat_obj, pt.size = pt_size,
+                    label = plot_label, label.size = label_size,
+                    repel = TRUE,
+                    cells.highlight = cells_total,
+                    sizes.highlight = sizes_highlight,
+                    raster = FALSE) +
+        labs(title = paste(plot_title, "by Dataset"), color = "Dataset")
+    }
+
+    # the legend
+    p <- p + scale_color_manual(labels = c(paste0("non-", airr_type), rev(datasets)),
+                                values = c("lightgray", unname(clrs_specific[rev(datasets)])))
+  } else if (plot_by == "isotype") {
+    # select the cells to be highlighted
+    # Idents(seurat_obj) <- "isotype"
+    # cells_total <- CellsByIdentities(seurat_obj)
+    # cells_total <- lapply(cells_total, function(x) x[!is.na(x)])
+    # cells_total["NA"] <- c()
+    # isotypes <- rev(names(cells_total)) # need to reverse for plotting
+    cells_total <- c()
+    isotypes <- sort(unique(combined_vdj_gex$isotype))
+
+    for (isotype in isotypes) {
+      cells_isotype <- filter(combined_vdj_gex, isotype == isotype)[[barcode_col]]
+      cells_total[isotype] <- list(cells_isotype)
+    }
+
+    # main plot
+    p <- UMAPPlot(object = seurat_obj, pt.size = pt_size,
+                  label = plot_label, label.size = label_size,
+                  repel = TRUE,
+                  cells.highlight = cells_total,
+                  sizes.highlight = sizes_highlight,
+                  raster = FALSE) +
+      labs(title = paste(plot_title, "by Isotype"), color = "Isotype")
+
+    # the legend
+    p <- p + scale_color_manual(labels = c(paste0("non-", airr_type), rev(isotypes)),
+                                values = c("lightgray", unname(clrs_specific[rev(isotypes)])))
+  } else { # all
+    # set up the cells to be highlighted
+    cells_total <- combined_vdj_gex[[barcode_col]]
+
+    # plot all samples
+    p <- UMAPPlot(object = seurat_obj, pt.size = pt_size,
+                  label = plot_label, label.size = label_size,
+                  repel = TRUE,
+                  cols.highlight = clrs_specific[airr_type],
+                  cells.highlight = cells_total,
+                  sizes.highlight = sizes_highlight,
+                  raster = FALSE) +
+      labs(title = plot_title, color = "Data Type")
+
+    # the legend
+    p <- p + scale_color_manual(name = "Data Type",
+                                labels = c(paste0("non-", airr_type), airr_type),
+                                values = c("lightgray", unname(clrs_specific[airr_type])))
+  }
+
+  # standardize the labels
+  p <- p & labels_standard & clean_umap
+
+  return(p)
+}
+
 #' Add an information bar on top of a given ggplot
 #'
 #' @description
@@ -328,151 +451,6 @@ plot_color_scale <- function(plot, palette = rev(pals::brewer.rdbu(n = 7)),
 }
 
 
-#' Add AIRR (and other) info along the right side of an existing Seurat `DotPlot`
-#'
-#' @description
-#' This function enhances dot plots by adding adaptive immune receptor repertoire (AIRR)
-#' information and other metadata along the right side for easy comparison. Currently
-#' supports cluster size, mean mutation frequency, and BCR/TCR percentages.
-#'
-#' @param plot The generated Seurat `DotPlot`.
-#' @param seurat_obj The Seurat object containing the data.
-#' @param row_identity The y axis identities.
-#' @param facet_col The column to facet by e.g. "Cell_Type_Full".
-#' @param info_to_add Vector of information types to add. The options are: `cluster_size`, `mean_mu_freq`, `percent_BCR`, `percent_TCR`, and `TRUST4`.
-#'
-#' @returns A Seurat DotPlot with annotations along the right side.
-#'
-#' @examples
-#' \dontrun{
-#' p <- DotPlot(seurat_obj, features = genes)
-#' plot_dot_airr(p, seurat_obj, info_to_add = c("cluster_size", "mean_mu_freq"))
-#' }
-#' @export
-plot_dot_airr <- function(plot, seurat_obj, row_identity = "seurat_clusters",
-                          facet_col, info_to_add = c("cluster_size")) {
-  # get the clusters in order
-  row_idents <- levels(plot$data$id)
-  side_labels <- data.frame("row_idents" = row_idents)
-
-  # calculate extra useful information
-  if ("cluster_size" %in% info_to_add) {
-    counts_sum <- seurat_obj[[]] %>%
-      dplyr::count(!!rlang::sym(row_identity)) %>%
-      arrange(factor(!!rlang::sym(row_identity), levels = row_idents)) %>%
-      pull(n)
-
-    # reformat
-    counts_sum <- str_pad(string = as.character(counts_sum),
-                          width = max(nchar(counts_sum)),
-                          side = "left", pad = " ")
-
-    side_labels <- bind_cols(side_labels, "total counts" = counts_sum)
-  }
-
-  if ("mean_mu_freq" %in% info_to_add) {
-    mean_mu_freq <- seurat_obj[[]] %>%
-      group_by(!!rlang::sym(row_identity)) %>%
-      arrange(factor(!!rlang::sym(row_identity), levels = row_idents)) %>%
-      mutate(mean_mu_freq = mean(mu_freq, na.rm = TRUE)) %>%
-      distinct(mean_mu_freq) %>%
-      pull()
-
-    # reformat
-    # mean_mu_freq <- sprintf("%.2f", mean_mu_freq)
-    mean_mu_freq <- label_percent(accuracy = 0.1)(mean_mu_freq)
-    mean_mu_freq <- replace_na(mean_mu_freq, replace = "NA")
-    mean_mu_freq <- str_pad(string = as.character(mean_mu_freq),
-                            width = max(nchar(mean_mu_freq)),
-                            side = "left", pad = " ")
-
-    side_labels <- bind_cols(side_labels, "mean mutation frequency" = mean_mu_freq)
-  }
-
-  if ("percent_BCR" %in% info_to_add) {
-    percent_BCR <- calc_pcts(data = seurat_obj[[]],
-                             meta_group_by = row_identity,
-                             focus_group = "Has_BCR") %>%
-      dplyr::filter(Has_BCR) %>%
-      # mutate(Percent = round(Percent, digits = 1)) %>%
-      arrange(factor(!!rlang::sym(row_identity), levels = row_idents)) %>%
-      pull(Percent)
-
-    # reformat
-    percent_BCR <- label_percent(accuracy = 1, scale = 1)(percent_BCR)
-    percent_BCR <- str_pad(string = as.character(percent_BCR),
-                           width = max(nchar(percent_BCR)),
-                           side = "left", pad = " ")
-
-    side_labels <- bind_cols(side_labels, "percent BCR" = percent_BCR)
-  }
-
-  if ("percent_TCR" %in% info_to_add) {
-    percent_TCR <- calc_pcts(data = seurat_obj[[]],
-                             meta_group_by = row_identity,
-                             focus_group = "Has_TCR") %>%
-      dplyr::filter(Has_TCR) %>%
-      # mutate(Percent = round(Percent, digits = 1)) %>%
-      arrange(factor(!!rlang::sym(row_identity), levels = row_idents)) %>%
-      pull(Percent)
-
-    # reformat
-    percent_TCR <- label_percent(accuracy = 1, scale = 1)(percent_TCR)
-    percent_TCR <- str_pad(string = as.character(percent_TCR),
-                           width = max(nchar(percent_TCR)),
-                           side = "left", pad = " ")
-
-    side_labels <- bind_cols(side_labels, "percent TCR" = percent_TCR)
-  }
-
-  if ("TRUST4" %in% info_to_add) {
-    percent_TRUST4 <- calc_pcts(data = seurat_obj[[]],
-                                meta_group_by = row_identity,
-                                focus_group = "TRUST4") %>%
-      dplyr::filter(TRUST4) %>%
-      # mutate(Percent = round(Percent, digits = 1)) %>%
-      arrange(factor(!!rlang::sym(row_identity), levels = row_idents)) %>%
-      pull(Percent)
-
-    # reformat
-    percent_TRUST4 <- label_percent(accuracy = 1, scale = 1)(percent_TRUST4)
-    percent_TRUST4 <- str_pad(string = as.character(percent_TRUST4),
-                              width = max(nchar(percent_TRUST4)),
-                              side = "left", pad = " ")
-
-    side_labels <- bind_cols(side_labels, "percent TRUST4" = percent_TRUST4)
-  }
-
-  # add info along the right side
-  subtitle_details <- side_labels %>%
-    select(-row_idents) %>%
-    colnames() %>%
-    str_c(collapse = " | ")
-  side_labels <- unite(side_labels, col = "final_labels", -row_idents,
-                       sep = " | ") %>%
-    pull(final_labels, name = row_idents)
-
-  if (rlang::is_missing(facet_col)) {
-    plot <- plot + facet_grid(rows = vars(id),
-                              scales = "free", space = "free",
-                              labeller = labeller(id = side_labels))
-  } else {
-    plot <- plot + facet_grid(rows = vars(id), cols = vars(!!rlang::sym(facet_col)),
-                              scales = "free", space = "free",
-                              labeller = labeller(id = side_labels))
-  }
-
-  # final plot (uses a different font so that the spacing is correct)
-  plot +
-    labs(subtitle = subtitle_details) +
-    theme(strip.text.y = element_text(angle = 0, size = 8,
-                                      # changed as needed:
-                                      family = "Fira Code"), # Noto Sans Mono
-          strip.background.y = element_rect(fill = "white"),
-          plot.subtitle = element_text(size = 9))
-}
-
-
 #' Plot a Seurat `VlnPlot` and a `FeaturePlot` side by side for the same marker
 #'
 #' @description
@@ -490,7 +468,7 @@ plot_dot_airr <- function(plot, seurat_obj, row_identity = "seurat_clusters",
 #'
 #' @returns Two patchworked Seurat plots.
 #' @export
-vln_feat_plot <- function(seurat_obj, feature, assay = "RNA", group_col = NULL,
+plot_vln_feat <- function(seurat_obj, feature, assay = "RNA", group_col = NULL,
                           rotate = FALSE) {
   # set the assay and idents
   if (!is.null(group_col)) Idents(seurat_obj) <- group_col
@@ -1154,4 +1132,320 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
     wrap_plots(plots_overview, nrow = length(comparisons), byrow = FALSE) +
       plot_anno + plot_layout(guides = "collect")
   }
+}
+
+
+#' Plot the results of manual WNN testing
+#'
+#' @description
+#' This function creates a step plot to visualize the results of manual WNN testing, showing how the success of Seurat's WNN computation changes as the count of a specific variable is varied while keeping other variables constant.
+#'
+#' @param manual_wnn_test A data frame containing the results of the manual WNN testing, with columns "Count" and "Passed".
+#' @param sim_var The variable that was varied in the manual WNN testing (e.g. "Genes", "Cells", "Dimensions", "GEX PCs", or "BCR PCs").
+#' @param other_vars A named list of the other variables that were held constant in the manual WNN testing, with names corresponding to the variable names (e.g. "Genes", "Cells", "Dimensions", "GEX PCs", or "BCR PCs") and values corresponding to the constant values used in the testing.
+#' @param count_range A numeric vector specifying the range of counts that were tested in the manual WNN testing, used for setting the x-axis breaks in the plot.
+#'
+#' @returns A ggplot object showing the step plot of the WNN testing results, with the x-axis representing the count of the varied variable and the y-axis representing whether Seurat's WNN computation passed (1), failed (0), or gave a warning (0.5). The plot includes a title indicating the variable that was varied and a subtitle listing the other variables that were held constant.
+#' @export
+plot_wnn_testing <- function(manual_wnn_test, sim_var,
+                             other_vars, count_range) {
+  # don't include the test var in the subtitle info
+  other_vars <- other_vars[names(other_vars) != sim_var]
+
+  # step plot
+  ggplot(manual_wnn_test, aes(x = Count, y = Passed)) +
+    geom_step(aes(color = Passed), linewidth = 2,
+              color = named_colors$sim_vars[[sim_var]]) +
+    labs(title = paste("Number of", sim_var, "Needed for Manual WNN"),
+         subtitle = paste(other_vars, names(other_vars),
+                          sep = " ", collapse = " | "),
+         x = paste(sim_var, "Count"), y = "Seurat's WNN Computation") +
+    scale_x_continuous(breaks = count_range) +
+    scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.5),
+                       labels = c("Failed", "Warning", "Passed")) +
+    theme_bw + labels_standard_larger +
+    theme(panel.grid.major.y = element_blank(),
+          panel.grid.minor = element_blank(), legend.position = "none")
+}
+
+
+#' Plot UMAPs of a Seurat object post-WNN
+#'
+#' @description
+#' This function creates a combined plot of the GEX, BCR, and WNN UMAPs from a post-WNN Seurat object, colored by a specified metadata column (e.g. clusters or cell types).
+#' The function allows for customization of the plot title, point size, color palette, and whether to display metadata labels on the UMAPs.
+#' It uses the `plot_dimplot` function to create individual UMAP plots for each assay and then combines them using `patchwork` for a cohesive visualization.
+#'
+#' @details
+#' Should be able to plot ADT instead of BCR too.
+#' Only plots one clustering.
+#'
+#' @param seurat_obj The post-WNN Seurat object.
+#' @param data_source The source of the data for the plot title.
+#' @param airr_type The type of AIRR data.
+#' @param airr_processing The type of AIRR processing; one of `c("Embeddings", "Features)`
+#' @param reducs_list Should be in order (GEX, AIRR, WNN).
+#' @param clusters_col The metadata column to color the UMAPs by.
+#' @param plot_label Whether or not to plot the metadata labels on the UMAPs.
+#' @param pt_size The point size for the UMAPs.
+#' @param clrs_specific A specific (must have names) color palette for the clusters. If not provided, the default Seurat colors will be used.
+#'
+#' @returns A combined plot of the GEX, BCR, and WNN UMAPs colored by the specified metadata column.
+#' @export
+plot_wnn_umaps <- function(seurat_obj, data_source = "Manual",
+                           airr_type = "BCR",
+                           airr_processing = "Embeddings",
+                           reducs_list = c("rna.umap", "bcr.umap", "wnn.umap"),
+                           clusters_col = "seurat_clusters",
+                           plot_label = TRUE, pt_size = 0.8, clrs_specific) {
+  # set the groupings
+  Idents(seurat_obj) <- clusters_col
+
+  # could use nlevels(seurat_obj), but maybe the annotations column isn't a factor
+  num_clusts <- n_distinct(seurat_obj[[clusters_col]])
+
+  # if you want to use the default Seurat colors
+  if (rlang::is_missing(clrs_specific)) clrs_specific <- hue_pal()(num_clusts)
+
+  if (!rlang::is_missing(airr_processing)) {
+    airr_assay <- paste0(airr_type, " (", airr_processing, ")")
+  }
+  else{
+    airr_assay <- airr_type
+  }
+
+  # reducs_list <- names(seurat_obj@reductions)
+
+  # RNA UMAP
+  p1 <- plot_dimplot(seurat_obj = seurat_obj, data_source = data_source,
+                     clrs_specific = clrs_specific, pt_size = pt_size,
+                     assay = "GEX", reduc = reducs_list[1],
+                     plot_label = plot_label, clusters_col = clusters_col)
+
+  # BCR UMAP
+  p2 <- plot_dimplot(seurat_obj = seurat_obj, data_source = data_source,
+                     clrs_specific = clrs_specific, pt_size = pt_size,
+                     assay = airr_assay, reduc = reducs_list[2],
+                     plot_label = plot_label, clusters_col = clusters_col)
+
+  # WNN UMAP
+  p3 <- plot_dimplot(seurat_obj = seurat_obj, data_source = data_source,
+                     clrs_specific = clrs_specific, pt_size = pt_size,
+                     assay = paste("GEX &", airr_type, "WNN"), reduc = reducs_list[3],
+                     plot_label = plot_label, clusters_col = clusters_col)
+
+  if (clusters_col == "seurat_clusters") {
+    p1 <- p1 + labs(color = "WNN")
+    p2 <- p2 + labs(color = "WNN")
+    p3 <- p3 + labs(color = "WNN")
+  } else {
+    p1 <- p1 + labs(color = clusters_col)
+    p2 <- p2 + labs(color = clusters_col)
+    p3 <- p3 + labs(color = clusters_col)
+  }
+
+  # all UMAPs
+  (p1 | p2 | p3) +
+    plot_layout(guides = "collect") & plot_anno &
+    guides(color = guide_legend(nrow = 2)) & # optional
+    legend_bottom
+}
+
+
+#' Plot a box plot of modality weights per cell type
+#'
+#' @description
+#' This function creates a box plot to visualize the distribution of modality weights (e.g. RNA vs. BCR) across different cell types or clusters in a post-WNN Seurat object.
+#'
+#' @details
+#' Assumes annotated_clusters is a column
+#'
+#' @param seurat_obj The post-WNN Seurat object.
+#' @param details Details to add to the plot title.
+#' @param second_assay List of other assays run through WNN in order.
+#' @param clrs_specific A specific (must have names) color palette.
+#' @param split_by A meta.data column to split the box plots up by.
+#' @param y_axis_label Label for the y-axis.
+#'
+#' @returns A ggplot with the distribution of weights
+#' @export
+plot_mws <- function(seurat_obj, details = "", second_assay = "BCR",
+                     clrs_specific = named_colors$mu_freq_bins,
+                     split_by = "mu_freq_bins",
+                     y_axis_label = "SHM Frequency Bins") {
+  main_assay <- ifelse(length(second_assay) > 1, second_assay[-1], second_assay)
+
+  weight <- grep(paste0("^", main_assay, ".*\\.weight.*$"),
+                 colnames(seurat_obj[[]]), value = TRUE)
+  # in case of multiple k's
+  if (length(weight) > 1) {
+    weight <- grep(seurat_obj@misc$default_k, weight, value = TRUE)
+  }
+
+  n_assay <- length(second_assay) + 1
+
+  if (!is.factor(seurat_obj[[]][split_by])) {
+    seurat_obj[[]][split_by] <- factor(seurat_obj[[]][[split_by]])
+  }
+
+  # don't require using the embeddings approach
+  if ("embedding_type" %in% names(seurat_obj@misc)) {
+    subtitle <- embedding_types[[seurat_obj@misc$embedding_type]]
+  } else {
+    subtitle <- NULL
+  }
+
+  p <- ggplot(seurat_obj[[]],
+              aes(x = !!sym(weight), y = !!sym(split_by),
+                  fill = !!sym(split_by))) +
+         geom_boxplot(outlier.size = 0.5) +
+         geom_jitter(size = 0.2) +
+         labs(title = paste(details, "Weights by Cell Type"),
+              subtitle = subtitle, x = "Weights", y = y_axis_label) +
+         scale_fill_manual(values = clrs_specific) +
+         facet_wrap(vars(annotated_clusters), scales = "fixed") +
+         theme_bw + labels_standard + theme(legend.position = "none")
+
+  if (n_assay == 2) {
+      p <- p +
+             geom_vline(xintercept = 0.50, linetype = "dashed") +
+             scale_x_continuous(breaks = seq(0, 1, by = 0.25),
+                                labels = c("0 [GEX]", "0.25", "0.50", "0.75",
+                                           paste0("1 [", second_assay, "]")),
+                                limits = c(0, 1))
+  } else if (n_assay == 3) {
+      p <- p +
+             geom_vline(xintercept = 1/3, linetype = "dashed") +
+             geom_vline(xintercept = 2/3, linetype = "dashed") +
+             scale_x_continuous(breaks = seq(0, 1, by = 0.1),
+                                labels = c("0.0 [GEX]", "0.1", "0.2",
+                                           paste0("0.3 [GEX:", second_assay[1], "]"),
+                                           "0.4", "0.5",
+                                           paste0("0.6 [", second_assay[1], ":",
+                                                  second_assay[2], "]"),
+                                           "0.7", "0.8", "0.9",
+                                           paste0("1 [", second_assay[2], "]")),
+                                limits = c(0, 1))
+  }
+
+  p
+}
+
+
+#' Plot an overview of a doublet identification method
+#'
+#' @description
+#' This function creates a grid of four plots to visualize the results of a doublet identification method.
+#' The left column contains UMAP plots colored by doublet/singlet status and by clusters/annotations, while the right column contains bar plots showing the counts and percentages of doublets across clusters or annotations.
+#'
+#' @details
+#' It assumes that `named_colors$doublet` has been defined.
+#' Depends on other plots.
+#' The doublets will be plotted "on top" for the first UMAP.
+#'
+#' @param seurat_obj The Seurat object.
+#' @param tissue_type Blood, Skin.
+#' @param clrs_specific The specific color palette (should be named).
+#' @param use_hues Use the `iwanthue` hues instead of the default ggplot colors. Doesn't let you set any other settings.
+#' @param group_col The column to group by.
+#' @param group_label The label for the grouping variable to use in the plot titles and axis labels. If NULL, it will be determined based on the group_col name.
+#' @param doublet_col The column containing the doublets information
+#' @param doublet_package The doublet method being used.
+#' @param details The optional subtitle.
+#'
+#' @returns A grid of four plots with UMAPs in the left column and bar plots in the right column.
+#' @export
+plot_doublets <- function(seurat_obj, tissue_type, clrs_specific,
+                          use_hues = FALSE, group_col = "seurat_clusters",
+                          group_label = NULL, doublet_col = "scDblFinder.class",
+                          doublet_package = "scDblFinder", details = NULL) {
+  # TODO: get rid of this function?
+
+  # if you want to use default ggplot2 or generated iwanthue colors
+  if (rlang::is_missing(clrs_specific)) {
+    n_colors <- n_distinct(seurat_obj[[group_col]])
+
+    if (use_hues) clrs_specific <- hues::iwanthue(n_colors)
+    else clrs_specific <- hue_pal()(n_colors)
+  }
+
+  # determine the legend label
+  if (is.null(group_label)) {
+    if (grepl("annotated", group_col)) {
+      cluster_legend <- "Cell Type"
+      # subclustered only
+      if (group_col == "annotated_subclusters") {
+        cluster_legend <- paste("Subclustered", cluster_legend)
+      }
+    } else if (grepl("cluster", group_col)) {
+      cluster_legend <- "Cluster"
+      # subclustered only
+      if (group_col == "seurat_subclusters") {
+        cluster_legend <- "Subcluster"
+      }
+    } else {
+      cluster_legend <- group_col
+    }
+  } else {
+    cluster_legend <- group_label
+  }
+
+  # set identities
+  Idents(seurat_obj) <- group_col
+
+  # UMAP colored by doublets/singlets
+  p1 <- plot_umap(seurat_obj = seurat_obj, tissue_type = tissue_type,
+                  clrs_specific = named_colors$doublet, specific_clusters = "doublet",
+                  specific_col = doublet_col,
+                  plot_by = "cluster_all", plot_label = FALSE, order = TRUE,
+                  include_legend = FALSE) +
+    labs(subtitle = details)
+
+  # bar plot of doublets with raw counts
+  p2 <- data.frame(table(seurat_obj[[]] %>%
+                           select(all_of(group_col), all_of(doublet_col)))) %>%
+    ggplot(aes(x = !!rlang::sym(group_col), y = Freq,
+               fill = !!rlang::sym(doublet_col))) +
+    geom_bar(stat = "identity", position = "dodge",
+             color = "black", linewidth = 0.2) +
+    geom_text(aes(label = Freq), position = position_dodge(width = 0.9),
+              vjust = -1, size = 3) +
+    labs(title = paste(tissue_type, "Doublets by", cluster_legend),
+         subtitle = details, x = cluster_legend,
+         y = "Count", fill = doublet_package) +
+    scale_fill_manual(values = named_colors$doublet) +
+    theme_bw + labels_standard
+
+  # UMAP colored by clusters/annotations
+  # TODO: add an option to not plot the labels
+  if (grepl("annotated", group_col)) {
+    # rotate x-axis labels for annotation plots
+    p2 <- p2 + labels_rotate_x
+
+    p3 <- plot_umap(seurat_obj = seurat_obj, tissue_type = tissue_type,
+                    clrs_specific = clrs_specific,
+                    plot_by = "cluster_all", annotated = TRUE,
+                    annotations_col = group_col,
+                    include_legend = FALSE)
+  } else {
+    p3 <- plot_umap(seurat_obj = seurat_obj, tissue_type = tissue_type,
+                    clrs_specific = clrs_specific,
+                    plot_by = "cluster_all", clusters_col = group_col,
+                    include_legend = FALSE)
+  }
+
+  # bar plot of doublets with percentage counts
+  p4 <- plot_pcts(pcts = calc_pcts(data = seurat_obj[[]],
+                                   meta_group_by = group_col,
+                                   focus_group = doublet_col),
+                  tissue_type = tissue_type, plot_type = "All",
+                  plot_value = "Doublets",
+                  x_axis = group_col, x_axis_label = cluster_legend,
+                  fill_type = doublet_col, fill_label = doublet_package,
+                  clrs_specific = named_colors$doublet, details = details)
+
+  # combine plots
+  p1 + p2 + p3 + p4 +
+    plot_layout(guides = "collect", widths = c(1, 3)) + plot_anno &
+    theme(plot.tag = element_text(face = "plain", size = 12))
 }

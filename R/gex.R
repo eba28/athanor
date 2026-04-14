@@ -127,6 +127,7 @@ seurat_pipeline <- function(seurat_obj, nfeatures_RNA = 200, perc_mt = 15,
    seurat_obj <- ScaleData(seurat_obj, verbose = verbose)
 
    # filter out the IG and/or TR genes
+   # TODO: move this to a separate function?? but no, that would mess up PCA
    if (!rlang::is_missing(filter_genes)) {
       # TODO: check the object for the species
       airr_genes <- get_airr_genes(category = filter_genes,
@@ -174,190 +175,6 @@ seurat_pipeline <- function(seurat_obj, nfeatures_RNA = 200, perc_mt = 15,
                          verbose = verbose)
 
    return(seurat_obj)
-}
-
-
-#' Visualize how many cells are in each Seurat cluster or cell type
-#'
-#' @description
-#' This function generates a bar plot showing the number of cells in each Seurat cluster or cell type, optionally filled by another annotation (e.g. annotated clusters).
-#' It allows for customization of the x-axis, fill colors, and plot titles.
-#'
-#' @param seurat_obj The Seurat object containing the clusters and/or cell type annotations to plot.
-#' @param tissue_type The tissue type of interest e.g. "Blood" or "Skin".
-#' @param clrs_specific The specific color palette (should be named).
-#' @param clusters_col The column to plot on the x axis (e.g. seurat_clusters).
-#' @param fill_col The column to fill by (e.g. annotated_clusters).
-#' @param fill_col_name The label for the fill aesthetic.
-#' @param x_axis What to plot on the x axis: "Cluster" or "Cell Type".
-#' @param details The optional subtitle.
-#'
-#' @returns A ggplot bar plot of cell counts.
-#' @export
-plot_counts_cluster <- function(seurat_obj, tissue_type = "", clrs_specific,
-                                clusters_col, fill_col, fill_col_name,
-                                x_axis = "Cluster", # add_zeroes = FALSE,
-                                details = NULL) {
-   # if you want to use the default Seurat colors
-   if (rlang::is_missing(clrs_specific)) {
-      clrs_specific <- hue_pal()(n_distinct(seurat_obj[[clusters_col]]))
-   }
-
-   if (rlang::is_missing(fill_col)) {
-      fill_col <- NULL
-      fill_by <- clusters_col
-      fill_col_name <- clusters_col
-
-      plot_title <- paste(tissue_type, x_axis)
-   } else {
-      fill_by <- fill_col
-
-      # they shouldn't both be missing
-      if (rlang::is_missing(fill_col_name)) fill_col_name <- fill_col
-
-      plot_title <- paste(tissue_type, fill_col_name, # paste0(fill_col_name, "s"),
-                          "per", x_axis)
-   }
-
-   data <- data.frame(table(seurat_obj[[c(clusters_col, fill_col)]])) %>%
-      rename(Count = Freq) %>%
-      filter(Count != 0) # we don't want the zeroes
-
-   # if (add_zeroes) {
-   #   data <- bind_rows(data, data.frame(clusters = add_zeroes,
-   #                                      Count = rep(0, length(add_zeroes)))) %>%
-   #             arrange(clusters)
-   # }
-
-   p <- ggplot(data,
-               aes(x = !!sym(clusters_col), y = Count, fill = !!sym(fill_by))) +
-      geom_col(color = "black", linewidth = 0.2) +
-      labs(title = plot_title, subtitle = details, x = x_axis,
-           fill = fill_col_name) +
-      scale_fill_manual(values = clrs_specific) +
-      theme_bw + labels_standard +
-      guides(fill = guide_legend(ncol = 1)) # one column legend
-
-   # doesn't work with multiple fills
-   # could just plot the sum on top
-   if (is.null(fill_col)) {
-      p <- p +
-         geom_text(aes(label = Count), vjust = -1, size = 3) +
-         theme(legend.position = "none")
-   } else {
-      p <- p +
-         geom_text(aes(label = after_stat(y), group = clusters_col),
-                   stat = "summary", fun = sum, vjust = -1)
-   }
-
-   if (x_axis == "Cell Type") p <- p + labels_rotate_x
-
-   # return the plot
-   return(p)
-}
-
-
-#' Get specific markers from a marker genes database
-#'
-#' @description
-#' This function returns specific markers from the "all" marker genes dataframe
-#' based on various filtering criteria including source, cell types, and tissue types.
-#'
-#' @param markers_df The database of marker genes
-#' @param sources Optional vector of sources - who the markers came from if you want specific origins.
-#' @param contains Optional string to catch multiple cell types (e.g. "mDCs" and "pDCs").
-#' @param tissue_types Optional vector of tissue types (e.g. "blood", "skin", etc.).
-#' @param cell_types Optional vector of cell types you want markers for.
-#' @param alphabetize_types Whether to return the markers alphabetized for each cell type.
-#' @param alphabetize_all Whether to return all of the selected markers alphabetized.
-#'
-#' @returns A character vector of unique gene features/markers.
-#' @export
-get_features_from_all <- function(markers_df, sources, contains, tissue_types,
-                                  cell_types, alphabetize_types = TRUE,
-                                  alphabetize_all = TRUE) {
-   # make specific selections if needed
-   if (!rlang::is_missing(sources)) {
-      markers_df <- filter(markers_df, Source %in% sources)
-   }
-   if (rlang::is_missing(cell_types)) {
-      cell_types <- unique(markers_df$Cell_Type)
-   }
-   if (!rlang::is_missing(contains)) {
-      cell_types <- grep(paste(contains, collapse = "|"),
-                         cell_types, value = TRUE)
-   }
-   if (!rlang::is_missing(tissue_types)) {
-      markers_df <- filter(markers_df, Tissue_Type %in% tissue_types)
-   }
-
-   features <- c()
-   for (cell_type in cell_types) {
-      markers <- (filter(markers_df, Cell_Type == cell_type))$Marker
-      if (alphabetize_types) markers <- sort(markers)
-      features <- append(features, markers)
-   }
-
-   if (alphabetize_all) features <- str_sort(features, numeric = TRUE)
-
-   return(unique(features)) # DotPlot doesn't work with duplicated features
-}
-
-
-#' Get the information needed for using `add_info_bar()` on a `DotPlot`
-#'
-#' @description
-#' This function takes the filtered markers dataframe and selects the relevant columns to be used for adding an info bar to a DotPlot.
-#' It renames the Marker column to features.plot and formats the Cell_Type_Full column for better readability.
-#'
-#' @param markers_df The markers data.frame filtered to match your input features
-#'
-#' @returns A data.frame with Cell_Type_Full and features.plot columns
-#' @export
-get_cell_types <- function(markers_df) {
-   markers_df %>%
-      select(Cell_Type_Full, Marker) %>%
-      rename(features.plot = Marker) %>%
-      mutate(Cell_Type_Full = str_replace_all(Cell_Type_Full, "_", " "))
-}
-
-
-#' Generate a title for a `DotPlot`
-#'
-#' @description
-#' This function generates a title for a DotPlot by combining a provided dataset description with a formatted list of marker sources.
-#' The marker sources are sorted, formatted to replace underscores with spaces, and concatenated into a comma-separated string enclosed in parentheses.
-#'
-#' @param plot_title Dataset description
-#' @param marker_sources The list of marker sources
-#'
-#' @returns A string with sources comma-separated and in parentheses
-#' @export
-gen_dot_title <- function(plot_title = "", marker_sources) {
-   paste0(plot_title, " (",
-          str_c(sort(str_replace_all(marker_sources, "_", " ")),
-                collapse = ", "),
-          ")")
-}
-
-
-#' Display markers from a filtered marker genes database as a table
-#'
-#' @description
-#' This function takes a filtered marker genes dataframe and returns a formatted
-#' table showing markers organized by cell type.
-#'
-#' @param filtered_markers_df A filtered dataframe from the marker genes database
-#'   containing at least Cell_Type and Marker columns.
-#'
-#' @returns A formatted table showing markers grouped by cell type.
-#' @export
-source_markers <- function(filtered_markers_df) {
-   filtered_markers_df %>%
-      select(Cell_Type, Marker) %>%
-      group_by(Cell_Type) %>%
-      distinct() %>%
-      summarize(Markers = paste(Marker, collapse = ", "))
 }
 
 
@@ -549,6 +366,7 @@ cell_type_clusters <- function(seurat_obj, clusters_col = "seurat_clusters",
 #' @returns The Seurat object with clusters at the resolution that matches desired_k.
 #' @export
 find_k_clusters <- function(seurat_obj, graph_name = "RNA_snn", desired_k) {
+   # TODO: increase this range
    for (res in seq(0.1, 2, by = 0.1)) {
       cat(paste0("Checking resolution ", res, ": "))
 

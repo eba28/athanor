@@ -5,16 +5,9 @@ template:
   theme: atom-one-light
   theme-dark: atom-one-dark
 reference:
-- title: Metadata
-  desc: Functions for handling metadata.
-- contents:
-  - print_metadata_summary
 - title: Quality Control
   desc: Functions for QC and filtering.
 - contents:
-  - create_metrics_summary
-  - layout_doublets
-  - plot_counts
   - reformat_vdj_barcode
   - reformat_vdj_barcode_sample
 - title: Gene Expression
@@ -25,21 +18,20 @@ reference:
   - cell_type_clusters
   - find_k_clusters
   - get_airr_genes
-  - gen_dot_title
-  - get_cell_types
-  - get_features_from_all
-  - plot_counts_cluster
   - seurat_pipeline
-  - source_markers
 - title: Adaptive Immune Receptors
   desc: Functions for processing and analyzing adaptive immune receptor data.
+- subtitle: Read in data
+- contents:
+  - process_airrflow
+- subtitle: BCR embeddings
+- contents:
+  - convert_embeddings
+- subtitle: BCR features
 - contents:
   - add_family_info
   - bin_mu_freq
-  - convert_embeddings
   - factor_family_info
-  - plot_immune_overlay
-  - process_airrflow
   - process_bcr_features
 - title: GEX and AIRR Integration
   desc: Functions for integrating gene expression and adaptive immune receptor data.
@@ -52,9 +44,6 @@ reference:
 - subtitle: Weighted Nearest Neighbors
 - contents:
   - extract_wnn_vars
-  - plot_mws
-  - plot_wnn_testing
-  - plot_wnn_umaps
   - run_wnn
 - title: Evaluation
   desc: Functions for evaluating the performance of models and analyses.
@@ -67,14 +56,12 @@ reference:
   - calc_distances
   - calc_ext_metrics
   - calc_int_metrics
+  - calc_correlation
   - calc_moran
   - calc_neighbor_matches
-  - plot_metrics
 - title: Applications
   desc: Functions for applying the package to specific use cases.
 - subtitle: Reclassification
-- contents:
-  - calc_nn_frac
 - title: Plotting
   desc: Functions for visualizing data and results.
 - contents:
@@ -87,7 +74,7 @@ reference:
   - print_dt
   - print_kable
   - reduce_object
-- title: Data
-  desc: Simulate data.
+- title: Simulations
+  desc: Simulate GEX and AIRR data.
 - contents:
   - contains("sim")

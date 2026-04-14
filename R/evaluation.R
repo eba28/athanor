@@ -296,69 +296,6 @@ calc_ext_metrics <- function(seurat_obj, reduction_name,
 }
 
 
-#' Plot the internal or external clustering metrics
-#'
-#' @description
-#' This function creates a ggplot visualization of the internal or external clustering metrics across different embeddings and reductions.
-#' It uses a color scale to represent the metric scores and outlines the best scores for each label and metric combination, as well as the best scores across reductions.
-#' The plot is faceted by metric and reduction for easy comparison.
-#'
-#' @details
-#' Make sure to check that the best score is consistent across your plotting metrics.
-#'
-#' @param metrics Data frame of metrics to plot, with columns: Embedding, Reduction, Labeling, Metric, Score.
-#' @param plot_title Title to use for the plot.
-#' @param best_score One of "higher" or "lower" to indicate whether higher or lower scores are better for the metrics being plotted. This is used to determine which scores to outline in the plot.
-#' @param type One of "Internal" or "External" to indicate the type of metrics being plotted, used for the plot title.
-#' @param y_axis The name of the column in the metrics data frame to use for the y-axis (e.g. "Labeling").
-#' @param round_to Number of decimal places to round the score labels to in the plot.
-#' @param details Additional details to include in the plot title (optional).
-#'
-#' @returns A ggplot showing the metrics across embeddings and reductions, with the best scores outlined.
-#' @export
-plot_metrics <- function(metrics, plot_title = "", best_score = "higher",
-                         type = "Internal", y_axis = "Labeling", round_to = 2,
-                         details = "") {
-  # calculate the top scores
-  # could have ties
-  top_scores <-
-    metrics %>%
-    mutate(id = row_number()) %>%
-    group_by(Reduction, !!sym(y_axis), Metric) %>%
-    group_modify(~ {
-      if (best_score == "higher") {
-        slice_max(.x, order_by = Score, n = 1, with_ties = FALSE)
-      } else {
-        slice_min(.x, order_by = Score, n = 1, with_ties = FALSE)
-      }}) %>%
-    ungroup(Reduction) %>%
-    mutate(best_id = ifelse(best_score == "higher",
-                            id[which.max(Score)], id[which.min(Score)]))
-
-  # pick the color palette
-  palette <- rev(pals::brewer.rdbu(n = 7)) # the color scale function's default
-  if (best_score != "higher") palette <- rev(palette)
-
-  ggplot(metrics, aes(x = Embedding, y = !!sym(y_axis), fill = Score)) %>%
-    plot_color_scale(palette = palette, val_col = "Score", fill_by = "fill") +
-    geom_tile(linewidth = 0.4, color = "white") +
-    geom_text(aes(label = round(Score, digits = round_to)), size = 3) +
-    # outline the highest score by label, reduction and metric
-    geom_tile(data = metrics[top_scores$id, ], fill = NA,
-              color = "black", linewidth = 0.4) +
-    # outline the highest score across reductions
-    geom_tile(data = metrics[top_scores$best_id, ], fill = NA,
-              color = "black", linewidth = 0.8) +
-    labs(title = paste(plot_title, type, "Clustering", details),
-         subtitle = "Black outlines = best scores per label and metric") +
-    scale_y_discrete(limits = rev) +
-    facet_grid(rows = vars(Metric), cols = vars(Reduction),
-               scales = "free_x", space = "free_x") +
-    theme_bw + labels_standard +
-    theme(panel.grid.major.y = element_blank())
-}
-
-
 #' Calculate homogeneity scores for binary ADT features across embeddings
 #'
 #' @description
