@@ -1,11 +1,11 @@
 # athanor
 
-**Last Updated:** 2026-03-31
+**Last Updated:** 2026-04-14
 
 The goal of `athanor` is to integrate gene expression (GEX) and B cell
 receptor (BCR) data to improve B cell subtyping. The package provides
-functions for data preprocessing, feature extraction, weighted nearest
-neighbors, and plotting.
+functions for data preprocessing, feature extraction, concatenation,
+weighted nearest neighbors, and plotting.
 
 ## Installation
 
@@ -21,10 +21,13 @@ pak::pak("eba28/athanor")
 
 ``` r
 library(athanor)
-#> Registered S3 method overwritten by 'SeuratDisk':
-#>   method            from  
-#>   as.sparse.H5Group Seurat
-#> Attaching shinyBS
 
 ## basic example code
 ```
+
+## Details
+
+- [`automated_annotation()`](https://eba28.github.io/athanor/reference/automated_annotation.md)
+  used to support Azimuth, but Azimuth is not currently available on
+  CRAN and causes installation issues due to a hidden requirement of a
+  Signac function that is no longer a part of Signac (`RunChromVAR()`)

@@ -10,9 +10,10 @@ useful for creating lightweight objects for Shiny apps or sharing.
 reduce_object(
   seurat_obj,
   dim_reducs = "umap",
+  meta_cols,
+  remove_neighbors = TRUE,
   print_size = TRUE,
-  load_annotations = FALSE,
-  annotations_file
+  ...
 )
 ```
 
@@ -26,17 +27,18 @@ reduce_object(
 
   Vector of dimensionality reductions to keep.
 
+- meta_cols:
+
+  Vector of metadata column names to keep. If unspecified, keeps all
+  metadata columns.
+
+- remove_neighbors:
+
+  Whether or not to remove neighbor graphs from the object.
+
 - print_size:
 
   Whether to print info about how much the object was reduced.
-
-- load_annotations:
-
-  Whether to load and add cell type annotations.
-
-- annotations_file:
-
-  File path to CSV file containing cluster and cell type annotations.
 
 ## Value
 
@@ -45,6 +47,6 @@ A reduced Seurat object with specified reductions kept.
 ## Details
 
 Modify this as needed if your object is built differently (e.g. tSNE
-instead). Change the annotation column name if needed. Uses DietSeurat
-to remove counts while preserving reductions and metadata. This is
-especially useful if you are making a Shiny app.
+instead). Uses `DietSeurat` to remove counts while preserving reductions
+and metadata. This is especially useful if you are making a Shiny app or
+just visualizing the data.
