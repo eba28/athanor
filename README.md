@@ -14,7 +14,6 @@ receptor (BCR) data to improve B cell subtyping. The package provides
 functions for data preprocessing, feature extraction, concatenation,
 weighted nearest neighbors, and plotting.
 
-
 ## Installation
 
 You can install the development version of `athanor` from
@@ -32,3 +31,10 @@ library(athanor)
 
 ## basic example code
 ```
+
+## Details
+
+- `automated_annotation()` used to support Azimuth, but Azimuth is not
+  currently available on CRAN and causes installation issues due to a
+  hidden requirement of a Signac function that is no longer a part of
+  Signac (`RunChromVAR()`)

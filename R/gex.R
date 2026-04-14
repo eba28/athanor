@@ -237,67 +237,26 @@ add_annotations <- function(seurat_obj, annotations_df,
 #' Run automated cell type annotation
 #'
 #' @description
-#' This function runs automated cell type annotation using either `Azimuth` or `CellTypist`.
+#' This function runs automated cell type annotation using `CellTypist`.
 #'
 #' @details
-#' Supports Azimuth and CellTypist annotation methods.
+#' Supports CellTypist annotation methods.
 #' Assumes that the `Cells()` of `seurat_obj` are properly formatted (i.e. unique).
-#' For `Azimuth` with a Seurat v5 object, all of the layers have to be joined.
 #' For `CellTypist`, assumes the H5AD file and predictions have already been generated.
 #'
 #' @param seurat_obj The Seurat object. Must be the path to a H5AD object if using CellTypist.
-#' @param annotation_method Which method to use: c("Azimuth", "CellTypist")
-#' @param reference Reference or model to use for prediction. Defaults to "pbmcref" (for Azimuth).
-#' @param azimuth_assay Assay to use for Azimuth
-#' @param azimuth_levels Levels to process for Azimuth e.g. c("l1", "l2", "l3")
+#' @param annotation_method Which method to use: CellTypist"
+#' @param reference Reference or model to use for prediction.
 #'
 #' @returns A data.frame with the annotations for each cell
 #' @export
 automated_annotation <- function(seurat_obj, annotation_method,
-                                 reference = "pbmcref", azimuth_assay = "RNA",
-                                 azimuth_levels = c("l1", "l2", "l3")) {
+                                 reference = "pbmcref") {
    # validate input
-   valid_methods <- c("Azimuth", "CellTypist")
+   valid_methods <- c("CellTypist")
    if (!any(annotation_method %in% valid_methods)) {
       stop("Method must be one of: ", paste(valid_methods, collapse = ", "))
    }
-
-   # run Azimuth annotation
-   if (annotation_method == "Azimuth") {
-      if (!requireNamespace("Azimuth", quietly = TRUE)) {
-         stop("The Azimuth package is required for annotation.")
-      }
-
-      cat("Running Azimuth annotation...\n")
-      # could list how many of the specified features are not present in the reference
-      obj_azimuth <- Azimuth::RunAzimuth(query = seurat_obj,
-                                         reference = reference,
-                                         assay = azimuth_assay)
-
-      # save annotations by cell
-      annotations <- data.frame(cell_id = Cells(obj_azimuth),
-                                mapping.score = obj_azimuth[[]]$mapping.score)
-
-      # process each level of annotation
-      for (level in azimuth_levels) {
-         full_level <- paste0("predicted.celltype.", level)
-
-         if (!full_level %in% colnames(obj_azimuth[[]])) {
-            warning(paste("Column", full_level, "not found. Skipping level", level))
-            next
-         }
-
-         # add in the predicted cell types and the confidence score
-         annotations <- bind_cols(annotations,
-                                  obj_azimuth[[]] %>%
-                                     remove_rownames() %>%
-                                     select(all_of(full_level),
-                                            paste0(full_level, ".score")))
-
-         cat(paste("Generated Azimuth", level, "annotations\n"))
-      }
-   }
-
    # run CellTypist annotation
    if (annotation_method == "CellTypist") {
       cat("Processing CellTypist annotation...\n")

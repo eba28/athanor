@@ -5,7 +5,6 @@
 #' @importFrom alakazam aminoAcidProperties
 #' @importFrom alakazam getFamily
 #' @importFrom ape Moran.I
-#' @importFrom Azimuth RunAzimuth
 #' @importFrom biomaRt getBM
 #' @importFrom biomaRt listAttributes
 #' @importFrom biomaRt listEnsemblArchives

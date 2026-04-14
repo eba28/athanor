@@ -4,34 +4,23 @@
 \alias{automated_annotation}
 \title{Run automated cell type annotation}
 \usage{
-automated_annotation(
-  seurat_obj,
-  annotation_method,
-  reference = "pbmcref",
-  azimuth_assay = "RNA",
-  azimuth_levels = c("l1", "l2", "l3")
-)
+automated_annotation(seurat_obj, annotation_method, reference = "pbmcref")
 }
 \arguments{
 \item{seurat_obj}{The Seurat object. Must be the path to a H5AD object if using CellTypist.}
 
-\item{annotation_method}{Which method to use: c("Azimuth", "CellTypist")}
+\item{annotation_method}{Which method to use: CellTypist"}
 
-\item{reference}{Reference or model to use for prediction. Defaults to "pbmcref" (for Azimuth).}
-
-\item{azimuth_assay}{Assay to use for Azimuth}
-
-\item{azimuth_levels}{Levels to process for Azimuth e.g. c("l1", "l2", "l3")}
+\item{reference}{Reference or model to use for prediction.}
 }
 \value{
 A data.frame with the annotations for each cell
 }
 \description{
-This function runs automated cell type annotation using either \code{Azimuth} or \code{CellTypist}.
+This function runs automated cell type annotation using \code{CellTypist}.
 }
 \details{
-Supports Azimuth and CellTypist annotation methods.
+Supports CellTypist annotation methods.
 Assumes that the \code{Cells()} of \code{seurat_obj} are properly formatted (i.e. unique).
-For \code{Azimuth} with a Seurat v5 object, all of the layers have to be joined.
 For \code{CellTypist}, assumes the H5AD file and predictions have already been generated.
 }
