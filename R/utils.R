@@ -1,39 +1,3 @@
-#' Display a nicely formatted table
-#'
-#' @description
-#' This function creates a formatted table with scrolling capability for use in
-#' R Markdown documents. It applies striped styling and makes the table scrollable
-#' within specified dimensions.
-#'
-#' @param table The input data frame to be printed
-#' @param kable_height The height of the output table (you can set it to NULL to
-#'   display the full table without scrolling). Default is "500px".
-#' @param kable_width The width of the output table. Default is "100%".
-#'
-#' @returns A formatted table.
-#' @export
-print_kable <- function(table, kable_height = "500px", kable_width = "100%") {
-  if (nrow(table) > 0) {
-    kable(table) %>%
-      kable_styling("striped") %>%
-      scroll_box(height = kable_height, width = kable_width)
-  }
-}
-
-
-#' Display a sortable, scrollable `DataTable` table
-#'
-#' @param table The input data frame to be printed.
-#' @param dt_width The width of the output table.
-#'
-#' @returns A DataTable table.
-#' @export
-print_dt <- function(table, dt_width = "800px") {
-  DT::datatable(data = table, options = list(scrollX = TRUE),
-                rownames = FALSE, filter = "top", width = dt_width)
-}
-
-
 #' Reduce a Seurat object's size
 #'
 #' @description
@@ -54,11 +18,12 @@ print_dt <- function(table, dt_width = "800px") {
 #'
 #' @returns A reduced Seurat object with specified reductions kept.
 #' @export
-reduce_object <- function(seurat_obj, dim_reducs = "umap", meta_cols, remove_neighbors = TRUE, print_size = TRUE, ...) {
+reduce_object <- function(seurat_obj, dim_reducs = "umap", meta_cols,
+                          remove_neighbors = TRUE, print_size = TRUE, ...) {
   cat(paste("Currently reducing:", deparse(substitute(seurat_obj)), "\n"))
 
   # modify this as desired
-  obj_reduced <- DietSeurat(seurat_object = seurat_obj, dimreducs = dim_reducs, ...)
+  obj_reduced <- DietSeurat(object = seurat_obj, dimreducs = dim_reducs, ...)
 
   # the metadata can take up a lot of memory, so you can filter it down to just the columns you need
   if (!rlang::is_missing(meta_cols)) {
@@ -66,7 +31,7 @@ reduce_object <- function(seurat_obj, dim_reducs = "umap", meta_cols, remove_nei
       stop("Please check that all of the specified metadata columns are present in the Seurat object.")
     }
 
-    obj_reduced@meta.data <- obj_reduced %>% select(all_of(meta_cols))
+    obj_reduced@meta.data <- obj_reduced@meta.data %>% select(all_of(meta_cols))
   }
 
   # you might not need the graphs here if you're just using the object for plotting

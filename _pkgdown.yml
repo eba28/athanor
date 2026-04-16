@@ -71,8 +71,6 @@ reference:
 - title: Utilities
   desc: Utility functions for various tasks.
 - contents:
-  - print_dt
-  - print_kable
   - reduce_object
 - title: Simulations
   desc: Simulate GEX and AIRR data.

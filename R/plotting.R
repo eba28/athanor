@@ -423,6 +423,8 @@ plot_pcts <- function(pcts, tissue_type, clrs_specific,
 #' @export
 plot_color_scale <- function(plot, palette = rev(pals::brewer.rdbu(n = 7)),
                              val_col = "avg.exp.scaled", fill_by = "color") {
+  # TODO: just return the scale if plot is not provided and some more values are given
+
   # expression ranges
   max_val <- max(plot$data[[val_col]], na.rm = TRUE)
   min_val <- min(plot$data[[val_col]], na.rm = TRUE)

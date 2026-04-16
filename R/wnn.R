@@ -88,7 +88,8 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
   # BCR processing
   DefaultAssay(seurat_obj) <- "BCR"
   VariableFeatures(seurat_obj) <- rownames(seurat_obj[["BCR"]])
-  # seurat_obj <- NormalizeData(object = seurat_obj)
+  # seurat_obj <- NormalizeData(object = seurat_obj, verbose = show_output)
+  # TODO: check how this runs without a data slot (since the embeddings are in the counts slot)
   seurat_obj <- ScaleData(object = seurat_obj, verbose = show_output)
   seurat_obj <- RunPCA(object = seurat_obj,
                        npcs = pc_bcr, reduction.name = "bpca",
