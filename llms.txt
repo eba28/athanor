@@ -209,14 +209,6 @@ Functions for visualizing data and results.
 
 Utility functions for various tasks.
 
-- [`print_dt()`](https://eba28.github.io/athanor/reference/print_dt.md)
-  :
-
-  Display a sortable, scrollable `DataTable` table
-
-- [`print_kable()`](https://eba28.github.io/athanor/reference/print_kable.md)
-  : Display a nicely formatted table
-
 - [`reduce_object()`](https://eba28.github.io/athanor/reference/reduce_object.md)
   : Reduce a Seurat object's size
 
