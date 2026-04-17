@@ -163,9 +163,7 @@ Functions for visualizing data and results.
   : Calculate percentages per metadata group
 
 - [`plot_color_scale()`](https://eba28.github.io/athanor/reference/plot_color_scale.md)
-  :
-
-  Generate a color scale for a Seurat `DotPlot` with white at zero
+  : Generate a color scale for a ggplot2 plot with white at zero
 
 - [`plot_dimplot()`](https://eba28.github.io/athanor/reference/plot_dimplot.md)
   :
