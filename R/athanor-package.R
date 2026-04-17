@@ -113,6 +113,7 @@
 #' @importFrom recipes step_normalize
 #' @importFrom recipes step_ordinalscore
 #' @importFrom recipes step_unknown
+#' @importFrom rlang sym
 #' @importFrom scales breaks_pretty
 #' @importFrom scales hue_pal
 #' @importFrom scales label_comma

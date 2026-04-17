@@ -400,34 +400,51 @@ plot_pcts <- function(pcts, tissue_type, clrs_specific,
 }
 
 
-#' Generate a color scale for a Seurat `DotPlot` with white at zero
+#' Generate a color scale for a ggplot2 plot with white at zero
 #'
 #' @description
-#' This function generates a color scale for a Seurat `DotPlot` that accurately reflects the expression values, with white representing zero expression.
-#' It creates a gradient of colors based on the range of expression values in the plot data and applies it to the specified color or fill aesthetic.
+#' It creates a gradient of colors based on the range of values in the plot or data provided, and applies it to the specified color or fill aesthetic if applicable.
 #'
 #' @details
 #' Seurat's `col` option frequently is misleading with where the zeroes fall.
-#' I don't want to rescale the expression.
+#' Works well for making a scale for a Seurat `DotPlot` that accurately reflects the expression value.
 #' You could also just do something like `scale_color_gradient2(low = "#2166AC",
 #' mid = "white", high = "#B2182B")`
 #' Can also be used to generated a color scale for a general ggplot2.
 #' Use the function via a pipe right after the function call.
 #'
 #' @param plot The generated Seurat DotPlot or ggplot.
-#' @param palette A palette of colors to go off of.
+#' @param data The data used to generate the plot.
 #' @param val_col The column in the plot data that contains the values to be plotted (e.g. "avg.exp.scaled").
+#' @param palette A palette of colors to go off of.
 #' @param fill_by One of "color" or "fill".
 #'
-#' @returns A Seurat dot plot or ggplot with an updated color scale.
+#' @returns A Seurat dot plot or ggplot with an updated color scale, or just a vector of colors if a plot is not provided.
 #' @export
-plot_color_scale <- function(plot, palette = rev(pals::brewer.rdbu(n = 7)),
-                             val_col = "avg.exp.scaled", fill_by = "color") {
+plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
+                             palette = rev(pals::brewer.rdbu(n = 7)),
+                             fill_by = "color") {
   # TODO: just return the scale if plot is not provided and some more values are given
 
+  if (!rlang::is_missing(plot) & !rlang::is_missing(data)) {
+    stop("Please only provide either a plot or the data to be plotted, not both.")
+  }
+
+  # use data from the plot if one is provided
+  if (!rlang::is_missing(plot)) {
+    plot_data <- plot$data[[val_col]]
+  } else if (!rlang::is_missing(data)) {
+    plot_data <- data
+
+    # using base R instead of rlang so that it doesn't consider the default val
+    if (!missing(val_col)) plot_data <- plot_data[[val_col]]
+  } else {
+    stop("Please provide either a plot or the data to be plotted.")
+  }
+
   # expression ranges
-  max_val <- max(plot$data[[val_col]], na.rm = TRUE)
-  min_val <- min(plot$data[[val_col]], na.rm = TRUE)
+  max_val <- max(plot_data, na.rm = TRUE)
+  min_val <- min(plot_data, na.rm = TRUE)
 
   # make a full range of colors
   nclrs <- 100
@@ -447,9 +464,14 @@ plot_color_scale <- function(plot, palette = rev(pals::brewer.rdbu(n = 7)),
     colors <- colors[0:max_val_loc]
   }
 
-  # return the plot with the new color scale
-  if (fill_by == "color") plot + scale_color_gradientn(colors = colors)
-  else plot + scale_fill_gradientn(colors = colors)
+  if (!rlang::is_missing(plot)) {
+    # return the plot with the new color scale
+    if (fill_by == "color") plot + scale_color_gradientn(colors = colors)
+    else plot + scale_fill_gradientn(colors = colors)
+  } else {
+    # just return the scale
+    return(unname(colors))
+  }
 }
 
 
