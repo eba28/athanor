@@ -1,5 +1,6 @@
 seurat_obj <- readRDS(file.path(testthat::test_path(), "fixtures", "manual.rds"))
 
+# correlation ####
 test_that("Correlation doesn't work on non-existent features", {
   expect_error(calc_correlation(seurat_obj, features_adt = "CD19"),
                regexp = "The requested ADT feature is not present in assay")
