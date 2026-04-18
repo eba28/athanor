@@ -1,3 +1,42 @@
+#' Add in family and gene information from `alakazam`
+#'
+#' @description
+#' Extracts and adds V, D, and J gene family and gene information to an AIRR-formatted
+#' dataframe using the alakazam package functions.
+#'
+#' @details
+#' biomaRt also has a getGene function, so we have to be specific.
+#'
+#' @param combined_airr An AIRR-formatted data.frame.
+#'
+#' @returns A data.frame with six new columns containing gene family and gene information.
+#' @export
+add_family_info <- function(combined_airr) {
+  if ("v_call" %in% names(combined_airr)) {
+    combined_airr <-
+      combined_airr %>%
+      mutate(v_call_family = alakazam::getFamily(combined_airr$v_call),
+             v_call_gene = alakazam::getGene(combined_airr$v_call))
+  }
+
+  if ("d_call" %in% names(combined_airr)) {
+    combined_airr <-
+      combined_airr %>%
+      mutate(d_call_family = alakazam::getFamily(combined_airr$d_call),
+             d_call_gene = alakazam::getGene(combined_airr$d_call))
+  }
+
+  if ("j_call" %in% names(combined_airr)) {
+    combined_airr <-
+      combined_airr %>%
+      mutate(j_call_family = alakazam::getFamily(combined_airr$j_call),
+             j_call_gene = alakazam::getGene(combined_airr$j_call))
+  }
+
+  return(combined_airr)
+}
+
+
 #' Read in and process output files from nf-core/airrflow
 #'
 #' @description
@@ -16,6 +55,210 @@
 #'
 #' @returns A processed AIRR-formatted data.frame with several columns added.
 #' @export
+#' Bin the mutation frequency
+#'
+#' @description
+#' Bins the `mu_freq` column in a Seurat object into specified categories (e.g. 0%, 0-1%, 1-5%, etc.) for easier visualization and analysis.
+#' The function creates new columns with binned mutation frequencies based on the provided number of bins.
+#'
+#' @details
+#' The bins are (most likely) not going to be equal sizes.
+#'
+#' @param seurat_obj The Seurat object.
+#' @param num_bins The number of bins to split `mu_freq` into. Must be at least one of 2, 3, or 5.
+#'
+#' @returns The provided Seurat object with a new binned mu_freq column.
+#' @export
+bin_mu_freq <- function(seurat_obj, num_bins = c(2, 3, 5)) {
+  # get the current mutation frequencies
+  mu_freqs <- seurat_obj$mu_freq
+  mu_freqs[is.na(mu_freqs)] <- -1
+  # mu_freqs <- mu_freqs[!is.na(mu_freqs)]
+  max_mu_freq <- max(mu_freqs)
+
+  # small epsilon for upper bound of the cut
+  eps <- 1e-3
+
+  if (5 %in% num_bins) {
+    # bins <- seq(0, round(max_mu_freq, digits = 1), by = 0.05)
+    bins <- c(-1, 0, 0.01, 0.04, 0.1, max_mu_freq + eps) # for rounding
+    labels <- c("0%", "0% to 1%", "1% to 5%", "5% to 10%",
+                paste0("10% to ", round(100 * max_mu_freq), "%"))
+
+    seurat_obj$mu_freq_bins <- cut(mu_freqs, breaks = bins, labels = labels)
+  }
+
+  # use 0.01 just in case we have novel alleles
+  if (3 %in% num_bins) {
+    bins <- c(-1, 0, 0.01, max_mu_freq + eps)
+    labels <- c("0%", "0% to 1%", ">1%")
+
+    seurat_obj$mu_freq_bins_fewer <-
+      cut(mu_freqs, breaks = bins, labels = labels)
+  }
+
+  if (2 %in% num_bins) {
+    bins <- c(-1, 0.01, max_mu_freq + eps)
+    labels <- c("0% to 1%", ">1%")
+
+    seurat_obj$mu_freq_bins_binary <-
+      cut(mu_freqs, breaks = bins, labels = labels)
+  }
+
+  return(seurat_obj)
+}
+
+
+#' Convert the output of an embedding method to a matrix
+#'
+#' @description
+#' This function takes the output from an embedding method (e.g. AntiBERTy, ESM2, immune2vec) and converts it into a `Matrix` matrix format that can be used for downstream analysis.
+#' It handles the mapping of cell IDs from the embeddings to the combined AIRR data, ensuring that only cells present in both datasets are retained.
+#' The resulting matrix has features as rows and cells as columns, with appropriate column names based on the number of dimensions in the embeddings.
+#'
+#' @details
+#' Assume that all inputs can be provided as tsv files.
+#' The AMULETy outputs always have a column named "cell_id".
+#' immune2vec does not include the cell ids in the output.
+#' Uses `Matrix()` instead of `as.matrix()` since the latter only returns dense matrices.
+#' AntiBERTy runs on 512 dimensions, AntiBERTa2 and BALM-paired run on 1024 dimensions, and ESM2 runs on 1280 dimensions (through AMULETy).
+#' immune2vec is usually run with 100 dimensions.
+#'
+#' @param embeddings The data.frame embeddings output.
+#' @param combined_airr The combined output from airrflow/Immcantation. Must contain columns called "cell_id" and "cell_id_original".
+#' @param combined_airr_input The data.frame provided to immune2vec; contains translated sequences.
+#'
+#' @returns A `Matrix` of embeddings
+#' @export
+convert_embeddings <- function(embeddings, combined_airr, combined_airr_input) {
+  # check just in case
+  if (!all(c("cell_id", "cell_id_original") %in% colnames(combined_airr))) {
+    stop("One or both of the required columns (`cell_id`, `cell_id_original`) ",
+         "are missing from combined_airr.")
+  }
+
+  # immune2vec only
+  if (!"cell_id" %in% colnames(embeddings)) {
+    # just in case
+    if (rlang::is_missing(combined_airr_input)) {
+      stop("Please provide the original file used as input for running immune2vec.")
+    }
+
+    # we're only interested in the heavy chains
+    combined_airr_input <- filter(combined_airr_input, locus == "IGH")
+
+    # it is possible that there are more translated sequences than the combined
+    # AIRR data if it was processed through airrflow with AMULETy (since the
+    # former splits off the data to be translated before all of the filters are
+    # done)
+    embeddings$cell_id <- combined_airr_input$cell_id
+  }
+
+  # check for cells in the embeddings that are not found in combined_airr
+  # which could be due to filters on the latter (e.g. removing NA c_calls)
+  embeddings_only_cell_ids <-
+    setdiff(embeddings$cell_id, combined_airr$cell_id_original)
+  if (length(embeddings_only_cell_ids) > 0) { # or any(is.na(cell_ids))
+    embeddings <- filter(embeddings, !cell_id %in% embeddings_only_cell_ids)
+  }
+  cat(paste(length(embeddings_only_cell_ids), "cells in the embedding with no",
+            "corresponding cell ids in the combined AIRR file were removed.\n"))
+
+  # depending on how AMULETy was run and read in, there might be sample names
+  # in their own column
+  if ("sample_id" %in% colnames(embeddings)) {
+    # pull the proper cell names (with sample names appended)
+    # use the sample_id column since there is the tiniest chance that barcodes
+    # can collide across samples
+    cell_ids <- embeddings %>%
+      select(cell_id, sample_id) %>%
+      rename(cell_id_original = cell_id) %>%
+      left_join(combined_airr %>%
+                  select(cell_id, cell_id_original, sample_id) %>%
+                  distinct(),
+                by = join_by(cell_id_original, sample_id)) %>%
+      pull(cell_id)
+
+    # remove the sample column
+    embeddings <- embeddings %>% select(-sample_id)
+  } else {
+    # since cell_id_original is unique, a named lookup is more efficient than
+    # using dplyr's join
+    cell_id_lookup <-
+      setNames(combined_airr$cell_id, combined_airr$cell_id_original)
+    cell_ids <- as.character(cell_id_lookup[embeddings$cell_id])
+  }
+
+  # remove the cell_id column
+  embeddings <- embeddings %>% select(-cell_id)
+
+  # set column names (by number of dimensions)
+  dims <- ncol(embeddings)
+  dim_cols <- paste0("Dim", seq_len(dims)) # don't start at 0
+
+  # convert to a sparse matrix and match the regular format (features x cells)
+  embeddings_mat <- as.matrix(embeddings)
+  rownames(embeddings_mat) <- cell_ids
+  colnames(embeddings_mat) <- dim_cols
+  embeddings_mat <- Matrix(t(embeddings_mat), sparse = TRUE)
+
+  return(embeddings_mat)
+}
+
+
+#' Convert family and gene information to sorted factors
+#'
+#' @description
+#' Converts the gene family and gene columns added by `add_family_info()` to
+#' properly ordered factors using numeric sorting.
+#'
+#' @details
+#' For after `add_family_info()` has been run
+#'
+#' @param combined_airr An AIRR-formatted data.frame. This function ensures that gene
+#' families and genes are ordered correctly (e.g. IGHV1, IGHV2, IGHV10 instead
+#' of IGHV1, IGHV10, IGHV2).
+#'
+#' @returns A data.frame with up to six columns converted to sorted factors.
+#' @export
+factor_family_info <- function(combined_airr) {
+  if ("v_call" %in% names(combined_airr)) {
+    combined_airr <-
+      combined_airr %>%
+      mutate(v_call_family =
+               factor(v_call_family,
+                      str_sort((unique(v_call_family)), numeric = TRUE)),
+             v_call_gene =
+               factor(v_call_gene,
+                      str_sort((unique(v_call_gene)), numeric = TRUE)),)
+  }
+
+  if ("d_call" %in% names(combined_airr)) {
+    combined_airr <-
+      combined_airr %>%
+      mutate(d_call_family =
+               factor(d_call_family,
+                      str_sort((unique(d_call_family)), numeric = TRUE)),
+             d_call_gene =
+               factor(d_call_gene,
+                      str_sort((unique(d_call_gene)), numeric = TRUE)),)
+  }
+
+  if ("j_call" %in% names(combined_airr)) {
+    combined_airr <-
+      combined_airr %>%
+      mutate(j_call_family =
+               factor(j_call_family,
+                      str_sort((unique(j_call_family)), numeric = TRUE)),
+             j_call_gene =
+               factor(j_call_gene,
+                      str_sort((unique(j_call_gene)), numeric = TRUE)),)
+  }
+
+  return(combined_airr)
+}
+
+
 process_airrflow <- function(dataset_path, version_airrflow) {
   # deal with possible format e.g. 4.0 or 4.3.1
   version_airrflow_num <-
@@ -134,152 +377,6 @@ process_airrflow <- function(dataset_path, version_airrflow) {
 }
 
 
-#' Add in family and gene information from `alakazam`
-#'
-#' @description
-#' Extracts and adds V, D, and J gene family and gene information to an AIRR-formatted
-#' dataframe using the alakazam package functions.
-#'
-#' @details
-#' biomaRt also has a getGene function, so we have to be specific.
-#'
-#' @param combined_airr An AIRR-formatted data.frame.
-#'
-#' @returns A data.frame with six new columns containing gene family and gene information.
-#' @export
-add_family_info <- function(combined_airr) {
-  if ("v_call" %in% names(combined_airr)) {
-    combined_airr <-
-      combined_airr %>%
-      mutate(v_call_family = alakazam::getFamily(combined_airr$v_call),
-             v_call_gene = alakazam::getGene(combined_airr$v_call))
-  }
-
-  if ("d_call" %in% names(combined_airr)) {
-    combined_airr <-
-      combined_airr %>%
-      mutate(d_call_family = alakazam::getFamily(combined_airr$d_call),
-             d_call_gene = alakazam::getGene(combined_airr$d_call))
-  }
-
-  if ("j_call" %in% names(combined_airr)) {
-    combined_airr <-
-      combined_airr %>%
-      mutate(j_call_family = alakazam::getFamily(combined_airr$j_call),
-             j_call_gene = alakazam::getGene(combined_airr$j_call))
-  }
-
-  return(combined_airr)
-}
-
-
-#' Convert family and gene information to sorted factors
-#'
-#' @description
-#' Converts the gene family and gene columns added by `add_family_info()` to
-#' properly ordered factors using numeric sorting.
-#'
-#' @details
-#' For after `add_family_info()` has been run
-#'
-#' @param combined_airr An AIRR-formatted data.frame. This function ensures that gene
-#' families and genes are ordered correctly (e.g. IGHV1, IGHV2, IGHV10 instead
-#' of IGHV1, IGHV10, IGHV2).
-#'
-#' @returns A data.frame with up to six columns converted to sorted factors.
-#' @export
-factor_family_info <- function(combined_airr) {
-  if ("v_call" %in% names(combined_airr)) {
-    combined_airr <-
-      combined_airr %>%
-      mutate(v_call_family =
-               factor(v_call_family,
-                      str_sort((unique(v_call_family)), numeric = TRUE)),
-             v_call_gene =
-               factor(v_call_gene,
-                      str_sort((unique(v_call_gene)), numeric = TRUE)),)
-  }
-
-  if ("d_call" %in% names(combined_airr)) {
-    combined_airr <-
-      combined_airr %>%
-      mutate(d_call_family =
-               factor(d_call_family,
-                      str_sort((unique(d_call_family)), numeric = TRUE)),
-             d_call_gene =
-               factor(d_call_gene,
-                      str_sort((unique(d_call_gene)), numeric = TRUE)),)
-  }
-
-  if ("j_call" %in% names(combined_airr)) {
-    combined_airr <-
-      combined_airr %>%
-      mutate(j_call_family =
-               factor(j_call_family,
-                      str_sort((unique(j_call_family)), numeric = TRUE)),
-             j_call_gene =
-               factor(j_call_gene,
-                      str_sort((unique(j_call_gene)), numeric = TRUE)),)
-  }
-
-  return(combined_airr)
-}
-
-
-#' Bin the mutation frequency
-#'
-#' @description
-#' Bins the `mu_freq` column in a Seurat object into specified categories (e.g. 0%, 0-1%, 1-5%, etc.) for easier visualization and analysis.
-#' The function creates new columns with binned mutation frequencies based on the provided number of bins.
-#'
-#' @details
-#' The bins are (most likely) not going to be equal sizes.
-#'
-#' @param seurat_obj The Seurat object.
-#' @param num_bins The number of bins to split `mu_freq` into. Must be at least one of 2, 3, or 5.
-#'
-#' @returns The provided Seurat object with a new binned mu_freq column.
-#' @export
-bin_mu_freq <- function(seurat_obj, num_bins = c(2, 3, 5)) {
-  # get the current mutation frequencies
-  mu_freqs <- seurat_obj$mu_freq
-  mu_freqs[is.na(mu_freqs)] <- -1
-  # mu_freqs <- mu_freqs[!is.na(mu_freqs)]
-  max_mu_freq <- max(mu_freqs)
-
-  # small epsilon for upper bound of the cut
-  eps <- 1e-3
-
-  if (5 %in% num_bins) {
-    # bins <- seq(0, round(max_mu_freq, digits = 1), by = 0.05)
-    bins <- c(-1, 0, 0.01, 0.04, 0.1, max_mu_freq + eps) # for rounding
-    labels <- c("0%", "0% to 1%", "1% to 5%", "5% to 10%",
-                paste0("10% to ", round(100 * max_mu_freq), "%"))
-
-    seurat_obj$mu_freq_bins <- cut(mu_freqs, breaks = bins, labels = labels)
-  }
-
-  # use 0.01 just in case we have novel alleles
-  if (3 %in% num_bins) {
-    bins <- c(-1, 0, 0.01, max_mu_freq + eps)
-    labels <- c("0%", "0% to 1%", ">1%")
-
-    seurat_obj$mu_freq_bins_fewer <-
-      cut(mu_freqs, breaks = bins, labels = labels)
-  }
-
-  if (2 %in% num_bins) {
-    bins <- c(-1, 0.01, max_mu_freq + eps)
-    labels <- c("0% to 1%", ">1%")
-
-    seurat_obj$mu_freq_bins_binary <-
-      cut(mu_freqs, breaks = bins, labels = labels)
-  }
-
-  return(seurat_obj)
-}
-
-
 #' Process BCR features for integration
 #'
 #' @description
@@ -339,101 +436,4 @@ process_bcr_features <- function(bcr_features) {
   rownames(bcr_features) <- gsub("_", "-", rownames(bcr_features))
 
   return(bcr_features)
-}
-
-
-#' Convert the output of an embedding method to a matrix
-#'
-#' @description
-#' This function takes the output from an embedding method (e.g. AntiBERTy, ESM2, immune2vec) and converts it into a `Matrix` matrix format that can be used for downstream analysis.
-#' It handles the mapping of cell IDs from the embeddings to the combined AIRR data, ensuring that only cells present in both datasets are retained.
-#' The resulting matrix has features as rows and cells as columns, with appropriate column names based on the number of dimensions in the embeddings.
-#'
-#' @details
-#' Assume that all inputs can be provided as tsv files.
-#' The AMULETy outputs always have a column named "cell_id".
-#' immune2vec does not include the cell ids in the output.
-#' Uses `Matrix()` instead of `as.matrix()` since the latter only returns dense matrices.
-#' AntiBERTy runs on 512 dimensions, AntiBERTa2 and BALM-paired run on 1024 dimensions, and ESM2 runs on 1280 dimensions (through AMULETy).
-#' immune2vec is usually run with 100 dimensions.
-#'
-#' @param embeddings The data.frame embeddings output.
-#' @param combined_airr The combined output from airrflow/Immcantation. Must contain columns called "cell_id" and "cell_id_original".
-#' @param combined_airr_input The data.frame provided to immune2vec; contains translated sequences.
-#'
-#' @returns A `Matrix` of embeddings
-#' @export
-convert_embeddings <- function(embeddings, combined_airr, combined_airr_input) {
-  # check just in case
-  if (!all(c("cell_id", "cell_id_original") %in% colnames(combined_airr))) {
-    stop("One or both of the required columns (`cell_id`, `cell_id_original`) ",
-         "are missing from combined_airr.")
-  }
-
-  # immune2vec only
-  if (!"cell_id" %in% colnames(embeddings)) {
-    # just in case
-    if (rlang::is_missing(combined_airr_input)) {
-      stop("Please provide the original file used as input for running immune2vec.")
-    }
-
-    # we're only interested in the heavy chains
-    combined_airr_input <- filter(combined_airr_input, locus == "IGH")
-
-    # it is possible that there are more translated sequences than the combined
-    # AIRR data if it was processed through airrflow with AMULETy (since the
-    # former splits off the data to be translated before all of the filters are
-    # done)
-    embeddings$cell_id <- combined_airr_input$cell_id
-  }
-
-  # check for cells in the embeddings that are not found in combined_airr
-  # which could be due to filters on the latter (e.g. removing NA c_calls)
-  embeddings_only_cell_ids <-
-    setdiff(embeddings$cell_id, combined_airr$cell_id_original)
-  if (length(embeddings_only_cell_ids) > 0) { # or any(is.na(cell_ids))
-    embeddings <- filter(embeddings, !cell_id %in% embeddings_only_cell_ids)
-  }
-  cat(paste(length(embeddings_only_cell_ids), "cells in the embedding with no",
-            "corresponding cell ids in the combined AIRR file were removed.\n"))
-
-  # depending on how AMULETy was run and read in, there might be sample names
-  # in their own column
-  if ("sample_id" %in% colnames(embeddings)) {
-    # pull the proper cell names (with sample names appended)
-    # use the sample_id column since there is the tiniest chance that barcodes
-    # can collide across samples
-    cell_ids <- embeddings %>%
-      select(cell_id, sample_id) %>%
-      rename(cell_id_original = cell_id) %>%
-      left_join(combined_airr %>%
-                  select(cell_id, cell_id_original, sample_id) %>%
-                  distinct(),
-                by = join_by(cell_id_original, sample_id)) %>%
-      pull(cell_id)
-
-    # remove the sample column
-    embeddings <- embeddings %>% select(-sample_id)
-  } else {
-    # since cell_id_original is unique, a named lookup is more efficient than
-    # using dplyr's join
-    cell_id_lookup <-
-      setNames(combined_airr$cell_id, combined_airr$cell_id_original)
-    cell_ids <- as.character(cell_id_lookup[embeddings$cell_id])
-  }
-
-  # remove the cell_id column
-  embeddings <- embeddings %>% select(-cell_id)
-
-  # set column names (by number of dimensions)
-  dims <- ncol(embeddings)
-  dim_cols <- paste0("Dim", seq_len(dims)) # don't start at 0
-
-  # convert to a sparse matrix and match the regular format (features x cells)
-  embeddings_mat <- as.matrix(embeddings)
-  rownames(embeddings_mat) <- cell_ids
-  colnames(embeddings_mat) <- dim_cols
-  embeddings_mat <- Matrix(t(embeddings_mat), sparse = TRUE)
-
-  return(embeddings_mat)
 }

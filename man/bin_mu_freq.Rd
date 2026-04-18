@@ -2,7 +2,7 @@
 % Please edit documentation in R/airr.R
 \name{bin_mu_freq}
 \alias{bin_mu_freq}
-\title{Bin the mutation frequency}
+\title{Read in and process output files from nf-core/airrflow}
 \usage{
 bin_mu_freq(seurat_obj, num_bins = c(2, 3, 5))
 }
@@ -10,14 +10,29 @@ bin_mu_freq(seurat_obj, num_bins = c(2, 3, 5))
 \item{seurat_obj}{The Seurat object.}
 
 \item{num_bins}{The number of bins to split \code{mu_freq} into. Must be at least one of 2, 3, or 5.}
+
+\item{dataset_path}{The path to the dataset directory.}
+
+\item{version_airrflow}{The airrflow version (as a string).}
 }
 \value{
+A processed AIRR-formatted data.frame with several columns added.
+
 The provided Seurat object with a new binned mu_freq column.
 }
 \description{
+This function reads airrflow's repertoire files, processes them to add
+subject and sample information, computes CDR3 amino acid properties, and adds
+gene family information.
+
 Bins the \code{mu_freq} column in a Seurat object into specified categories (e.g. 0\%, 0-1\%, 1-5\%, etc.) for easier visualization and analysis.
 The function creates new columns with binned mutation frequencies based on the provided number of bins.
 }
 \details{
+Only written for BCR data right now.
+v4.0 has \code{clone_size_count} and \code{clone_size_freq} columns.
+v4.3.1 has \code{duplicate_count} and \code{light_only_cell} columns.
+There can still be some \code{NA} \code{c_call}s.
+
 The bins are (most likely) not going to be equal sizes.
 }

@@ -47,18 +47,19 @@ reference:
   - run_wnn
 - title: Evaluation
   desc: Functions for evaluating the performance of models and analyses.
+- subtitle: ADT-based on kNN
 - contents:
   - calc_adt_dists
   - calc_adt_dists_fast
   - calc_adt_nn_within_range
   - calc_adt_quantile
-  - calc_adt_scores
-  - calc_distances
-  - calc_ext_metrics
-  - calc_int_metrics
   - calc_correlation
   - calc_moran
   - calc_neighbor_matches
+- subtitle: Clustering-based
+  - calc_distances
+  - calc_ext_metrics
+  - calc_int_metrics
 - title: Applications
   desc: Functions for applying the package to specific use cases.
 - subtitle: Reclassification

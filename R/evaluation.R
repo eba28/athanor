@@ -1,366 +1,3 @@
-# cluster_distances <- function(embeddings, labels) {
-#   clusters <- split(as.data.frame(embeddings), labels)
-#
-#   # Intra-cluster distance (average pairwise distance within each cluster)
-#   intra_distances <- sapply(clusters, function(cluster_data) {
-#     mean(dist(cluster_data))
-#   })
-#
-#   # Inter-cluster distance (average distance between cluster centroids)
-#   centroids <- sapply(clusters, colMeans)
-#   inter_distances <- dist(t(centroids))  # Distance between centroids
-#
-#   return(list(intra = intra_distances, inter = inter_distances))
-# }
-#
-# # Apply to Seurat data
-# umap_embeddings <- Embeddings(seurat_obj, reduction = reduction_name)
-# predicted_labels <- seurat_obj$annotated_clusters_simpler
-# distances <- cluster_distances(umap_embeddings, predicted_labels)
-
-#' Calculate cluster distances for a Seurat object
-#'
-#' @description
-#' This function calculates various cluster distance metrics using the `fpc::cluster.stats` function, which provides a comprehensive set of clustering statistics based on a distance matrix and cluster assignments.
-#' The function computes both single-value metrics (e.g. Calinski-Harabasz index) and cluster-wise metrics (e.g. average within-cluster distance) depending on the specified criteria.
-#' The results are returned in a tidy data frame format for easy plotting and comparison across different embeddings and reductions.
-#'
-#' @details
-#' The `as.factor()` is needed in case you give a categorical cluster col.
-#' Assumes you're using the embeddings approach.
-#'
-#' @param seurat_obj The post-WNN Seurat object.
-#' @param reduction_name The name of the reduction to use for distances.
-#' @param criteria One of: Between_Mean, Between_Min, Calinski_Harabasz, Within_Between, Within_Max, Within_Mean, Within_Median.
-#' @param labels_true The name of the column in the metadata that contains the cluster labels to evaluate.
-#' @param labels_name A more descriptive name for the labels to use in plotting (optional).
-#'
-#' @returns A data.frame with a row per metric and cluster containing the score.
-#' @export
-calc_distances <- function(seurat_obj, reduction_name, criteria = "Within_Max",
-                           labels_true = "annotated_clusters", labels_name) {
-  # set up the inputs and output
-  embeddings <- Embeddings(seurat_obj, reduction = reduction_name)
-  dist_matrix <- stats::dist(embeddings) # method = "euclidean"
-  clusters <- seurat_obj[[]][[labels_true]]
-  clusters_fact <- as.factor(clusters)
-  clusters_int <- as.integer(clusters_fact)
-
-  # some metrics are per label group and some are for everything
-  distances_single <- c()
-  distances_multi <- c()
-
-  # check for issues before calling cluster.stats
-  if (any(is.na(dist_matrix))) {
-    cat("Warning: Distance matrix contains NAs.\n")
-    # Option: Remove NAs or use complete cases only
-  }
-  if (any(is.na(clusters_int))) {
-    cat("Warning: Clustering vector contains NAs.\n") # should never happen
-    valid_indices <- !is.na(clusters_int)
-    clusters_int <- clusters_int[valid_indices]
-    # may also need to subset the distance matrix accordingly
-  }
-  if (xfun::attr2(dist_matrix, "Size") != length(clusters_int)) {
-    cat("Length mismatch between the distance matrix and the clustering.\n")
-  }
-
-  # call cluster.stats with error handling
-  tryCatch({
-    cluster_stats <- fpc::cluster.stats(d = dist_matrix, clustering = clusters_int)
-  }, error = function(e) {
-    cat("Error in cluster.stats:", e$message, "\n")
-    return(NULL)
-  })
-
-  # calculate cluster_stats
-  # cluster_stats <- fpc::cluster.stats(d = dist_matrix, clustering = clusters_int)
-
-  if ("Between_Mean" %in% criteria) {
-    # "vector of clusterwise average distances of a point in the cluster to the points of other clusters"
-    distances_multi <-
-      bind_rows(distances_multi,
-                data.frame(Metric = "Between_Mean",
-                           Score = cluster_stats$average.toother))
-  }
-
-  if ("Between_Min" %in% criteria) {
-    # "vector of clusterwise minimum distances of a point in the cluster to a point of another cluster"
-    distances_multi <-
-      bind_rows(distances_multi,
-                data.frame(Metric = "Between_Min",
-                           Score = cluster_stats$separation))
-  }
-
-  if ("Calinski_Harabasz" %in% criteria) {
-    # "Calinski and Harabasz index (Calinski and Harabasz 1974, optimal in Milligan and Cooper 1985; generalised for dissimilarites in Hennig and Liao 2013)."
-    distances_single <-
-      bind_rows(distances_single,
-                data.frame(Metric = "Calinski_Harabasz",
-                           Score = cluster_stats$ch))
-  }
-
-  if ("Within_Between" %in% criteria) {
-    # "average.within/average.between"
-    distances_single <-
-      bind_rows(distances_single,
-                data.frame(Metric = "Within_Between",
-                           Score = cluster_stats$wb.ratio))
-  }
-
-  if ("Within_Max" %in% criteria) {
-    # "vector of cluster diameters (maximum within cluster distances)"
-    distances_multi <-
-      bind_rows(distances_multi,
-                data.frame(Metric = "Within_Max",
-                           Score = cluster_stats$diameter))
-  }
-
-  if ("Within_Mean" %in% criteria) {
-    # "vector of clusterwise within cluster average distances"
-    distances_multi <-
-      bind_rows(distances_multi,
-                data.frame(Metric = "Within_Mean",
-                           Score = cluster_stats$average.distance))
-  }
-
-  if ("Within_Median" %in% criteria) {
-    # "vector of clusterwise within cluster distance medians"
-    distances_multi <-
-      bind_rows(distances_multi,
-                data.frame(Metric = "Within_Median",
-                           Score = cluster_stats$median.distance))
-  }
-
-  # add a few more columns (the order might not be right)
-  # criteria could include single and multi
-  if (!is.null(distances_multi)) {
-    distances_multi <-
-      distances_multi %>%
-      mutate(Clusters = rep(levels(clusters_fact),
-                            nrow(distances_multi) / nlevels(clusters_fact)))
-  }
-  distances <-
-    bind_rows(distances_single, distances_multi) %>%
-    mutate(Embedding = seurat_obj@misc$embedding_type,
-           Reduction = reduction_name, Labeling = labels_true,
-           .before = Metric)
-  if (!rlang::is_missing(labels_name)) distances$Labeling <- labels_name
-
-  return(distances)
-}
-
-
-#' Calculate internal clustering metrics for a Seurat object
-#'
-#' @description
-#' This function calculates various internal clustering metrics using the `cluster` package, which provides a comprehensive set of clustering evaluation statistics based on a distance matrix and cluster assignments.
-#'
-#' @details
-#' The Satija lab used `cluster` for their analyses.
-#' The `as.factor()` is needed in case you give a categorical cluster col.
-#' Use the `bluster` package for speed if desired e.g.
-#' `bluster::approxSilhouette(x = embeddings, clusters = clusters)`
-#' Assumes you're using the embeddings approach.
-#'
-#' @param seurat_obj The post-WNN Seurat object.
-#' @param reduction_name The name of the reduction to use for distances.
-#' @param criteria One of: DB, Dunn, Intra_Complete, Silhouette
-#' @param labels_true The name of the column in the metadata that contains the cluster labels to evaluate.
-#' @param labels_name A more descriptive name for the labels to use in plotting (optional).
-#' @param return_full If TRUE, return the full silhouette object instead of just the mean silhouette width.
-#'
-#' @returns A data.frame with a row per metric containing the combined score.
-#' @export
-calc_int_metrics <- function(seurat_obj, reduction_name,
-                             criteria = "Silhouette",
-                             labels_true = "annotated_clusters", labels_name,
-                             return_full = FALSE) {
-  # set up the inputs and output
-  embeddings <- Embeddings(seurat_obj, reduction = reduction_name)
-  dist_matrix <- dist(embeddings) # method = "euclidean"
-  clusters <- seurat_obj[[]][[labels_true]]
-  clusters_int <- as.integer(as.factor(clusters))
-
-  metrics <- c()
-
-  if ("Davies-Bouldin" %in% criteria) {
-    score_db <- clusterSim::index.DB(embeddings, clusters_int)$DB
-
-    metrics <- bind_rows(metrics,
-                         data.frame(Metric = "Davies-Bouldin", Score = score_db))
-  }
-
-  # could also be done with fpc::cluster.stats
-  if ("Dunn" %in% criteria) {
-    score_dunn <- clValid::dunn(distance = dist_matrix, clusters = clusters_int)
-
-    metrics <- bind_rows(metrics,
-                         data.frame(Metric = "Dunn", Score = score_dunn))
-  }
-
-  if ("Intra_Complete" %in% criteria) {
-    # clv is no longer on CRAN
-    # cls.scatt.diss.mx
-    # score_intra_complete <- clv::cls.scatt.data(data = embeddings,
-    #                                             clust = clusters_int,
-    #                                             dist = "euclidean")
-    score_intra_complete <- mean(score_intra_complete$intracls.complete)
-
-    metrics <- bind_rows(metrics,
-                         data.frame(Metric = "Intra_Complete",
-                                    Score = score_intra_complete))
-  }
-
-  if ("Silhouette" %in% criteria) {
-    score_sil <- cluster::silhouette(x = clusters_int, dist_matrix)
-
-    if (!return_full) score_sil <- mean(score_sil[, "sil_width"])
-
-    metrics <- bind_rows(metrics,
-                         data.frame(Metric = "Silhouette", Score = score_sil))
-  }
-
-  # add a few more columns
-  metrics <- metrics %>%
-    mutate(Embedding = seurat_obj@misc$embedding_type,
-           Reduction = reduction_name, Labeling = labels_true,
-           .before = Metric)
-  if (!rlang::is_missing(labels_name)) metrics$Labeling <- labels_name
-
-  return(metrics)
-}
-
-
-#' Calculate external clustering metrics for a Seurat object
-#'
-#' @description
-#' This function calculates various external clustering metrics using the `mclust` and `clevr` packages, which provide a comprehensive set of clustering evaluation statistics based on true cluster labels and predicted cluster assignments.
-#'
-#' @details
-#' The Satija lab used `cluster` for their analyses.
-#' The `as.factor()` is needed in case you give a categorical cluster col.
-#' `sklearn.metrics.cluster` has `completeness_score` and `homogeneity_score`
-#' Assumes you're using the embeddings approach.
-#'
-#' @param seurat_obj The post-WNN Seurat object.
-#' @param reduction_name The name of the reduction to use for distances.
-#' @param criteria One of: ARI, Completeness, Homogeneity
-#' @param labels_true The name of the column in the metadata that contains the true cluster labels to evaluate.
-#' @param labels_pred The name of the column in the metadata that contains the predicted cluster labels to evaluate.
-#'
-#' @returns A data.frame with a row per metric containing the combined score.
-#' @export
-calc_ext_metrics <- function(seurat_obj, reduction_name,
-                             criteria = c("Completeness", "Homogeneity"),
-                             labels_true = "annotated_clusters",
-                             labels_pred = "seurat_clusters") {
-  # set up the inputs and output
-  clusters_true <- seurat_obj[[]][[labels_true]]
-  clusters_pred <- seurat_obj[[]][[labels_pred]]
-
-  metrics <- c()
-
-  # Adjusted Rand Index
-  if ("ARI" %in% criteria) {
-    metrics <-
-      bind_rows(metrics,
-                data.frame(Metric = "ARI",
-                           Score = mclust::adjustedRandIndex(clusters_pred,
-                                                             clusters_true)))
-  }
-
-  if ("Completeness" %in% criteria) {
-    metrics <-
-      bind_rows(metrics,
-                data.frame(Metric = "Completeness",
-                           Score = clevr::completeness(true = clusters_true,
-                                                       pred = clusters_pred)))
-  }
-
-  if ("Homogeneity" %in% criteria) {
-    metrics <-
-      bind_rows(metrics,
-                data.frame(Metric = "Homogeneity",
-                           Score = clevr::homogeneity(true = clusters_true,
-                                                      pred = clusters_pred)))
-  }
-
-  # add a few more columns
-  metrics <- metrics %>%
-    mutate(Embedding = seurat_obj@misc$embedding_type,
-           Reduction = reduction_name, Labeling = labels_true,
-           .before = Metric)
-
-  return(metrics)
-}
-
-
-#' Calculate homogeneity scores for binary ADT features across embeddings
-#'
-#' @description
-#' This function calculates homogeneity scores for binary ADT features across different embeddings and reductions in a Seurat object.
-#'
-#' @param seurat_objs List of Seurat objects for each embedding type.
-#' @param meta_res Named list of cluster columns for each reduction.
-#' @param metric_type One of: Internal, External
-#' @param metrics List of metric names.
-#' @param adt_features ADT feature name (e.g. "CD27.1"). You can provide multiple.
-#' @param adt_cutoff Numeric cutoff for binary classification.
-#'
-#' @return Data frame of scores for each embedding/reduction.
-#' @export
-calc_adt_scores <- function(seurat_objs, meta_res, metric_type, metrics,
-                            adt_features = "CD27.1", adt_cutoff = 1) {
-  scores <- c()
-
-  for (adt_feat in adt_features) {
-    # embedding-dependent (BCR and WNN only)
-    # TODO: replace with map or map2
-    scores_feat <- map_dfr(names(seurat_objs), function(embedding_type) {
-      meta_res_type <- meta_res[[embedding_type]]
-      obj <- seurat_objs[[embedding_type]]
-      obj$adt_feature <-
-        case_when(obj@assays$ADT@data[adt_feat, ] > adt_cutoff ~ TRUE, TRUE ~ FALSE)
-
-      reduction_combinations <-
-        list(list(reduction = "bcr.umap",
-                  labels_pred = meta_res_type[["bcr.umap"]]),
-             list(reduction = "rna.umap",
-                  labels_pred = meta_res_type[["rna.umap"]]),
-             list(reduction = "wnn.umap",
-                  labels_pred = meta_res_type[["wnn.umap"]]))
-
-      # TODO: replace with map or map2
-      if (metric_type == "Internal") {
-        map_dfr(reduction_combinations, function(combo) {
-          calc_int_metrics(seurat_obj = obj, reduction_name = combo$reduction,
-                           criteria = metrics, labels_true = "adt_feature")
-        })
-      } else {
-        map_dfr(reduction_combinations, function(combo) {
-          calc_ext_metrics(seurat_obj = obj, reduction_name = combo$reduction,
-                           criteria = metrics, labels_true = "adt_feature",
-                           labels_pred = combo$labels_pred)
-        })
-      }
-    })
-
-    # combine results and sort by score
-    scores_feat <-
-      scores_feat %>%
-      mutate(method_combo = paste(Embedding, Reduction, sep = " + "),
-             Feature = adt_feat,
-             Reduction = factor(Reduction, levels = reductions)) %>%
-      arrange(desc(Score))
-
-    scores <- bind_rows(scores, scores_feat)
-  }
-
-  return(scores)
-}
-
-
 #' Compute mean ADT distance to each cell's k nearest neighbors
 #'
 #' @description
@@ -709,6 +346,144 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", feature,
 }
 
 
+# cluster_distances <- function(embeddings, labels) {
+#   clusters <- split(as.data.frame(embeddings), labels)
+#
+#   # Intra-cluster distance (average pairwise distance within each cluster)
+#   intra_distances <- sapply(clusters, function(cluster_data) {
+#     mean(dist(cluster_data))
+#   })
+#
+#   # Inter-cluster distance (average distance between cluster centroids)
+#   centroids <- sapply(clusters, colMeans)
+#   inter_distances <- dist(t(centroids))  # Distance between centroids
+#
+#   return(list(intra = intra_distances, inter = inter_distances))
+# }
+#
+# # Apply to Seurat data
+# umap_embeddings <- Embeddings(seurat_obj, reduction = reduction_name)
+# predicted_labels <- seurat_obj$annotated_clusters_simpler
+# distances <- cluster_distances(umap_embeddings, predicted_labels)
+
+
+#' Calculate the correlation between each cell's expression and the mean of its neighbors' expression
+#'
+#' @details
+#' The Seurat object must have `FindNeighbors()` already run at least one time and an assay named "ADT".
+#'
+#' @param seurat_obj The Seurat object.
+#' @param features_adt Name of the ADT features to evaluate on (e.g. "CD27.1").
+#' @param cor_method Correlation method to use (e.g. "pearson", "spearman").
+#'
+#' @returns A data frame with columns: Graph, Feature, Score (correlation value).
+calc_correlation <- function(seurat_obj, features_adt, cor_method = "spearman") {
+  # TODO: return values or a df
+  # TODO: run for each feature or all features
+  # TODO: run in parallel
+
+  # make sure that the ADT feature is in the object
+  if (rlang::is_missing(features_adt)) {
+    features_adt <- rownames(seurat_obj@assays$ADT)
+  }
+
+  if (any(!(features_adt %in% rownames(seurat_obj@assays$ADT)))) {
+    stop("The requested ADT feature is not present in assay 'ADT'. Available features: ",
+         paste(sort(rownames(seurat_obj@assays$ADT)), collapse = ", "))
+  }
+  # make sure that the object has at least one neighbor graph
+  if (length(seurat_obj@neighbors) == 0) {
+    stop("No neighbor graphs found in object. Please run FindNeighbors() first.")
+  }
+
+  # get the (normalized) ADT expression
+  adt_data <- GetAssayData(seurat_obj, assay = "ADT", layer = "data")
+  metrics_df <- c()
+
+  for (nn_name in names(seurat_obj@neighbors)) {
+    # create a matrix for the neighbor-averaged ADT expression
+    nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
+    neighbor_adt_mean <- sapply(1:nrow(nn_idx), function(i) {
+      rowMeans(adt_data[, nn_idx[i, ]])
+    })
+    colnames(neighbor_adt_mean) <- colnames(seurat_obj)
+
+    # calculate correlations for each feature across all of the cells
+    for (feature_adt in features_adt) {
+      cell_expr <- adt_data[feature_adt, ]
+      neighbor_expr <- neighbor_adt_mean[feature_adt, ]
+
+      correlation <- cor(cell_expr, neighbor_expr, method = cor_method)
+
+      metrics_df <- bind_rows(metrics_df,
+                              data.frame(Graph = nn_name, Feature = feature_adt,
+                                         Score = correlation))
+    }
+  }
+
+  return(metrics_df)
+}
+
+
+#' Calculate Moran's i for a Seurat object
+#'
+#' @description
+#' This function calculates the global Moran's i index.
+#'
+#' @details
+#' We are using `MERINGUE`'s implementation instead of `ape`'s because it runs faster.
+#' However, `MERINGUE` is not on CRAN, which means this package could not be published on CRAN.
+#' Row standardization makes sure that the resulting score will always be between -1 and 1.
+#'
+#' @param seurat_obj The Seurat object. Must have `FindNeighbors()` already run and an assay named "ADT".
+#' @param feature Name of the ADT feature to evaluate (e.g. "CD27.1", "CD38").
+#' @param graph_name Name of the neighbor graph slot to use for the weights matrix (e.g. "RNA.nn", "BCR.nn", "w.nn").
+#' @param row_standardize Whether or not to row-standardize the weights matrix (i.e. make each row sum to 1).
+#'
+#' @returns A single numeric value representing the observed Moran's i index for the specified feature and neighbor graph.
+#' @export
+calc_moran <- function(seurat_obj, feature, graph_name, row_standardize = TRUE) {
+  # TODO: provide multiple features
+  # TODO: provide multiple graphs
+
+  # make sure that the ADT feature is in the object
+  if (!feature %in% rownames(seurat_obj@assays$ADT)) {
+    stop("The requested ADT feature is not present in assay 'ADT'. Available features: ",
+         paste(sort(rownames(seurat_obj@assays$ADT)), collapse = ", "))
+  }
+  # make sure that the graph is in the object
+  if (!graph_name %in% names(seurat_obj@graphs)) {
+    stop("Graph '", graph_name, "' not found in object. Available graphs: ",
+         paste(names(seurat_obj@graphs), collapse = ", "))
+  }
+
+  # get the (normalized) expression
+  x <- GetAssayData(seurat_obj, assay = "ADT", layer = "data")
+  x <- x[feature, ]
+
+  # get the weights matrix
+  w <- seurat_obj@graphs[[graph_name]] # as.matrix
+
+  # row-standardize the weights (so each row sums to 1)
+  # this shouldn't be necessary because we are comparing graphs with the same k
+  if (row_standardize) w <- w / rowSums(w)
+
+  # calculate Moran's i
+  moran <- ape::Moran.I(x, w)
+  # moran <- MERINGUE::moranTest(x, w)
+
+  # if you want to calculate the local value:
+  # list_w <- mat2listw(as.matrix(w)) # spdep
+  # local_m <- localmoran(marker_vector, list_w) # produces a value for each cell
+  # add to Seurat metadata for plotting
+  # seurat_obj@meta.data[[paste0("local_i_", feature)]] <-
+  #   local_m[, "Ii"] # 'Ii' is the local Moran statistic
+
+  # just return the observed Moran's i value, not the expected value, sd, or p-value
+  return(moran[["observed"]])
+}
+
+
 #' Calculate neighbor matching scores across metadata columns
 #'
 #' @description
@@ -957,121 +732,4 @@ calc_neighbor_matches <- function(seurat_obj, nn_name,
   } else {
     return(neighbor_matches)
   }
-}
-
-
-#' Calculate Moran's i for a Seurat object
-#'
-#' @description
-#' This function calculates the global Moran's i index.
-#'
-#' @details
-#' We are using `MERINGUE`'s implementation instead of `ape`'s because it runs faster.
-#' However, `MERINGUE` is not on CRAN, which means this package could not be published on CRAN.
-#' Row standardization makes sure that the resulting score will always be between -1 and 1.
-#'
-#' @param seurat_obj The Seurat object. Must have `FindNeighbors()` already run and an assay named "ADT".
-#' @param feature Name of the ADT feature to evaluate (e.g. "CD27.1", "CD38").
-#' @param graph_name Name of the neighbor graph slot to use for the weights matrix (e.g. "RNA.nn", "BCR.nn", "w.nn").
-#' @param row_standardize Whether or not to row-standardize the weights matrix (i.e. make each row sum to 1).
-#'
-#' @returns A single numeric value representing the observed Moran's i index for the specified feature and neighbor graph.
-#' @export
-calc_moran <- function(seurat_obj, feature, graph_name, row_standardize = TRUE) {
-  # TODO: provide multiple features
-  # TODO: provide multiple graphs
-
-  # make sure that the ADT feature is in the object
-  if (!feature %in% rownames(seurat_obj@assays$ADT)) {
-    stop("The requested ADT feature is not present in assay 'ADT'. Available features: ",
-         paste(sort(rownames(seurat_obj@assays$ADT)), collapse = ", "))
-  }
-  # make sure that the graph is in the object
-  if (!graph_name %in% names(seurat_obj@graphs)) {
-    stop("Graph '", graph_name, "' not found in object. Available graphs: ",
-         paste(names(seurat_obj@graphs), collapse = ", "))
-  }
-
-  # get the (normalized) expression
-  x <- GetAssayData(seurat_obj, assay = "ADT", layer = "data")
-  x <- x[feature, ]
-
-  # get the weights matrix
-  w <- seurat_obj@graphs[[graph_name]] # as.matrix
-
-  # row-standardize the weights (so each row sums to 1)
-  # this shouldn't be necessary because we are comparing graphs with the same k
-  if (row_standardize) w <- w / rowSums(w)
-
-  # calculate Moran's i
-  moran <- ape::Moran.I(x, w)
-  # moran <- MERINGUE::moranTest(x, w)
-
-  # if you want to calculate the local value:
-  # list_w <- mat2listw(as.matrix(w)) # spdep
-  # local_m <- localmoran(marker_vector, list_w) # produces a value for each cell
-  # add to Seurat metadata for plotting
-  # seurat_obj@meta.data[[paste0("local_i_", feature)]] <-
-  #   local_m[, "Ii"] # 'Ii' is the local Moran statistic
-
-  # just return the observed Moran's i value, not the expected value, sd, or p-value
-  return(moran[["observed"]])
-}
-
-
-#' Calculate the correlation between each cell's expression and the mean of its neighbors' expression
-#'
-#' @details
-#' The Seurat object must have `FindNeighbors()` already run at least one time and an assay named "ADT".
-#'
-#' @param seurat_obj The Seurat object.
-#' @param features_adt Name of the ADT features to evaluate on (e.g. "CD27.1").
-#' @param cor_method Correlation method to use (e.g. "pearson", "spearman").
-#'
-#' @returns A data frame with columns: Graph, Feature, Score (correlation value).
-calc_correlation <- function(seurat_obj, features_adt, cor_method = "spearman") {
-  # TODO: return values or a df
-  # TODO: run for each feature or all features
-  # TODO: run in parallel
-
-  # make sure that the ADT feature is in the object
-  if (rlang::is_missing(features_adt)) {
-    features_adt <- rownames(seurat_obj@assays$ADT)
-  }
-
-  if (any(!(features_adt %in% rownames(seurat_obj@assays$ADT)))) {
-    stop("The requested ADT feature is not present in assay 'ADT'. Available features: ",
-         paste(sort(rownames(seurat_obj@assays$ADT)), collapse = ", "))
-  }
-  # make sure that the object has at least one neighbor graph
-  if (length(seurat_obj@neighbors) == 0) {
-    stop("No neighbor graphs found in object. Please run FindNeighbors() first.")
-  }
-
-  # get the (normalized) ADT expression
-  adt_data <- GetAssayData(seurat_obj, assay = "ADT", layer = "data")
-  metrics_df <- c()
-
-  for (nn_name in names(seurat_obj@neighbors)) {
-    # create a matrix for the neighbor-averaged ADT expression
-    nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
-    neighbor_adt_mean <- sapply(1:nrow(nn_idx), function(i) {
-      rowMeans(adt_data[, nn_idx[i, ]])
-    })
-    colnames(neighbor_adt_mean) <- colnames(seurat_obj)
-
-    # calculate correlations for each feature across all of the cells
-    for (feature_adt in features_adt) {
-      cell_expr <- adt_data[feature_adt, ]
-      neighbor_expr <- neighbor_adt_mean[feature_adt, ]
-
-      correlation <- cor(cell_expr, neighbor_expr, method = cor_method)
-
-      metrics_df <- bind_rows(metrics_df,
-                              data.frame(Graph = nn_name, Feature = feature_adt,
-                                         Score = correlation))
-    }
-  }
-
-  return(metrics_df)
 }
