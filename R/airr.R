@@ -37,24 +37,7 @@ add_family_info <- function(combined_airr) {
 }
 
 
-#' Read in and process output files from nf-core/airrflow
 #'
-#' @description
-#' This function reads airrflow's repertoire files, processes them to add
-#' subject and sample information, computes CDR3 amino acid properties, and adds
-#' gene family information.
-#'
-#' @details
-#' Only written for BCR data right now.
-#' v4.0 has `clone_size_count` and `clone_size_freq` columns.
-#' v4.3.1 has `duplicate_count` and `light_only_cell` columns.
-#' There can still be some `NA` `c_call`s.
-#'
-#' @param dataset_path The path to the dataset directory.
-#' @param version_airrflow The airrflow version (as a string).
-#'
-#' @returns A processed AIRR-formatted data.frame with several columns added.
-#' @export
 #' Bin the mutation frequency
 #'
 #' @description
@@ -259,6 +242,24 @@ factor_family_info <- function(combined_airr) {
 }
 
 
+#' Read in and process output files from nf-core/airrflow
+#'
+#' @description
+#' This function reads airrflow's repertoire files, processes them to add
+#' subject and sample information, computes CDR3 amino acid properties, and adds
+#' gene family information.
+#'
+#' @details
+#' Only written for BCR data right now.
+#' v4.0 has `clone_size_count` and `clone_size_freq` columns.
+#' v4.3.1 has `duplicate_count` and `light_only_cell` columns.
+#' There can still be some `NA` `c_call`s.
+#'
+#' @param dataset_path The path to the dataset directory.
+#' @param version_airrflow The airrflow version (as a string).
+#'
+#' @returns A processed AIRR-formatted data.frame with several columns added.
+#' @export
 process_airrflow <- function(dataset_path, version_airrflow) {
   # deal with possible format e.g. 4.0 or 4.3.1
   version_airrflow_num <-

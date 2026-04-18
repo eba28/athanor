@@ -19,8 +19,7 @@
 #' @param embedding_type The embeddings method.
 #' @param pc_gex The number of PCs for the GEX assay.
 #' @param pc_bcr The number of PCs for the BCR assay.
-#' @param k_param The number of neighbors to use for each modality. Can be a single value or a vector of values to test.
-#' @param k_main The main number of neighbors to use for the final WNN UMAP and clustering.
+#' @param k The number of neighbors to use for each modality.
 #' @param cluster Whether or not to perform clustering.
 #' @param cluster_res Named list of clustering resolutions for GEX, BCR, and WNN.
 #' @param modality_weights Named vector of modality weights. If NULL, Seurat will calculate automatically.
@@ -29,7 +28,7 @@
 #' @returns A Seurat object with WNN run.
 #' @export
 run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
-                    pc_bcr = 20, k_param = 20, k_main = 20, cluster = FALSE,
+                    pc_bcr = 20, k_param = 20, cluster = FALSE,
                     cluster_res = list("GEX" = 1, "BCR" = 1, "WNN" = 1),
                     modality_weights = NULL, show_output = FALSE) {
   # input validation
@@ -42,9 +41,6 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
   if (ncol(embeddings) == 0) {
     stop("No cells found in embeddings matrix.")
   }
-
-  # add k to the names only if there is more than one
-  add_k <- ifelse(length(k_param) > 1, TRUE, FALSE)
 
   # remove any GEX clustering that might exist and reset the factor levels
   # assumes a UMAP might have been run for the RNA data (instead of tSNE)
@@ -94,26 +90,19 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
   seurat_obj <- RunPCA(object = seurat_obj,
                        npcs = pc_bcr, reduction.name = "bpca",
                        reduction.key = "bpca_", verbose = show_output)
-  for (k in k_param) {
-    # fill the neighbors slot
-    neighbor_name <- ifelse(add_k, paste0("BCR.nn_", k), "BCR.nn")
-    seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "bpca",
-                                assay = "BCR", k.param = k,
-                                return.neighbor = TRUE, verbose = show_output,
-                                graph.name = neighbor_name)
-
-    # fill the graphs slot
-    graph_name <- str_c("BCR_", c("", "s"), "nn")
-    if (add_k) graph_name <- str_c(graph_name, "_", k_main)
-    seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "bpca",
-                                dims = 1:pc_bcr, k.param = k_main,
-                                compute.SNN = TRUE, verbose = show_output,
-                                graph.name = graph_name)
-  }
-  nn_name <- ifelse(add_k, paste0("BCR.nn_", k_main), "BCR.nn")
+  # fill the neighbors slot
+  seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "bpca",
+                              assay = "BCR", k.param = k_param,
+                              return.neighbor = TRUE, verbose = show_output,
+                              graph.name = "BCR.nn")
+  # fill the graphs slot
+  seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "bpca",
+                              dims = 1:pc_bcr, k.param = k_param,
+                              compute.SNN = TRUE, verbose = show_output,
+                              graph.name = str_c("BCR_", c("", "s"), "nn"))
   seurat_obj <- RunUMAP(object = seurat_obj, # dims = 1:pc_bcr,
                         reduction = "bpca",
-                        n.neighbors = k_main, nn.name = nn_name,
+                        n.neighbors = k_param, nn.name = "BCR.nn",
                         reduction.name = "bcr.umap", reduction.key = "bcrUMAP_",
                         verbose = show_output)
 
@@ -127,77 +116,57 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
   seurat_obj <- RunPCA(object = seurat_obj,
                        npcs = pc_gex, reduction.name = "rpca",
                        reduction.key = "rpca_", verbose = show_output)
-  for (k in k_param) {
-    # fill the neighbors slot
-    neighbor_name <- ifelse(add_k, paste0("RNA.nn_", k), "RNA.nn")
-    seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "rpca",
-                                assay = "RNA", k.param = k,
-                                return.neighbor = TRUE, verbose = show_output,
-                                graph.name = neighbor_name)
-
-    # fill the graphs slot
-    graph_name <- str_c("RNA_", c("", "s"), "nn")
-    if (add_k) graph_name <- str_c(graph_name, "_", k_main)
-    seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "rpca",
-                                dims = 1:pc_gex, k.param = k_main,
-                                compute.SNN = TRUE, verbose = show_output,
-                                graph.name = graph_name)
-
-  }
-  nn_name <- ifelse(add_k, paste0("RNA.nn_", k_main), "RNA.nn")
+  # fill the neighbors slot
+  seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "rpca",
+                              assay = "RNA", k.param = k_param,
+                              return.neighbor = TRUE, verbose = show_output,
+                              graph.name = "RNA.nn")
+  # fill the graphs slot
+  seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "rpca",
+                              dims = 1:pc_gex, k.param = k_param,
+                              compute.SNN = TRUE, verbose = show_output,
+                              graph.name = str_c("RNA_", c("", "s"), "nn"))
   seurat_obj <- RunUMAP(object = seurat_obj, # dims = 1:pc_gex,
                         reduction = "rpca",
-                        n.neighbors = k_main, nn.name = nn_name,
+                        n.neighbors = k_param, nn.name = "RNA.nn",
                         reduction.name = "rna.umap", reduction.key = "rnaUMAP_",
                         verbose = show_output)
 
   # find multimodal neighbors, then do clustering and make a UMAP
-  for (k in k_param) {
-    mw_name <- str_c(c("RNA", "BCR"), ".weight")
-    if (add_k) mw_name <- str_c(mw_name, "_", k)
-    seurat_obj <-
-      FindMultiModalNeighbors(object = seurat_obj,
-                              reduction.list = list("rpca", "bpca"),
-                              dims.list = list(1:pc_gex, 1:pc_bcr),
-                              k.nn = k,
-                              # match the RNA and BCR style
-                              knn.graph.name =
-                                ifelse(add_k, paste0("w_nn_", k), "w_nn"),
-                              snn.graph.name =
-                                ifelse(add_k, paste0("w_snn_", k), "w_snn"),
-                              weighted.nn.name =
-                                ifelse(add_k, paste0("w.nn_", k), "w.nn"),
-                              modality.weight.name = mw_name,
-                              return.intermediate = TRUE,
-                              modality.weight = modality_weights,
-                              verbose = show_output)
-  }
-  nn_name <- ifelse(add_k, paste0("w.nn_", k_main), "w.nn")
+  seurat_obj <-
+    FindMultiModalNeighbors(object = seurat_obj,
+                            reduction.list = list("rpca", "bpca"),
+                            dims.list = list(1:pc_gex, 1:pc_bcr),
+                            k.nn = k_param,
+                            # match the RNA and BCR style
+                            knn.graph.name = "w_nn",
+                            snn.graph.name = "w_snn",
+                            weighted.nn.name = "w.nn",
+                            modality.weight.name =
+                              str_c(c("RNA", "BCR"), ".weight"),
+                            return.intermediate = TRUE,
+                            modality.weight = modality_weights,
+                            verbose = show_output)
   seurat_obj <- RunUMAP(object = seurat_obj, # dims = 1:pc_gex,
-                        n.neighbors = k_main, nn.name = nn_name,
+                        n.neighbors = k_param, nn.name = "w.nn",
                         reduction.name = "wnn.umap", reduction.key = "wnnUMAP_",
                         verbose = show_output)
 
-  # use the "main" k for clustering
+  # use the "main" k for clustering and the Louvain algorithm
   if (cluster) {
     # cluster the BCR assay
-    graph_name <- ifelse(add_k, paste0("BCR_snn_", k_main), "BCR_snn")
     seurat_obj <- FindClusters(object = seurat_obj,
-                               graph.name = graph_name,
+                               graph.name = "BCR_snn",
                                resolution = cluster_res[["BCR"]],
                                algorithm = 1, verbose = show_output)
-
     # cluster the GEX assay
-    graph_name <- ifelse(add_k, paste0("RNA_snn_", k_main), "RNA_snn")
     seurat_obj <- FindClusters(object = seurat_obj,
-                               graph.name = graph_name,
+                               graph.name = "RNA_snn",
                                resolution = cluster_res[["GEX"]],
                                algorithm = 1, verbose = show_output)
-
     # cluster the WNN assay
-    graph_name <- ifelse(add_k, paste0("w_snn_", k_main), "w_snn")
     seurat_obj <- FindClusters(object = seurat_obj,
-                               graph.name = graph_name,
+                               graph.name = "w_snn",
                                resolution = cluster_res[["WNN"]],
                                algorithm = 1, verbose = show_output)
 
@@ -208,19 +177,16 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
   }
 
   # add a metadata column listing which assay was chosen for each cell
-  # only for the main k
-  weight_col <- ifelse(add_k, paste0("RNA.weight_", k_main), "RNA.weight")
   seurat_obj@meta.data <-
     seurat_obj[[]] %>%
     mutate(weight_assay =
-             case_when(seurat_obj[[]][[weight_col]] > 0.5 ~ "RNA",
-                       seurat_obj[[]][[weight_col]] < 0.5 ~ "BCR",
+             case_when(seurat_obj[[]][["RNA.weight"]] > 0.5 ~ "RNA",
+                       seurat_obj[[]][["RNA.weight"]] < 0.5 ~ "BCR",
                        .default = "Tie"))
 
   # add run info
   Misc(seurat_obj, slot = "embeddings_dims") <- nrow(seurat_obj@assays[["BCR"]])
   Misc(seurat_obj, slot = "embedding_type") <- embedding_type
-  Misc(seurat_obj, slot = "default_k") <- k_main
 
   return(seurat_obj)
 }

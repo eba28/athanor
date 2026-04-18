@@ -9,43 +9,48 @@ calc_adt_dists(
   base_assay,
   adt_assay = "ADT",
   layer = "data",
-  feature,
+  features_adt = NULL,
   k,
-  multiple_k = TRUE,
   distance_metric = "mean_abs",
   return_mean = TRUE,
   exclude_self = TRUE
 )
 }
 \arguments{
-\item{seurat_obj}{Seurat object that contains neighbor slots for different k's.}
+\item{seurat_obj}{Seurat object that contains neighbor slots.}
 
-\item{base_assay}{Which neighbor space to use (e.g. "RNA", "BCR", "w").}
+\item{base_assay}{Which neighbor space to use (e.g. "RNA", "BCR", "WNN").}
 
-\item{adt_assay}{ADT assay name (ADT, ADTnorm).}
+\item{adt_assay}{ADT assay name (e.g. "ADT", "ADTnorm").}
 
 \item{layer}{Data layer to pull from (data, counts, or scale.data).}
 
-\item{feature}{Optional vector of ADT features; if missing, use all features present.}
+\item{features_adt}{Optional vector of ADT features; if NULL, use all
+features present.}
 
 \item{k}{Number of nearest neighbors.}
 
-\item{multiple_k}{Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.}
+\item{distance_metric}{One of \code{c("mean_abs", "manhattan", "euclidean", "cosine")}.}
 
-\item{distance_metric}{One of \code{c(mean_abs, manhattan, euclidean, cosine)}.}
+\item{return_mean}{If TRUE, return the mean across all cells; else return
+per-cell values.}
 
-\item{return_mean}{If TRUE, return the mean across all cells; else return per-cell.}
-
-\item{exclude_self}{Drop the cell itself from neighbors if present.}
+\item{exclude_self}{Drop the cell itself from its neighbor list if present.}
 }
 \value{
-A single numeric value if \code{return_mean = TRUE}, or a named numeric vector of per-cell distances if \code{return_mean = FALSE}.
+A single numeric value if \code{return_mean = TRUE}, or a named numeric
+vector of per-cell distances if \code{return_mean = FALSE}.
 }
 \description{
-This function calculates the mean distance (or similarity) of each cell's ADT profile to its k nearest neighbors in a specified neighbor space (e.g. RNA, BCR, WNN) using a chosen distance metric (e.g. mean absolute difference, Manhattan distance, Euclidean distance, or cosine similarity).
+Calculates the mean distance of each cell's ADT profile to its k nearest
+neighbors in a specified neighbor space (e.g. RNA, BCR, WNN) using a chosen
+distance metric (mean absolute difference, Manhattan, Euclidean, or cosine
+similarity).
 }
 \details{
-Pearson correlation coefficient measures linear relationships.
-Euclidean distance measures the "straight-line" distance.
-Cosine similarity measures the cosine of the angle between two vectors, with values closer to 1 meaning that they are more similar.
+Euclidean distance measures straight-line distance between vectors.
+Manhattan distance sums absolute differences across features.
+Mean absolute difference is the per-feature mean of absolute differences.
+Cosine similarity measures the cosine of the angle between two vectors,
+with values closer to 1 indicating greater similarity.
 }

@@ -4,25 +4,36 @@
 \alias{calc_moran}
 \title{Calculate Moran's i for a Seurat object}
 \usage{
-calc_moran(seurat_obj, feature, graph_name, row_standardize = TRUE)
+calc_moran(
+  seurat_obj,
+  features_adt,
+  adt_assay = "ADT",
+  graph_name,
+  row_standardize = TRUE
+)
 }
 \arguments{
-\item{seurat_obj}{The Seurat object. Must have \code{FindNeighbors()} already run and an assay named "ADT".}
+\item{seurat_obj}{The Seurat object. Must have \code{FindNeighbors()} already
+run.}
 
-\item{feature}{Name of the ADT feature to evaluate (e.g. "CD27.1", "CD38").}
+\item{features_adt}{Name of the ADT feature to evaluate (e.g. "CD27.1").}
 
-\item{graph_name}{Name of the neighbor graph slot to use for the weights matrix (e.g. "RNA.nn", "BCR.nn", "w.nn").}
+\item{adt_assay}{Name of the assay containing ADT data.}
 
-\item{row_standardize}{Whether or not to row-standardize the weights matrix (i.e. make each row sum to 1).}
+\item{graph_name}{Name of the neighbor graph slot to use for the weights
+matrix (e.g. "RNA.nn", "BCR.nn", "w.nn").}
+
+\item{row_standardize}{Whether to row-standardize the weights matrix (i.e.
+make each row sum to 1).}
 }
 \value{
-A single numeric value representing the observed Moran's i index for the specified feature and neighbor graph.
+A single numeric value representing the observed Moran's i.
 }
 \description{
-This function calculates the global Moran's i index.
+Calculates the global Moran's i index for an ADT feature given a neighbor
+graph.
 }
 \details{
-We are using \code{MERINGUE}'s implementation instead of \code{ape}'s because it runs faster.
-However, \code{MERINGUE} is not on CRAN, which means this package could not be published on CRAN.
-Row standardization makes sure that the resulting score will always be between -1 and 1.
+Row standardization makes sure the resulting score will always be between
+-1 and 1.
 }

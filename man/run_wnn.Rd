@@ -11,7 +11,6 @@ run_wnn(
   pc_gex = 20,
   pc_bcr = 20,
   k_param = 20,
-  k_main = 20,
   cluster = FALSE,
   cluster_res = list(GEX = 1, BCR = 1, WNN = 1),
   modality_weights = NULL,
@@ -29,10 +28,6 @@ run_wnn(
 
 \item{pc_bcr}{The number of PCs for the BCR assay.}
 
-\item{k_param}{The number of neighbors to use for each modality. Can be a single value or a vector of values to test.}
-
-\item{k_main}{The main number of neighbors to use for the final WNN UMAP and clustering.}
-
 \item{cluster}{Whether or not to perform clustering.}
 
 \item{cluster_res}{Named list of clustering resolutions for GEX, BCR, and WNN.}
@@ -40,6 +35,8 @@ run_wnn(
 \item{modality_weights}{Named vector of modality weights. If NULL, Seurat will calculate automatically.}
 
 \item{show_output}{Whether or not to show verbose output from Seurat functions.}
+
+\item{k}{The number of neighbors to use for each modality.}
 }
 \value{
 A Seurat object with WNN run.

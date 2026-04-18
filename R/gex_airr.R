@@ -158,6 +158,7 @@ gex_add_airr <- function(seurat_obj, airr_type = "BCR",
                ifelse(mu_freq <= 0.01 & isotype %in% c("IgM", "IgD"),
                       "Naive B Cells", "Non-Naive B Cells"))
 
+    # TODO: print out that this wasn't added if applicable
     if ("annotated_clusters_simpler" %in% colnames(seurat_obj[[]])) {
              # assumes that the plasma cells don't need re-assigning
       seurat_obj@meta.data <-
@@ -187,7 +188,7 @@ gex_add_airr <- function(seurat_obj, airr_type = "BCR",
                 ncol(seurat_obj), count_unmatched, airr_type,
                 label_percent(accuracy = 0.1)(count_excluded), count_gex_airr))
 
-    # double check the columns that were added
+    # good way to double check the right columns that were added
     cat(paste0("The following new columns were added to the Seurat object's metadata: ",
                str_c(setdiff(colnames(seurat_obj[[]]), meta_cols_orig),
                      collapse = ", "), "."))

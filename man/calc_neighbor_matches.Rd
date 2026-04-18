@@ -33,20 +33,25 @@ calc_neighbor_matches(
 
 \item{adt_methods}{How to calculate the ADT metric(s).}
 
-\item{permute}{Shuffle labels for each meta column and ADT expression per feature before computing matches to get a random baseline.}
+\item{permute}{Shuffle labels for each meta column and ADT expression per
+feature before computing matches to get a random baseline.}
 
 \item{n_permutations}{The number of times to permute labels.}
 
-\item{previous_matches}{Data frame of previous matches to combine with the new results (optional).}
+\item{previous_matches}{Data frame of previous matches to combine with new
+results (optional).}
 
 \item{path_save}{Where to save the results.}
 }
 \value{
-Data frame with these columns: Full_Name, Category, Category_Details, Assay, Meta_Col, Method, Matches
+Data frame with columns: Full_Name, Category, Category_Details,
+Assay, Meta_Col, Method, Matches.
 }
 \description{
-This function calculates the proportion of neighbors that match each cell's metadata category for specified metadata columns and ADT features.
-It can also perform permutations to generate a random baseline for comparison. The results can be saved to a specified path.
+Calculates the proportion of neighbors that match each cell's metadata
+category for specified metadata columns and ADT features. Can also perform
+permutations to generate a random baseline. Results can be saved to a
+specified path.
 }
 \details{
 \code{cell_id}s are saved for subsetting later if desired.

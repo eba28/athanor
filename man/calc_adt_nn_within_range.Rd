@@ -2,15 +2,15 @@
 % Please edit documentation in R/evaluation.R
 \name{calc_adt_nn_within_range}
 \alias{calc_adt_nn_within_range}
-\title{Calculate the proportion of neighbors within an ADT marker's expression range}
+\title{Calculate the proportion of neighbors within an ADT marker's expression
+range}
 \usage{
 calc_adt_nn_within_range(
   seurat_obj,
   adt_assay = "ADT",
-  feature,
+  features_adt,
   base_assay,
   k = 20,
-  use_k = TRUE,
   range = 0.2,
   return_counts = FALSE
 )
@@ -21,33 +21,28 @@ graphs.}
 
 \item{adt_assay}{Name of the assay containing ADT data.}
 
-\item{feature}{Name of the ADT feature to evaluate (e.g. "CD27.1", "CD38").}
+\item{features_adt}{Name of the ADT feature to evaluate (e.g. "CD27.1").}
 
 \item{base_assay}{The assay used to compute neighbors. One of
 "RNA", "GEX", "BCR", or "WNN".}
 
-\item{k}{Number of nearest neighbors to evaluate. Must match the k
-used when computing the neighbor graph.}
+\item{k}{Number of nearest neighbors to evaluate. Must match the k used
+when computing the neighbor graph.}
 
-\item{use_k}{Whether to look for a neighbor slot specific to the provided k (e.g. "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former allows you to have multiple neighbor graphs with different k's, while the latter assumes you only have one neighbor graph per assay.}
+\item{range}{The relative threshold for considering neighbors similar. A
+value of 0.20 means neighbors within +/-20\% of the cell's expression are
+counted.}
 
-\item{range}{The relative threshold for considering neighbors
-similar. A value of 0.20 means neighbors within ±20\% of the cell's
-expression are counted.}
-
-\item{return_counts}{If TRUE, returns the count of neighbors within
-range. If FALSE, returns the proportion (count/k).}
+\item{return_counts}{If TRUE, returns the count of neighbors within range.
+If FALSE, returns the proportion (count/k).}
 }
 \value{
 A named numeric vector with one value per cell in the Seurat object.
-If \code{return_counts = TRUE}, returns the count of neighbors within
-range. If \code{return_counts = FALSE}, returns the proportion of
-neighbors within range (ranging from 0 to 1). Vector names are cell ids.
 }
 \description{
-For each cell in a Seurat object, this function calculates how many of its
-k nearest neighbors have ADT expression within a specified threshold (default
-20\%) of the cell's own ADT expression for a given feature.
+For each cell in a Seurat object, calculates how many of its k nearest
+neighbors have ADT expression within a specified threshold (default 20\%) of
+the cell's own ADT expression for a given feature.
 }
 \details{
 The range is symmetric around the cell's expression value. For example,
