@@ -24,27 +24,27 @@ sim_gex_splatter(
 
 - num_genes:
 
-  Number of genes to simulate. Defaults to 1000.
+  Number of genes to simulate.
 
 - num_cells:
 
-  Number of cells to simulate. Defaults to 2000.
+  Number of cells to simulate.
 
 - splatter_groups:
 
-  Group probabilities for Splatter simulation. Defaults to 1.
+  Group probabilities for Splatter simulation.
 
 - splatter_method:
 
-  Splatter simulation method. Defaults to "single".
+  Splatter simulation method.
 
 - seed:
 
-  Random seed for reproducible simulations. Defaults to 42.
+  Random seed for reproducible simulations.
 
 - verbose:
 
-  Whether or not to print verbose output. Defaults to FALSE.
+  Whether or not to print verbose output.
 
 ## Value
 

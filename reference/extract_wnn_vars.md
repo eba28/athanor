@@ -33,7 +33,7 @@ extract_wnn_vars(
 
 - other_type:
 
-  The second assay. Defaults to "BCR".
+  The second assay.
 
 ## Value
 

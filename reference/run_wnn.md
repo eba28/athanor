@@ -33,7 +33,7 @@ run_wnn(
 
 - embeddings:
 
-  Matrix of BCR embeddings (genes x cells).
+  Matrix of BCR embeddings (genes by cells).
 
 - embedding_type:
 

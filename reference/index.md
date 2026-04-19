@@ -86,19 +86,19 @@ Functions for evaluating the performance of models and analyses.
 
 ### ADT-based on kNN
 
+- [`calc_adt_correlation()`](https://eba28.github.io/athanor/reference/calc_adt_correlation.md)
+  : Calculate the correlation between each cell's expression and the
+  mean of its neighbors' expression
 - [`calc_adt_dists()`](https://eba28.github.io/athanor/reference/calc_adt_dists.md)
   : Compute mean ADT distance to each cell's k nearest neighbors
+- [`calc_adt_moran()`](https://eba28.github.io/athanor/reference/calc_adt_moran.md)
+  : Calculate Moran's i for a Seurat object
 - [`calc_adt_nn_within_range()`](https://eba28.github.io/athanor/reference/calc_adt_nn_within_range.md)
   : Calculate the proportion of neighbors within an ADT marker's
   expression range
 - [`calc_adt_quantile()`](https://eba28.github.io/athanor/reference/calc_adt_quantile.md)
   : Calculate the proportion of neighbors within an ADT marker's
   quantile by expression
-- [`calc_correlation()`](https://eba28.github.io/athanor/reference/calc_correlation.md)
-  : Calculate the correlation between each cell's expression and the
-  mean of its neighbors' expression
-- [`calc_moran()`](https://eba28.github.io/athanor/reference/calc_moran.md)
-  : Calculate Moran's i for a Seurat object
 - [`calc_neighbor_matches()`](https://eba28.github.io/athanor/reference/calc_neighbor_matches.md)
   : Calculate neighbor matching scores across metadata columns
 
@@ -168,13 +168,6 @@ Functions for visualizing data and results.
 - [`plot_wnn_umaps()`](https://eba28.github.io/athanor/reference/plot_wnn_umaps.md)
   : Plot UMAPs of a Seurat object post-WNN
 
-## Utilities
-
-Utility functions for various tasks.
-
-- [`reduce_object()`](https://eba28.github.io/athanor/reference/reduce_object.md)
-  : Reduce a Seurat object's size
-
 ## Simulations
 
 Simulate GEX and AIRR data.
@@ -189,3 +182,10 @@ Simulate GEX and AIRR data.
   : Manually simulate gene expression data
 - [`sim_gex_splatter()`](https://eba28.github.io/athanor/reference/sim_gex_splatter.md)
   : Simulate gene expression data using Splatter
+
+## Utilities
+
+Utility functions for various tasks.
+
+- [`reduce_object()`](https://eba28.github.io/athanor/reference/reduce_object.md)
+  : Reduce a Seurat object's size
