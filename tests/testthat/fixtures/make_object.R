@@ -82,9 +82,12 @@ seurat_obj2 <- RunPCA(seurat_obj2, npcs = 5, verbose = FALSE)
 ## Warning in svd.function(A = t(x = object), nv = npcs, ...) :
 ##   You're computing too large a percentage of total singular values, use a standard svd instead.
 seurat_obj2 <- FindNeighbors(seurat_obj2, reduction = "pca", dims = 1:5,
-                             k = 5, verbose = FALSE)
+                             k.param = 5,
+                             graph.name = str_c("RNA_", c("", "s"), "nn"),
+                             verbose = FALSE)
 seurat_obj2 <- FindNeighbors(seurat_obj2, reduction = "pca", dims = 1:5,
-                             k = 5, return.neighbor = TRUE, verbose = FALSE)
+                             k.param = 5, return.neighbor = TRUE,
+                             graph.name = "RNA.nn", verbose = FALSE)
 
 seurat_obj2@neighbors$RNA.nn@nn.idx
 ## [,1] [,2] [,3] [,4] [,5]

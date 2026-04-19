@@ -128,7 +128,7 @@ map_assay_name <- function(base_assay) {
 #'
 #' @returns A reduced Seurat object with specified reductions kept.
 #' @export
-reduce_object <- function(seurat_obj, dim_reducs = "umap", meta_cols,
+reduce_object <- function(seurat_obj, dim_reducs = "rna.umap", meta_cols,
                           remove_neighbors = TRUE, print_size = TRUE, ...) {
   cat(paste("Currently reducing:", deparse(substitute(seurat_obj)), "\n"))
 

@@ -62,75 +62,35 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
   seurat_obj@graphs <- list() # RNA.nn, RNA.snn
   seurat_obj@reductions <- list() # pca, umap
 
-  # create and format the BCR assay
-  bcr_assay <- CreateAssayObject(counts = embeddings) # CreateAssay5Object
-  # subset down to cells present in both assays
-  bcr_assay <- subset(bcr_assay, cells = seurat_obj$cell_id)
+  # build BCR object (subset to cells present in the GEX object)
+  bcr_obj <- bcr_embeddings_pipeline(
+    embeddings[, intersect(colnames(embeddings), seurat_obj$cell_id)],
+    embedding_type = embedding_type,
+    num_pcs = pc_bcr, num_dims = pc_bcr, k_param = k_param)
 
-  # add BCR data as a new assay to the GEX object
-  suppressWarnings(seurat_obj[["BCR"]] <- bcr_assay)
-  # this will add nCount_BCR and nFeature_BCR to the metadata
-
-  # change the order of the metadata just for consistency
+  # add BCR assay (brings nCount_BCR and nFeature_BCR into metadata)
+  suppressWarnings(seurat_obj[["BCR"]] <- bcr_obj[["BCR"]])
   seurat_obj@meta.data <-
     seurat_obj[[]] %>%
     relocate(nCount_BCR, nFeature_BCR, .after = nFeature_ADT)
 
-  # make sure that the number of cells match
   if (ncol(seurat_obj@assays$RNA) != ncol(seurat_obj@assays$BCR)) {
     stop("The number of cells in the RNA and BCR assays do not match.")
   }
 
-  # BCR processing
-  DefaultAssay(seurat_obj) <- "BCR"
-  VariableFeatures(seurat_obj) <- rownames(seurat_obj[["BCR"]])
-  # seurat_obj <- NormalizeData(object = seurat_obj, verbose = show_output)
-  # TODO: check how this runs without a data slot (since the embeddings are in the counts slot)
-  seurat_obj <- ScaleData(object = seurat_obj, verbose = show_output)
-  seurat_obj <- RunPCA(object = seurat_obj,
-                       npcs = pc_bcr, reduction.name = "bpca",
-                       reduction.key = "bpca_", verbose = show_output)
-  # fill the neighbors slot
-  seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "bpca",
-                              assay = "BCR", k.param = k_param,
-                              return.neighbor = TRUE, verbose = show_output,
-                              graph.name = "BCR.nn")
-  # fill the graphs slot
-  seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "bpca",
-                              dims = 1:pc_bcr, k.param = k_param,
-                              compute.SNN = TRUE, verbose = show_output,
-                              graph.name = str_c("BCR_", c("", "s"), "nn"))
-  seurat_obj <- RunUMAP(object = seurat_obj, # dims = 1:pc_bcr,
-                        reduction = "bpca",
-                        n.neighbors = k_param, nn.name = "BCR.nn",
-                        reduction.name = "bcr.umap", reduction.key = "bcrUMAP_",
-                        verbose = show_output)
+  # transfer reductions and graphs
+  seurat_obj[["bpca"]] <- bcr_obj[["bpca"]]
+  seurat_obj[["bcr.umap"]] <- bcr_obj[["bcr.umap"]]
+  seurat_obj@neighbors[["BCR.nn"]] <- bcr_obj@neighbors[["BCR.nn"]]
+  seurat_obj@graphs[["BCR_nn"]] <- bcr_obj@graphs[["BCR_nn"]]
+  seurat_obj@graphs[["BCR_snn"]] <- bcr_obj@graphs[["BCR_snn"]]
 
-  # RNA processing (a lot of this was already done)
-  # TODO: use seurat_pipeline()
+  # RNA processing
   # TODO: filter out genes
   DefaultAssay(seurat_obj) <- "RNA"
-  seurat_obj <- NormalizeData(object = seurat_obj, verbose = show_output)
-  seurat_obj <- FindVariableFeatures(object = seurat_obj, verbose = show_output)
-  seurat_obj <- ScaleData(object = seurat_obj, verbose = show_output)
-  seurat_obj <- RunPCA(object = seurat_obj,
-                       npcs = pc_gex, reduction.name = "rpca",
-                       reduction.key = "rpca_", verbose = show_output)
-  # fill the neighbors slot
-  seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "rpca",
-                              assay = "RNA", k.param = k_param,
-                              return.neighbor = TRUE, verbose = show_output,
-                              graph.name = "RNA.nn")
-  # fill the graphs slot
-  seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "rpca",
-                              dims = 1:pc_gex, k.param = k_param,
-                              compute.SNN = TRUE, verbose = show_output,
-                              graph.name = str_c("RNA_", c("", "s"), "nn"))
-  seurat_obj <- RunUMAP(object = seurat_obj, # dims = 1:pc_gex,
-                        reduction = "rpca",
-                        n.neighbors = k_param, nn.name = "RNA.nn",
-                        reduction.name = "rna.umap", reduction.key = "rnaUMAP_",
-                        verbose = show_output)
+  seurat_obj <- seurat_pipeline(seurat_obj, run_qc = FALSE,
+                                num_pcs = pc_gex, num_dims = pc_gex,
+                                k_param = k_param, verbose = show_output)
 
   # find multimodal neighbors, then do clustering and make a UMAP
   seurat_obj <-

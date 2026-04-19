@@ -39,3 +39,4 @@ library(athanor)
 
 - `automated_annotation()` used to support Azimuth, but Azimuth is not currently available on CRAN and causes installation issues due to a hidden requirement of a Signac function that is no longer a part of Signac (`RunChromVAR()`)
 - The functions were designed to operate on v5 of Seurat. If you are using an older version, you may have to change `layer` to `slot` in some of the code.
+- Since the focus is on having multiple modalities, the GEX object created by `seurat_pipeline()` will have "rpca" and "rna.umap" as reductions instead of the usual "pca" and "umap" respectively.

@@ -16,6 +16,7 @@ reference:
   - add_annotations
   - automated_annotation
   - cell_type_clusters
+  - filter_variable_features
   - find_k_clusters
   - get_airr_genes
   - seurat_pipeline

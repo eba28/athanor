@@ -96,20 +96,11 @@ concatenate_gex_bcr <- function(seurat_obj, pca_stage = "Before",
     # so I'd have to rerun FindVariableFeatures on the RNA alone
 
     # filter out the IG and/or TR genes
+    # TODO: check the object for the species, ensembl version
     if (!rlang::is_missing(filter_genes)) {
-      # TODO: check the object for the species, ensembl version
-      airr_genes <- get_airr_genes(category = filter_genes,
-                                   ensembl_version = ensembl_version)
-
-      remove_feats <- VariableFeatures(seurat_obj) %in% airr_genes$remove_genes
-      VariableFeatures(seurat_obj) <- VariableFeatures(seurat_obj)[!remove_feats]
-
-      cat(paste0("After removing ", str_c(filter_genes, collapse = "/"),
-                 " genes, the total number of variable features is: ",
-                 length(VariableFeatures(seurat_obj)), ". Of these, ",
-                 length(setdiff(VariableFeatures(seurat_obj),
-                                str_replace_all(rownames(bcr_features), "_", "-"))),
-                 " are in GEX alone.\n"))
+      seurat_obj <- filter_variable_features(seurat_obj, filter_genes,
+                                             ensembl_version = ensembl_version,
+                                             bcr_features = bcr_features)
     }
 
     # process with the standard Seurat pipeline

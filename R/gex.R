@@ -131,6 +131,47 @@ cell_type_clusters <- function(seurat_obj, clusters_col = "seurat_clusters",
 }
 
 
+#' Filter AIRR genes from variable features
+#'
+#' @description
+#' Removes IG and/or TR genes from a Seurat object's variable features list.
+#' Optionally reports how many remaining features are GEX-only when BCR features are present.
+#'
+#' @param seurat_obj A Seurat object.
+#' @param filter_genes Category of genes to remove (e.g. "IG" and/or "TR").
+#' @param ensembl_version Ensembl version for gene annotations (e.g. "v114").
+#'   If NULL, uses the default in `get_airr_genes()`.
+#' @param bcr_features Optional matrix of BCR features (rows = features). If provided, the log message also reports the number of GEX-only features.
+#'
+#' @returns The Seurat object with filtered variable features and Ensembl version saved to `Misc(seurat_obj, "ensembl_version")`.
+#' @export
+filter_variable_features <- function(seurat_obj, filter_genes,
+                                     ensembl_version = NULL,
+                                     bcr_features = NULL) {
+   airr_genes <- get_airr_genes(category = filter_genes,
+                                ensembl_version = ensembl_version)
+
+   remove_feats <- VariableFeatures(seurat_obj) %in% airr_genes$remove_genes
+   VariableFeatures(seurat_obj) <- VariableFeatures(seurat_obj)[!remove_feats]
+   Misc(seurat_obj, slot = "ensembl_version") <- airr_genes$ensembl_version
+
+   n_remaining <- length(VariableFeatures(seurat_obj))
+   if (!is.null(bcr_features)) {
+      n_gex <- length(setdiff(VariableFeatures(seurat_obj),
+                              str_replace_all(rownames(bcr_features), "_", "-")))
+      cat(paste0("After removing ", str_c(filter_genes, collapse = "/"),
+                 " genes: ", n_remaining, " variable features (",
+                 n_gex, " GEX-only).\n"))
+   } else {
+      cat(paste("After removing", str_c(filter_genes, collapse = "/"),
+                "genes, the total number of variable features is:",
+                n_remaining, "\n"))
+   }
+
+   seurat_obj
+}
+
+
 #' Find the right clustering resolution to obtain the desired number of clusters
 #'
 #' @description
@@ -183,6 +224,8 @@ find_k_clusters <- function(seurat_obj, graph_name = "RNA_snn", desired_k) {
 #' @export
 get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
                            category = c("IG", "TR")) {
+   # TODO: have the ability to use a local file, especially if Ensembl's website is down
+
    # if the Ensembl version isn't specified, use the current version
    if (is.null(ensembl_version)) {
       ensembl_version <-
@@ -244,8 +287,9 @@ get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
 #' Run Seurat's standard pipeline
 #'
 #' @description
-#' This function takes a Seurat object containing combined GEX data and runs the standard Seurat pipeline for normalization, scaling, dimensionality reduction, clustering, and UMAP visualization.
-#' It includes optional filtering of IG/TR genes and allows for customization of various parameters such as the number of variable features, principal components, and clustering resolution.
+#' Runs the standard Seurat pipeline (normalize, scale, PCA, neighbors, UMAP) on a
+#' Seurat object. Optionally filters cells by QC metrics first, filters IG/TR genes
+#' from variable features, and clusters.
 #'
 #' @details
 #' It is highly recommended to save the resulting object as an RDS or qs file.
@@ -253,32 +297,36 @@ get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
 #' Unlike previous analyses, `features = rownames(obj)` was removed from the `ScaleData` step since the data is too large and only the top variable features are needed to do `RunPCA`.
 #'
 #' @param seurat_obj The Seurat object containing combined GEX data.
-#' @param nfeatures_RNA Minimum number of RNA features.
-#' @param perc_mt Maximum percentage of mitochondrial genes to retain.
+#' @param nfeatures_RNA Minimum number of RNA features. If omitted, cell filtering is skipped.
+#' @param perc_mt Maximum percentage of mitochondrial genes to retain. If omitted, cell filtering is skipped.
 #' @param num_features Desired number of variable features.
 #' @param num_pcs Number of principal components to compute.
-#' @param num_dims Number of dimensions to use for neighbor finding and UMAP.
-#' @param cluster_res Clustering resolution parameter.
-#' @param filter_genes If specified, filter out genes from this category (e.g. "IG" and/or "TR")
-#' @param ensembl_version If filtering genes, specify the Ensembl version to use for gene annotations (e.g. "GRCh38.104"). If NULL, uses the default version in `get_airr_genes()`.
+#' @param num_dims Number of PCA dimensions to use for neighbor finding.
+#' @param k_param Number of nearest neighbors.
+#' @param cluster_res Clustering resolution(s). If NULL, clustering is skipped.
+#' @param filter_genes If specified, filter out genes from this category (e.g. "IG" and/or "TR").
+#' @param ensembl_version Ensembl version for gene annotations (e.g. "GRCh38.104"). If NULL, uses the default in `get_airr_genes()`.
 #' @param verbose Print out Seurat's progress messages.
 #'
-#' @returns A processed Seurat object with normalization, scaling, PCA, clustering, and UMAP.
+#' @returns A processed Seurat object with PCA (`rpca`), neighbor graphs (`RNA_nn`,
+#'   `RNA_snn`, `RNA.nn`), optional clusters, and UMAP (`rna.umap`).
 #' @export
-seurat_pipeline <- function(seurat_obj, nfeatures_RNA = 200, perc_mt = 15,
-                            num_features = 2000, num_pcs = 30, num_dims = 20,
-                            cluster_res = 0.4, filter_genes,
-                            ensembl_version = NULL, verbose = TRUE) {
-   # filtration
-   if ("percent.mt" %in% names(seurat_obj[[]])) {
-      seurat_obj <-
-         subset(seurat_obj,
-                subset = nFeature_RNA > nfeatures_RNA & percent.mt < perc_mt)
-   } else {
-      warning("No filtration was performed upon this object.")
+seurat_pipeline <- function(seurat_obj,
+                            nfeatures_RNA, perc_mt,
+                            num_features = 2000, num_pcs = 50, num_dims = 30, k_param = 20,
+                            cluster_res = NULL,
+                            filter_genes, ensembl_version = NULL, verbose = TRUE) {
+   # TODO: keep the default values for nfeatures_RNA (200) and perc_mt (15), but allow the user to override them if they want to do filtering
+   if (!rlang::is_missing(nfeatures_RNA) && !rlang::is_missing(perc_mt)) {
+      if ("percent.mt" %in% names(seurat_obj[[]])) {
+         seurat_obj <- subset(seurat_obj,
+                              subset = nFeature_RNA > nfeatures_RNA & percent.mt < perc_mt)
+      } else {
+         warning("No filtration was performed upon this object.")
+      }
    }
 
-   # standard normalization
+   # normalization
    seurat_obj <- NormalizeData(seurat_obj,
                                normalization.method = "LogNormalize",
                                scale.factor = 10000, verbose = verbose)
@@ -291,48 +339,34 @@ seurat_pipeline <- function(seurat_obj, nfeatures_RNA = 200, perc_mt = 15,
 
    # highly variable features
    seurat_obj <- FindVariableFeatures(seurat_obj, selection.method = "vst",
-                                      nfeatures = num_features,
-                                      verbose = verbose)
+                                      nfeatures = num_features, verbose = verbose)
 
-   # scaling
    # note: `features = rownames(seurat_obj)` can cause crashes
    seurat_obj <- ScaleData(seurat_obj, verbose = verbose)
 
-   # filter out the IG and/or TR genes
-   # TODO: move this to a separate function?? but no, that would mess up PCA
+   # TODO: check the object for the species
    if (!rlang::is_missing(filter_genes)) {
-      # TODO: check the object for the species
-      airr_genes <- get_airr_genes(category = filter_genes,
-                                   ensembl_version = ensembl_version)
-
-      remove_feats <- VariableFeatures(seurat_obj) %in% airr_genes$remove_genes
-      VariableFeatures(seurat_obj) <- VariableFeatures(seurat_obj)[!remove_feats]
-
-      # TODO: specify how many IG vs. TR genes were removed
-      cat(paste("After removing", str_c(filter_genes, collapse = "/"),
-                "genes, the total number of variable features is:",
-                length(VariableFeatures(seurat_obj)), "\n"))
-
-      # TODO: pull from get_airr_genes, list latest if NULL
-      # save the Ensembl version
-      Misc(seurat_obj, slot = "ensembl_version") <- airr_genes$ensembl_version
+      seurat_obj <- filter_variable_features(seurat_obj, filter_genes,
+                                             ensembl_version = ensembl_version)
    }
 
-   # TODO: call this rpca instead
-   # dimensionality reduction
-   seurat_obj <- RunPCA(seurat_obj, npcs = num_pcs, verbose = verbose)
+   seurat_obj <- RunPCA(seurat_obj, npcs = num_pcs, verbose = verbose,
+                        reduction.name = "rpca", reduction.key = "rpca_")
 
-   # neighbor detection
-   seurat_obj <- FindNeighbors(seurat_obj, reduction = "pca", dims = 1:num_dims,
+   # SNN graph for clustering + neighbor object for evaluation
+   seurat_obj <- FindNeighbors(seurat_obj, reduction = "rpca", dims = 1:num_dims,
+                               k.param = k_param,
+                               graph.name = str_c("RNA_", c("", "s"), "nn"),
                                verbose = verbose)
-   # TODO: save the neighbors graph too
+   seurat_obj <- FindNeighbors(seurat_obj, reduction = "rpca", dims = 1:num_dims,
+                               k.param = k_param, return.neighbor = TRUE,
+                               graph.name = "RNA.nn", verbose = verbose)
 
-   # might not always want to perform clustering, so make it optional
-   if (!rlang::is_missing(cluster_res)) {
+   if (!is.null(cluster_res)) {
       seurat_obj <- FindClusters(seurat_obj, resolution = cluster_res,
                                  verbose = verbose)
 
-      # fix the cluster levels (for some reason they sort alphabetically now)
+      # fix the cluster levels (they sort alphabetically by default)
       for (res in cluster_res) {
          res <- paste0("RNA_snn_res.", res)
          seurat_obj[[res]] <-
@@ -341,10 +375,10 @@ seurat_pipeline <- function(seurat_obj, nfeatures_RNA = 200, perc_mt = 15,
       }
    }
 
-   # TODO: call this rna.umap instead
-   # for visualization
-   seurat_obj <- RunUMAP(seurat_obj, reduction = "pca", dims = 1:num_dims,
+   seurat_obj <- RunUMAP(seurat_obj, reduction = "rpca",
+                         n.neighbors = k_param, nn.name = "RNA.nn",
+                         reduction.name = "rna.umap", reduction.key = "rnaUMAP_",
                          verbose = verbose)
 
-   return(seurat_obj)
+   seurat_obj
 }

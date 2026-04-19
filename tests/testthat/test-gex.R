@@ -220,36 +220,72 @@ test_that("seurat_pipeline runs end to end on the Seurat fixture", {
   )
 
   expect_s4_class(processed_obj, "Seurat")
-  expect_true("umap" %in% names(processed_obj@reductions))
+  expect_true("rpca" %in% names(processed_obj@reductions))
+  expect_true("rna.umap" %in% names(processed_obj@reductions))
+  expect_true("RNA.nn" %in% names(processed_obj@neighbors))
   expect_true("RNA_snn_res.0.4" %in% colnames(processed_obj[[]]))
 })
 
+test_that("seurat_pipeline skips cell filtering when nfeatures_RNA and perc_mt are omitted", {
+  seurat_obj <- load_manual_object()
+  n_before <- ncol(seurat_obj)
+
+  processed_obj <- seurat_pipeline(seurat_obj, num_features = 100,
+                                   num_pcs = 10, num_dims = 10, verbose = FALSE)
+
+  expect_equal(ncol(processed_obj), n_before)
+})
 
 test_that("seurat_pipeline processes object and filters genes", {
-  library(Seurat)
-
-  # Create a tiny mock Seurat object
   counts <- matrix(rpois(1000, 5), ncol = 10)
   rownames(counts) <- paste0("GENE-", 1:100)
   colnames(counts) <- paste0("CELL-", 1:10)
   obj <- CreateSeuratObject(counts = counts)
-  obj[["percent.mt"]] <- colMeans(counts[1:5, ]) # Fake MT %
 
-  # Mock get_airr_genes so it doesn't hit the web
   stub(seurat_pipeline, "get_airr_genes",
        list(ensembl_version = "114", remove_genes = c("GENE-1", "GENE-2")))
 
-  # Run pipeline
-  processed_obj <- seurat_pipeline(obj,
-                                   num_features = 20,
-                                   num_pcs = 5,
-                                   num_dims = 5,
-                                   filter_genes = "IG",
+  processed_obj <- seurat_pipeline(obj, num_features = 20, num_pcs = 5,
+                                   num_dims = 5, filter_genes = "IG",
                                    verbose = FALSE)
 
   expect_s4_class(processed_obj, "Seurat")
-  expect_true("pca" %in% names(processed_obj@reductions))
-  expect_true("umap" %in% names(processed_obj@reductions))
-  # Ensure the filtered genes are NOT in VariableFeatures
+  expect_true("rpca" %in% names(processed_obj@reductions))
+  expect_true("rna.umap" %in% names(processed_obj@reductions))
   expect_false(any(c("GENE-1", "GENE-2") %in% VariableFeatures(processed_obj)))
+})
+
+
+# filter_variable_features ####
+test_that("filter_variable_features removes genes and saves Ensembl version", {
+  seurat_obj <- load_manual_object()
+  ig_gene <- "IGHV1-1"
+  VariableFeatures(seurat_obj) <- c(VariableFeatures(seurat_obj)[1:50], ig_gene)
+
+  stub(filter_variable_features, "get_airr_genes",
+       list(ensembl_version = "114", remove_genes = ig_gene))
+
+  result <- filter_variable_features(seurat_obj, filter_genes = "IG")
+
+  expect_false(ig_gene %in% VariableFeatures(result))
+  expect_equal(Misc(result, slot = "ensembl_version"), "114")
+})
+
+test_that("filter_variable_features reports GEX-only count when bcr_features provided", {
+  seurat_obj <- load_manual_object()
+  ig_gene <- "IGHV1-1"
+  VariableFeatures(seurat_obj) <- c(VariableFeatures(seurat_obj)[1:10], ig_gene)
+
+  bcr_features <- matrix(0, nrow = 3, ncol = ncol(seurat_obj),
+                         dimnames = list(c("bcr-dim-1", "bcr-dim-2", "bcr-dim-3"),
+                                         Cells(seurat_obj)))
+
+  stub(filter_variable_features, "get_airr_genes",
+       list(ensembl_version = "114", remove_genes = ig_gene))
+
+  expect_output(
+    filter_variable_features(seurat_obj, filter_genes = "IG",
+                             bcr_features = bcr_features),
+    "GEX-only"
+  )
 })

@@ -6,12 +6,13 @@
 \usage{
 seurat_pipeline(
   seurat_obj,
-  nfeatures_RNA = 200,
-  perc_mt = 15,
+  nfeatures_RNA,
+  perc_mt,
   num_features = 2000,
-  num_pcs = 30,
-  num_dims = 20,
-  cluster_res = 0.4,
+  num_pcs = 50,
+  num_dims = 30,
+  k_param = 20,
+  cluster_res = NULL,
   filter_genes,
   ensembl_version = NULL,
   verbose = TRUE
@@ -20,30 +21,34 @@ seurat_pipeline(
 \arguments{
 \item{seurat_obj}{The Seurat object containing combined GEX data.}
 
-\item{nfeatures_RNA}{Minimum number of RNA features.}
+\item{nfeatures_RNA}{Minimum number of RNA features. If omitted, cell filtering is skipped.}
 
-\item{perc_mt}{Maximum percentage of mitochondrial genes to retain.}
+\item{perc_mt}{Maximum percentage of mitochondrial genes to retain. If omitted, cell filtering is skipped.}
 
 \item{num_features}{Desired number of variable features.}
 
 \item{num_pcs}{Number of principal components to compute.}
 
-\item{num_dims}{Number of dimensions to use for neighbor finding and UMAP.}
+\item{num_dims}{Number of PCA dimensions to use for neighbor finding.}
 
-\item{cluster_res}{Clustering resolution parameter.}
+\item{k_param}{Number of nearest neighbors.}
 
-\item{filter_genes}{If specified, filter out genes from this category (e.g. "IG" and/or "TR")}
+\item{cluster_res}{Clustering resolution(s). If NULL, clustering is skipped.}
 
-\item{ensembl_version}{If filtering genes, specify the Ensembl version to use for gene annotations (e.g. "GRCh38.104"). If NULL, uses the default version in \code{get_airr_genes()}.}
+\item{filter_genes}{If specified, filter out genes from this category (e.g. "IG" and/or "TR").}
+
+\item{ensembl_version}{Ensembl version for gene annotations (e.g. "GRCh38.104"). If NULL, uses the default in \code{get_airr_genes()}.}
 
 \item{verbose}{Print out Seurat's progress messages.}
 }
 \value{
-A processed Seurat object with normalization, scaling, PCA, clustering, and UMAP.
+A processed Seurat object with PCA (\code{rpca}), neighbor graphs (\code{RNA_nn},
+\code{RNA_snn}, \code{RNA.nn}), optional clusters, and UMAP (\code{rna.umap}).
 }
 \description{
-This function takes a Seurat object containing combined GEX data and runs the standard Seurat pipeline for normalization, scaling, dimensionality reduction, clustering, and UMAP visualization.
-It includes optional filtering of IG/TR genes and allows for customization of various parameters such as the number of variable features, principal components, and clustering resolution.
+Runs the standard Seurat pipeline (normalize, scale, PCA, neighbors, UMAP) on a
+Seurat object. Optionally filters cells by QC metrics first, filters IG/TR genes
+from variable features, and clusters.
 }
 \details{
 It is highly recommended to save the resulting object as an RDS or qs file.
