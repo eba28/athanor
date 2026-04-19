@@ -19,6 +19,8 @@ Functions for processing and analyzing gene expression data.
   : Run automated cell type annotation
 - [`cell_type_clusters()`](https://eba28.github.io/athanor/reference/cell_type_clusters.md)
   : Map cell types to Seurat clusters
+- [`filter_variable_features()`](https://eba28.github.io/athanor/reference/filter_variable_features.md)
+  : Filter AIRR genes from variable features
 - [`find_k_clusters()`](https://eba28.github.io/athanor/reference/find_k_clusters.md)
   : Find the right clustering resolution to obtain the desired number of
   clusters
@@ -38,6 +40,8 @@ Functions for processing and analyzing adaptive immune receptor data.
 
 ### BCR embeddings
 
+- [`bcr_embeddings_pipeline()`](https://eba28.github.io/athanor/reference/bcr_embeddings_pipeline.md)
+  : Build a Seurat object from BCR embeddings
 - [`convert_embeddings()`](https://eba28.github.io/athanor/reference/convert_embeddings.md)
   : Convert the output of an embedding method to a matrix
 

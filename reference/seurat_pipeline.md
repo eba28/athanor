@@ -1,23 +1,21 @@
 # Run Seurat's standard pipeline
 
-This function takes a Seurat object containing combined GEX data and
-runs the standard Seurat pipeline for normalization, scaling,
-dimensionality reduction, clustering, and UMAP visualization. It
-includes optional filtering of IG/TR genes and allows for customization
-of various parameters such as the number of variable features, principal
-components, and clustering resolution.
+Runs the standard Seurat pipeline (normalize, scale, PCA, neighbors,
+UMAP) on a Seurat object. Optionally filters cells by QC metrics first,
+filters IG/TR genes from variable features, and clusters.
 
 ## Usage
 
 ``` r
 seurat_pipeline(
   seurat_obj,
-  nfeatures_RNA = 200,
-  perc_mt = 15,
+  nfeatures_RNA,
+  perc_mt,
   num_features = 2000,
-  num_pcs = 30,
-  num_dims = 20,
-  cluster_res = 0.4,
+  num_pcs = 50,
+  num_dims = 30,
+  k_param = 20,
+  cluster_res = NULL,
   filter_genes,
   ensembl_version = NULL,
   verbose = TRUE
@@ -32,11 +30,12 @@ seurat_pipeline(
 
 - nfeatures_RNA:
 
-  Minimum number of RNA features.
+  Minimum number of RNA features. If omitted, cell filtering is skipped.
 
 - perc_mt:
 
-  Maximum percentage of mitochondrial genes to retain.
+  Maximum percentage of mitochondrial genes to retain. If omitted, cell
+  filtering is skipped.
 
 - num_features:
 
@@ -48,21 +47,25 @@ seurat_pipeline(
 
 - num_dims:
 
-  Number of dimensions to use for neighbor finding and UMAP.
+  Number of PCA dimensions to use for neighbor finding.
+
+- k_param:
+
+  Number of nearest neighbors.
 
 - cluster_res:
 
-  Clustering resolution parameter.
+  Clustering resolution(s). If NULL, clustering is skipped.
 
 - filter_genes:
 
   If specified, filter out genes from this category (e.g. "IG" and/or
-  "TR")
+  "TR").
 
 - ensembl_version:
 
-  If filtering genes, specify the Ensembl version to use for gene
-  annotations (e.g. "GRCh38.104"). If NULL, uses the default version in
+  Ensembl version for gene annotations (e.g. "GRCh38.104"). If NULL,
+  uses the default in
   [`get_airr_genes()`](https://eba28.github.io/athanor/reference/get_airr_genes.md).
 
 - verbose:
@@ -71,8 +74,8 @@ seurat_pipeline(
 
 ## Value
 
-A processed Seurat object with normalization, scaling, PCA, clustering,
-and UMAP.
+A processed Seurat object with PCA (`rpca`), neighbor graphs (`RNA_nn`,
+`RNA_snn`, `RNA.nn`), optional clusters, and UMAP (`rna.umap`).
 
 ## Details
 

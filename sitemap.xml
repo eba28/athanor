@@ -9,6 +9,7 @@
 <url><loc>https://eba28.github.io/athanor/reference/adt_dists_core.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/athanor-package.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/automated_annotation.html</loc></url>
+<url><loc>https://eba28.github.io/athanor/reference/bcr_embeddings_pipeline.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/bin_mu_freq.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/calc_adt_correlation.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/calc_adt_dists.html</loc></url>
@@ -25,6 +26,7 @@
 <url><loc>https://eba28.github.io/athanor/reference/convert_embeddings.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/extract_wnn_vars.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/factor_family_info.html</loc></url>
+<url><loc>https://eba28.github.io/athanor/reference/filter_variable_features.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/find_k_clusters.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/get_adt_matrix.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/get_airr_genes.html</loc></url>
