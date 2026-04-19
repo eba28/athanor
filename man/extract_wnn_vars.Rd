@@ -18,7 +18,7 @@ extract_wnn_vars(
 
 \item{other_pca}{The name of the BCR/ADT/etc. PCA reduction.}
 
-\item{other_type}{The second assay. Defaults to "BCR".}
+\item{other_type}{The second assay.}
 }
 \value{
 A text message.

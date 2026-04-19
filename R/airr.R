@@ -179,7 +179,7 @@ convert_embeddings <- function(embeddings, combined_airr, combined_airr_input) {
   dims <- ncol(embeddings)
   dim_cols <- paste0("Dim", seq_len(dims)) # don't start at 0
 
-  # convert to a sparse matrix and match the regular format (features x cells)
+  # convert to a sparse matrix and match the regular format (features by cells)
   embeddings_mat <- as.matrix(embeddings)
   rownames(embeddings_mat) <- cell_ids
   colnames(embeddings_mat) <- dim_cols

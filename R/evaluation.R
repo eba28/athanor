@@ -1,84 +1,56 @@
-# private helper functions ####
-
-# map user-facing assay names to internal neighbor slot prefixes
-.map_assay_name <- function(base_assay) {
-  switch(base_assay, GEX = "RNA", WNN = "w", base_assay)
-}
-
-# resolve nn.idx from a Seurat object given assay
-.resolve_neighbors <- function(seurat_obj, base_assay) {
-  prefix <- .map_assay_name(base_assay)
-  nn_name <- paste0(prefix, ".nn")
-
-  if (!nn_name %in% names(seurat_obj@neighbors)) {
-    stop("Neighbors slot '", nn_name, "' not found in object. Available: ",
-         paste(names(seurat_obj@neighbors), collapse = ", "))
+#' Calculate the correlation between each cell's expression and the mean of
+#' its neighbors' expression
+#'
+#' @details
+#' The Seurat object must have `FindNeighbors()` already run and an ADT assay.
+#' Correlations are calculated across all neighbor graphs present in the
+#' object.
+#'
+#' @param seurat_obj The Seurat object.
+#' @param features_adt Name of the ADT features to evaluate (e.g. "CD27.1").
+#' @param adt_assay Name of the assay containing ADT data.
+#' @param cor_method Correlation method to use (e.g. "pearson", "spearman").
+#'
+#' @returns A data frame with columns: Graph, Feature, Score.
+calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
+                             cor_method = "spearman") {
+  if (rlang::is_missing(features_adt)) {
+    features_adt <- rownames(seurat_obj@assays[[adt_assay]])
   }
 
-  seurat_obj@neighbors[[nn_name]]@nn.idx
-}
-
-# Extract and validate ADT matrix from a Seurat object, returned as cells x features
-.get_adt_matrix <- function(seurat_obj, adt_assay = "ADT", layer = "data",
-                             features_adt = NULL) {
-  mat <- GetAssayData(seurat_obj, assay = adt_assay, layer = layer)
-
-  if (!is.null(features_adt)) {
-    keep <- intersect(features_adt, rownames(mat))
-    if (length(keep) == 0) {
-      stop("None of the requested ADT features are present in assay '",
-           adt_assay, "'.")
-    }
-    mat <- mat[keep, , drop = FALSE]
+  if (any(!(features_adt %in% rownames(seurat_obj@assays[[adt_assay]])))) {
+    stop("The requested ADT feature is not present in assay '", adt_assay,
+         "'. Available features: ",
+         paste(sort(rownames(seurat_obj@assays[[adt_assay]])), collapse = ", "))
   }
 
-  t(as.matrix(mat)) # cells x features
-}
-
-# Compute per-cell mean distance from a cells-x-features matrix and nn index
-.adt_dists_core <- function(adt_mat, nn_idx, distance_metric = "euclidean",
-                             exclude_self = TRUE, return_mean = FALSE) {
-  k_dist <- vapply(seq_len(nrow(adt_mat)), function(cell_i) {
-    idx <- nn_idx[cell_i, ]
-
-    if (exclude_self) {
-      idx <- idx[idx != cell_i]
-      if (length(idx) == 0) return(NA_real_)
-    }
-
-    xi <- adt_mat[cell_i, , drop = FALSE]
-    nbrs <- adt_mat[idx, , drop = FALSE]
-    diffs <- sweep(nbrs, 2, as.numeric(xi), FUN = "-")
-
-    per_nbr <- if (distance_metric == "mean_abs") {
-      rowMeans(abs(diffs))
-    } else if (distance_metric == "manhattan") {
-      rowSums(abs(diffs))
-    } else if (distance_metric == "euclidean") {
-      sqrt(rowSums(diffs * diffs))
-    } else if (distance_metric == "cosine") {
-      xi_vec <- as.numeric(xi)
-      vapply(seq_len(nrow(nbrs)), function(j) {
-        lsa::cosine(xi_vec, as.numeric(nbrs[j, ]))
-      }, numeric(1))
-    } else {
-      stop("Please choose a valid distance metric: mean_abs, manhattan, ",
-           "euclidean, cosine.")
-    }
-
-    mean(per_nbr, na.rm = TRUE)
-  }, FUN.VALUE = numeric(1))
-
-  if (return_mean) {
-    mean(k_dist, na.rm = TRUE)
-  } else {
-    names(k_dist) <- rownames(adt_mat)
-    k_dist
+  if (length(seurat_obj@neighbors) == 0) {
+    stop("No neighbor graphs found in object. Please run FindNeighbors() first.")
   }
+
+  adt_data <- GetAssayData(seurat_obj, assay = adt_assay, layer = "data")
+  metrics_df <- c()
+
+  for (nn_name in names(seurat_obj@neighbors)) {
+    nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
+    neighbor_adt_mean <- vapply(seq_len(ncol(adt_data)), function(i) {
+      rowMeans(adt_data[, nn_idx[i, ]])
+    }, FUN.VALUE = numeric(nrow(adt_data)))
+    colnames(neighbor_adt_mean) <- colnames(seurat_obj)
+
+    for (feat in features_adt) {
+      cell_expr <- adt_data[feat, ]
+      neighbor_expr <- neighbor_adt_mean[feat, ]
+      correlation <- cor(cell_expr, neighbor_expr, method = cor_method)
+      metrics_df <- bind_rows(metrics_df,
+                              data.frame(Graph = nn_name, Feature = feat,
+                                         Score = correlation))
+    }
+  }
+
+  metrics_df
 }
 
-
-# public functions ####
 
 #' Compute mean ADT distance to each cell's k nearest neighbors
 #'
@@ -115,8 +87,8 @@ calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
                            layer = "data", features_adt = NULL, k,
                            distance_metric = "mean_abs",
                            return_mean = TRUE, exclude_self = TRUE) {
-  adt_mat <- .get_adt_matrix(seurat_obj, adt_assay, layer, features_adt)
-  nn_idx <- .resolve_neighbors(seurat_obj, base_assay)
+  adt_mat <- get_adt_matrix(seurat_obj, adt_assay, layer, features_adt)
+  nn_idx <- resolve_neighbors(seurat_obj, base_assay)
 
   if (nrow(nn_idx) != nrow(adt_mat)) {
     stop("Neighbor index rows (", nrow(nn_idx), ") do not match the number ",
@@ -124,7 +96,52 @@ calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
          "Cells(seurat_obj).")
   }
 
-  .adt_dists_core(adt_mat, nn_idx, distance_metric, exclude_self, return_mean)
+  adt_dists_core(adt_mat, nn_idx, distance_metric, exclude_self, return_mean)
+}
+
+
+#' Calculate Moran's i for a Seurat object
+#'
+#' @description
+#' Calculates the global Moran's i index for an ADT feature given a neighbor
+#' graph.
+#'
+#' @details
+#' Row standardization makes sure the resulting score will always be between
+#' -1 and 1.
+#'
+#' @param seurat_obj The Seurat object. Must have `FindNeighbors()` already
+#'   run.
+#' @param features_adt Name of the ADT feature to evaluate (e.g. "CD27.1").
+#' @param adt_assay Name of the assay containing ADT data.
+#' @param graph_name Name of the neighbor graph slot to use for the weights
+#'   matrix (e.g. "RNA.nn", "BCR.nn", "w.nn").
+#' @param row_standardize Whether to row-standardize the weights matrix (i.e.
+#'   make each row sum to 1).
+#'
+#' @returns A single numeric value representing the observed Moran's i.
+#' @export
+calc_adt_moran <- function(seurat_obj, features_adt, adt_assay = "ADT",
+                       graph_name, row_standardize = TRUE) {
+  if (!features_adt %in% rownames(seurat_obj@assays[[adt_assay]])) {
+    stop("The requested ADT feature is not present in assay '", adt_assay,
+         "'. Available features: ",
+         paste(sort(rownames(seurat_obj@assays[[adt_assay]])), collapse = ", "))
+  }
+
+  if (!graph_name %in% names(seurat_obj@graphs)) {
+    stop("Graph '", graph_name, "' not found in object. Available graphs: ",
+         paste(names(seurat_obj@graphs), collapse = ", "))
+  }
+
+  x <- GetAssayData(seurat_obj, assay = adt_assay, layer = "data")
+  x <- x[features_adt, ]
+
+  w <- as.matrix(seurat_obj@graphs[[graph_name]])
+  if (row_standardize) w <- w / rowSums(w)
+
+  moran <- ape::Moran.I(x, w)
+  moran[["observed"]]
 }
 
 
@@ -164,7 +181,7 @@ calc_adt_nn_within_range <- function(seurat_obj, adt_assay = "ADT",
                                      features_adt, base_assay, k = 20,
                                      range = 0.20, return_counts = FALSE) {
   if (rlang::is_missing(base_assay)) base_assay <- DefaultAssay(seurat_obj)
-  nn_idx <- .resolve_neighbors(seurat_obj, base_assay)
+  nn_idx <- resolve_neighbors(seurat_obj, base_assay)
 
   adt_expr <- seurat_obj@assays[[adt_assay]]@data[features_adt, ]
 
@@ -222,7 +239,7 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
   method <- match.arg(method)
 
   if (rlang::is_missing(base_assay)) base_assay <- DefaultAssay(seurat_obj)
-  nn_idx <- .resolve_neighbors(seurat_obj, base_assay)
+  nn_idx <- resolve_neighbors(seurat_obj, base_assay)
 
   adt_expr <- seurat_obj@assays[[adt_assay]]@data[features_adt, ]
   adt_expr <- as.numeric(adt_expr)
@@ -269,126 +286,6 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
 
   names(results) <- Cells(seurat_obj)
   results
-}
-
-
-# cluster_distances <- function(embeddings, labels) {
-#   clusters <- split(as.data.frame(embeddings), labels)
-#
-#   # Intra-cluster distance (average pairwise distance within each cluster)
-#   intra_distances <- sapply(clusters, function(cluster_data) {
-#     mean(dist(cluster_data))
-#   })
-#
-#   # Inter-cluster distance (average distance between cluster centroids)
-#   centroids <- sapply(clusters, colMeans)
-#   inter_distances <- dist(t(centroids))  # Distance between centroids
-#
-#   return(list(intra = intra_distances, inter = inter_distances))
-# }
-#
-# # Apply to Seurat data
-# umap_embeddings <- Embeddings(seurat_obj, reduction = reduction_name)
-# predicted_labels <- seurat_obj$annotated_clusters_simpler
-# distances <- cluster_distances(umap_embeddings, predicted_labels)
-
-
-#' Calculate the correlation between each cell's expression and the mean of
-#' its neighbors' expression
-#'
-#' @details
-#' The Seurat object must have `FindNeighbors()` already run and an ADT assay.
-#' Correlations are calculated across all neighbor graphs present in the
-#' object.
-#'
-#' @param seurat_obj The Seurat object.
-#' @param features_adt Name of the ADT features to evaluate (e.g. "CD27.1").
-#' @param adt_assay Name of the assay containing ADT data.
-#' @param cor_method Correlation method to use (e.g. "pearson", "spearman").
-#'
-#' @returns A data frame with columns: Graph, Feature, Score.
-calc_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
-                             cor_method = "spearman") {
-  if (rlang::is_missing(features_adt)) {
-    features_adt <- rownames(seurat_obj@assays[[adt_assay]])
-  }
-
-  if (any(!(features_adt %in% rownames(seurat_obj@assays[[adt_assay]])))) {
-    stop("The requested ADT feature is not present in assay '", adt_assay,
-         "'. Available features: ",
-         paste(sort(rownames(seurat_obj@assays[[adt_assay]])), collapse = ", "))
-  }
-
-  if (length(seurat_obj@neighbors) == 0) {
-    stop("No neighbor graphs found in object. Please run FindNeighbors() first.")
-  }
-
-  adt_data <- GetAssayData(seurat_obj, assay = adt_assay, layer = "data")
-  metrics_df <- c()
-
-  for (nn_name in names(seurat_obj@neighbors)) {
-    nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
-    neighbor_adt_mean <- vapply(seq_len(ncol(adt_data)), function(i) {
-      rowMeans(adt_data[, nn_idx[i, ]])
-    }, FUN.VALUE = numeric(nrow(adt_data)))
-    colnames(neighbor_adt_mean) <- colnames(seurat_obj)
-
-    for (feat in features_adt) {
-      cell_expr <- adt_data[feat, ]
-      neighbor_expr <- neighbor_adt_mean[feat, ]
-      correlation <- cor(cell_expr, neighbor_expr, method = cor_method)
-      metrics_df <- bind_rows(metrics_df,
-                              data.frame(Graph = nn_name, Feature = feat,
-                                         Score = correlation))
-    }
-  }
-
-  metrics_df
-}
-
-
-#' Calculate Moran's i for a Seurat object
-#'
-#' @description
-#' Calculates the global Moran's i index for an ADT feature given a neighbor
-#' graph.
-#'
-#' @details
-#' Row standardization makes sure the resulting score will always be between
-#' -1 and 1.
-#'
-#' @param seurat_obj The Seurat object. Must have `FindNeighbors()` already
-#'   run.
-#' @param features_adt Name of the ADT feature to evaluate (e.g. "CD27.1").
-#' @param adt_assay Name of the assay containing ADT data.
-#' @param graph_name Name of the neighbor graph slot to use for the weights
-#'   matrix (e.g. "RNA.nn", "BCR.nn", "w.nn").
-#' @param row_standardize Whether to row-standardize the weights matrix (i.e.
-#'   make each row sum to 1).
-#'
-#' @returns A single numeric value representing the observed Moran's i.
-#' @export
-calc_moran <- function(seurat_obj, features_adt, adt_assay = "ADT",
-                       graph_name, row_standardize = TRUE) {
-  if (!features_adt %in% rownames(seurat_obj@assays[[adt_assay]])) {
-    stop("The requested ADT feature is not present in assay '", adt_assay,
-         "'. Available features: ",
-         paste(sort(rownames(seurat_obj@assays[[adt_assay]])), collapse = ", "))
-  }
-
-  if (!graph_name %in% names(seurat_obj@graphs)) {
-    stop("Graph '", graph_name, "' not found in object. Available graphs: ",
-         paste(names(seurat_obj@graphs), collapse = ", "))
-  }
-
-  x <- GetAssayData(seurat_obj, assay = adt_assay, layer = "data")
-  x <- x[features_adt, ]
-
-  w <- as.matrix(seurat_obj@graphs[[graph_name]])
-  if (row_standardize) w <- w / rowSums(w)
-
-  moran <- ape::Moran.I(x, w)
-  moran[["observed"]]
 }
 
 

@@ -49,11 +49,11 @@ reference:
   desc: Functions for evaluating the performance of models and analyses.
 - subtitle: ADT-based on kNN
 - contents:
+  - calc_adt_correlation
   - calc_adt_dists
+  - calc_adt_moran
   - calc_adt_nn_within_range
   - calc_adt_quantile
-  - calc_correlation
-  - calc_moran
   - calc_neighbor_matches
 - subtitle: Clustering-based
 - contents:
@@ -69,11 +69,11 @@ reference:
   - add_info_bar
   - calc_pcts
   - contains("plot")
-- title: Utilities
-  desc: Utility functions for various tasks.
-- contents:
-  - reduce_object
 - title: Simulations
   desc: Simulate GEX and AIRR data.
 - contents:
   - contains("sim")
+- title: Utilities
+  desc: Utility functions for various tasks.
+- contents:
+  - reduce_object

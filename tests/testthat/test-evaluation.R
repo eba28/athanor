@@ -40,7 +40,7 @@ test_that(".resolve_neighbors maps GEX to RNA.nn slot", {
 
 
 # .get_adt_matrix ####
-test_that(".get_adt_matrix returns cells x features matrix", {
+test_that(".get_adt_matrix returns cells by features matrix", {
   mat <- .get_adt_matrix(seurat_obj)
   expect_equal(nrow(mat), n_cells)
   expect_equal(ncol(mat), length(adt_features))
@@ -186,37 +186,37 @@ test_that("calc_adt_quantile return_counts gives integer-valued counts", {
 })
 
 
-# calc_correlation ####
+# calc_adt_correlation ####
 test_that("Correlation doesn't work on non-existent features", {
-  expect_error(calc_correlation(seurat_obj, features_adt = "CD19"),
+  expect_error(calc_adt_correlation(seurat_obj, features_adt = "CD19"),
                regexp = "The requested ADT feature is not present in assay")
 })
 
 test_that("Need the neighbors slot to not be empty", {
-  expect_error(calc_correlation(seurat_obj, features_adt = "ADT-1"),
+  expect_error(calc_adt_correlation(seurat_obj, features_adt = "ADT-1"),
                regexp = "No neighbor graphs found in object.")
 })
 
 
-# calc_moran ####
-test_that("calc_moran returns a single numeric in [-1, 1]", {
-  result <- calc_moran(seurat_obj, features_adt = "ADT-1",
+# calc_adt_moran ####
+test_that("calc_adt_moran returns a single numeric in [-1, 1]", {
+  result <- calc_adt_moran(seurat_obj, features_adt = "ADT-1",
                        graph_name = "RNA_nn")
   expect_length(result, 1)
   expect_true(is.numeric(result))
   expect_true(result >= -1 && result <= 1)
 })
 
-test_that("calc_moran errors on missing feature", {
+test_that("calc_adt_moran errors on missing feature", {
   expect_snapshot(
-    calc_moran(seurat_obj, features_adt = "CD999", graph_name = "RNA_nn"),
+    calc_adt_moran(seurat_obj, features_adt = "CD999", graph_name = "RNA_nn"),
     error = TRUE
   )
 })
 
-test_that("calc_moran errors on missing graph", {
+test_that("calc_adt_moran errors on missing graph", {
   expect_snapshot(
-    calc_moran(seurat_obj, features_adt = "ADT-1", graph_name = "bad_graph"),
+    calc_adt_moran(seurat_obj, features_adt = "ADT-1", graph_name = "bad_graph"),
     error = TRUE
   )
 })

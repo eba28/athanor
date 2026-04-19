@@ -46,12 +46,12 @@ sim_gex_manual <- function(num_genes = 1000, num_cells = 2000,
 #' @details
 #' Splatter doesn't use a separator for its fake names.
 #'
-#' @param num_genes Number of genes to simulate. Defaults to 1000.
-#' @param num_cells Number of cells to simulate. Defaults to 2000.
-#' @param splatter_method Splatter simulation method. Defaults to "single".
-#' @param splatter_groups Group probabilities for Splatter simulation. Defaults to 1.
-#' @param seed Random seed for reproducible simulations. Defaults to 42.
-#' @param verbose Whether or not to print verbose output. Defaults to FALSE.
+#' @param num_genes Number of genes to simulate.
+#' @param num_cells Number of cells to simulate.
+#' @param splatter_method Splatter simulation method.
+#' @param splatter_groups Group probabilities for Splatter simulation.
+#' @param seed Random seed for reproducible simulations.
+#' @param verbose Whether or not to print verbose output.
 #'
 #' @returns A Seurat object containing the simulated gene expression data with
 #'   metadata and cell identifiers

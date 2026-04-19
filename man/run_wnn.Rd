@@ -20,7 +20,7 @@ run_wnn(
 \arguments{
 \item{seurat_obj}{A Seurat object containing GEX data (at the least).}
 
-\item{embeddings}{Matrix of BCR embeddings (genes x cells).}
+\item{embeddings}{Matrix of BCR embeddings (genes by cells).}
 
 \item{embedding_type}{The embeddings method.}
 

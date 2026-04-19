@@ -14,17 +14,17 @@ sim_gex_splatter(
 )
 }
 \arguments{
-\item{num_genes}{Number of genes to simulate. Defaults to 1000.}
+\item{num_genes}{Number of genes to simulate.}
 
-\item{num_cells}{Number of cells to simulate. Defaults to 2000.}
+\item{num_cells}{Number of cells to simulate.}
 
-\item{splatter_groups}{Group probabilities for Splatter simulation. Defaults to 1.}
+\item{splatter_groups}{Group probabilities for Splatter simulation.}
 
-\item{splatter_method}{Splatter simulation method. Defaults to "single".}
+\item{splatter_method}{Splatter simulation method.}
 
-\item{seed}{Random seed for reproducible simulations. Defaults to 42.}
+\item{seed}{Random seed for reproducible simulations.}
 
-\item{verbose}{Whether or not to print verbose output. Defaults to FALSE.}
+\item{verbose}{Whether or not to print verbose output.}
 }
 \value{
 A Seurat object containing the simulated gene expression data with

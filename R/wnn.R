@@ -15,7 +15,7 @@
 #' Perhaps the GEX and BCR sections should be run if `modality_weights` is provided.
 #'
 #' @param seurat_obj A Seurat object containing GEX data (at the least).
-#' @param embeddings Matrix of BCR embeddings (genes x cells).
+#' @param embeddings Matrix of BCR embeddings (genes by cells).
 #' @param embedding_type The embeddings method.
 #' @param pc_gex The number of PCs for the GEX assay.
 #' @param pc_bcr The number of PCs for the BCR assay.
@@ -203,7 +203,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
 #' @param seurat_obj The post-WNN Seurat object
 #' @param gex_pca The name of the GEX PCA reduction.
 #' @param other_pca The name of the BCR/ADT/etc. PCA reduction.
-#' @param other_type The second assay. Defaults to "BCR".
+#' @param other_type The second assay.
 #'
 #' @returns A text message.
 #' @export
