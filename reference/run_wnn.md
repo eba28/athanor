@@ -18,7 +18,6 @@ run_wnn(
   pc_gex = 20,
   pc_bcr = 20,
   k_param = 20,
-  k_main = 20,
   cluster = FALSE,
   cluster_res = list(GEX = 1, BCR = 1, WNN = 1),
   modality_weights = NULL,
@@ -48,16 +47,6 @@ run_wnn(
 
   The number of PCs for the BCR assay.
 
-- k_param:
-
-  The number of neighbors to use for each modality. Can be a single
-  value or a vector of values to test.
-
-- k_main:
-
-  The main number of neighbors to use for the final WNN UMAP and
-  clustering.
-
 - cluster:
 
   Whether or not to perform clustering.
@@ -74,6 +63,10 @@ run_wnn(
 - show_output:
 
   Whether or not to show verbose output from Seurat functions.
+
+- k:
+
+  The number of neighbors to use for each modality.
 
 ## Value
 

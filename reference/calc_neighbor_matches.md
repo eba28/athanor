@@ -1,9 +1,9 @@
 # Calculate neighbor matching scores across metadata columns
 
-This function calculates the proportion of neighbors that match each
-cell's metadata category for specified metadata columns and ADT
-features. It can also perform permutations to generate a random baseline
-for comparison. The results can be saved to a specified path.
+Calculates the proportion of neighbors that match each cell's metadata
+category for specified metadata columns and ADT features. Can also
+perform permutations to generate a random baseline. Results can be saved
+to a specified path.
 
 ## Usage
 
@@ -62,8 +62,7 @@ calc_neighbor_matches(
 
 - previous_matches:
 
-  Data frame of previous matches to combine with the new results
-  (optional).
+  Data frame of previous matches to combine with new results (optional).
 
 - path_save:
 
@@ -71,8 +70,8 @@ calc_neighbor_matches(
 
 ## Value
 
-Data frame with these columns: Full_Name, Category, Category_Details,
-Assay, Meta_Col, Method, Matches
+Data frame with columns: Full_Name, Category, Category_Details, Assay,
+Meta_Col, Method, Matches.
 
 ## Details
 

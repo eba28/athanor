@@ -6,7 +6,12 @@ its neighbors' expression
 ## Usage
 
 ``` r
-calc_correlation(seurat_obj, features_adt, cor_method = "spearman")
+calc_correlation(
+  seurat_obj,
+  features_adt,
+  adt_assay = "ADT",
+  cor_method = "spearman"
+)
 ```
 
 ## Arguments
@@ -17,7 +22,11 @@ calc_correlation(seurat_obj, features_adt, cor_method = "spearman")
 
 - features_adt:
 
-  Name of the ADT features to evaluate on (e.g. "CD27.1").
+  Name of the ADT features to evaluate (e.g. "CD27.1").
+
+- adt_assay:
+
+  Name of the assay containing ADT data.
 
 - cor_method:
 
@@ -25,9 +34,10 @@ calc_correlation(seurat_obj, features_adt, cor_method = "spearman")
 
 ## Value
 
-A data frame with columns: Graph, Feature, Score (correlation value).
+A data frame with columns: Graph, Feature, Score.
 
 ## Details
 
-The Seurat object must have `FindNeighbors()` already run at least one
-time and an assay named "ADT".
+The Seurat object must have `FindNeighbors()` already run and an ADT
+assay. Correlations are calculated across all neighbor graphs present in
+the object.

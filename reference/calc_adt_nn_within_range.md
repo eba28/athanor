@@ -1,8 +1,8 @@
 # Calculate the proportion of neighbors within an ADT marker's expression range
 
-For each cell in a Seurat object, this function calculates how many of
-its k nearest neighbors have ADT expression within a specified threshold
-(default 20%) of the cell's own ADT expression for a given feature.
+For each cell in a Seurat object, calculates how many of its k nearest
+neighbors have ADT expression within a specified threshold (default 20%)
+of the cell's own ADT expression for a given feature.
 
 ## Usage
 
@@ -10,10 +10,9 @@ its k nearest neighbors have ADT expression within a specified threshold
 calc_adt_nn_within_range(
   seurat_obj,
   adt_assay = "ADT",
-  feature,
+  features_adt,
   base_assay,
   k = 20,
-  use_k = TRUE,
   range = 0.2,
   return_counts = FALSE
 )
@@ -29,9 +28,9 @@ calc_adt_nn_within_range(
 
   Name of the assay containing ADT data.
 
-- feature:
+- features_adt:
 
-  Name of the ADT feature to evaluate (e.g. "CD27.1", "CD38").
+  Name of the ADT feature to evaluate (e.g. "CD27.1").
 
 - base_assay:
 
@@ -43,17 +42,11 @@ calc_adt_nn_within_range(
   Number of nearest neighbors to evaluate. Must match the k used when
   computing the neighbor graph.
 
-- use_k:
-
-  Whether to look for a neighbor slot specific to the provided k (e.g.
-  "RNA.nn_20") or just use the generic one (e.g. "RNA.nn"). The former
-  allows you to have multiple neighbor graphs with different k's, while
-  the latter assumes you only have one neighbor graph per assay.
-
 - range:
 
   The relative threshold for considering neighbors similar. A value of
-  0.20 means neighbors within ±20% of the cell's expression are counted.
+  0.20 means neighbors within +/-20% of the cell's expression are
+  counted.
 
 - return_counts:
 
@@ -62,10 +55,7 @@ calc_adt_nn_within_range(
 
 ## Value
 
-A named numeric vector with one value per cell in the Seurat object. If
-`return_counts = TRUE`, returns the count of neighbors within range. If
-`return_counts = FALSE`, returns the proportion of neighbors within
-range (ranging from 0 to 1). Vector names are cell ids.
+A named numeric vector with one value per cell in the Seurat object.
 
 ## Details
 
