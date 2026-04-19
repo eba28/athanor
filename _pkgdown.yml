@@ -50,7 +50,6 @@ reference:
 - subtitle: ADT-based on kNN
 - contents:
   - calc_adt_dists
-  - calc_adt_dists_fast
   - calc_adt_nn_within_range
   - calc_adt_quantile
   - calc_correlation
