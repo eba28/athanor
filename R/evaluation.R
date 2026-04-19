@@ -13,7 +13,7 @@
 #'
 #' @returns A data frame with columns: Graph, Feature, Score.
 calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
-                             cor_method = "spearman") {
+                                 cor_method = "spearman") {
   if (rlang::is_missing(features_adt)) {
     features_adt <- rownames(seurat_obj@assays[[adt_assay]])
   }
@@ -122,7 +122,7 @@ calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
 #' @returns A single numeric value representing the observed Moran's i.
 #' @export
 calc_adt_moran <- function(seurat_obj, features_adt, adt_assay = "ADT",
-                       graph_name, row_standardize = TRUE) {
+                           graph_name, row_standardize = TRUE) {
   if (!features_adt %in% rownames(seurat_obj@assays[[adt_assay]])) {
     stop("The requested ADT feature is not present in assay '", adt_assay,
          "'. Available features: ",

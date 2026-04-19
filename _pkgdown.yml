@@ -26,6 +26,7 @@ reference:
   - process_airrflow
 - subtitle: BCR embeddings
 - contents:
+  - bcr_embeddings_pipeline
   - convert_embeddings
 - subtitle: BCR features
 - contents:

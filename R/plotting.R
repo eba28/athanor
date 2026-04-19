@@ -1301,10 +1301,6 @@ plot_mws <- function(seurat_obj, details = "", second_assay = "BCR",
 
   weight <- grep(paste0("^", main_assay, ".*\\.weight.*$"),
                  colnames(seurat_obj[[]]), value = TRUE)
-  # in case of multiple k's
-  if (length(weight) > 1) {
-    weight <- grep(seurat_obj@misc$default_k, weight, value = TRUE)
-  }
 
   n_assay <- length(second_assay) + 1
 

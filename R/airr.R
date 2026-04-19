@@ -37,6 +37,69 @@ add_family_info <- function(combined_airr) {
 }
 
 
+#' Build a Seurat object from BCR embeddings
+#'
+#' @description
+#' Creates and processes a BCR-only Seurat object from a matrix of pre-computed
+#' embeddings (e.g. ESM2, immune2vec). Produces `bpca`, `BCR.nn`, `BCR_nn`,
+#' `BCR_snn`, and `bcr.umap` reductions/graphs.
+#'
+#' @details
+#' Embeddings are used as-is for `scale.data` (no `ScaleData` call) since they
+#' are already on a comparable scale. The `data` layer is populated from `counts`
+#' so downstream reads do not fail.
+#'
+#' @param embeddings Matrix of BCR embeddings (features x cells).
+#' @param embedding_type Character label for the embedding method (stored in `Misc`).
+#' @param num_pcs Number of principal components to compute.
+#' @param num_dims Number of PCA dimensions to use for neighbor finding and UMAP.
+#' @param k_param Number of nearest neighbors.
+#' @param combined_airr Optional data frame passed to `gex_add_airr()` to add
+#'   AIRR metadata columns. If NULL, the step is skipped.
+#' @param airr_cols Character vector of columns to add from `combined_airr`.
+#'   Only used when `combined_airr` is provided.
+#'
+#' @returns A Seurat object with BCR assay, PCA (`bpca`), neighbor graphs
+#'   (`BCR_nn`, `BCR_snn`, `BCR.nn`), and UMAP (`bcr.umap`).
+#' @export
+bcr_embeddings_pipeline <- function(embeddings, embedding_type,
+                                    num_pcs = 50, num_dims = 20, k_param = 20,
+                                    combined_airr = NULL, airr_cols = NULL) {
+  seurat_obj <- CreateSeuratObject(counts = embeddings, assay = "BCR")
+  seurat_obj$cell_id <- Cells(seurat_obj)
+  VariableFeatures(seurat_obj) <- rownames(seurat_obj[["BCR"]])
+
+  seurat_obj <- SetAssayData(seurat_obj, layer = "data",
+                             new.data = GetAssayData(seurat_obj, assay = "BCR",
+                                                     layer = "counts"))
+  seurat_obj <- SetAssayData(seurat_obj, layer = "scale.data",
+                             new.data = as.matrix(embeddings))
+
+  if (!is.null(combined_airr)) {
+    seurat_obj <- gex_add_airr(seurat_obj, combined_airr = combined_airr,
+                               new_cols = airr_cols)
+  }
+
+  seurat_obj <- RunPCA(object = seurat_obj, npcs = num_pcs,
+                       reduction.name = "bpca", reduction.key = "bpca_")
+  seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "bpca",
+                              dims = 1:num_dims, k.param = k_param,
+                              return.neighbor = TRUE, graph.name = "BCR.nn")
+  seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "bpca",
+                              dims = 1:num_dims, k.param = k_param,
+                              compute.SNN = TRUE,
+                              graph.name = str_c("BCR_", c("", "s"), "nn"))
+  seurat_obj <- RunUMAP(object = seurat_obj, reduction = "bpca",
+                        n.neighbors = k_param, nn.name = "BCR.nn",
+                        reduction.name = "bcr.umap", reduction.key = "bcrUMAP_")
+
+  Misc(seurat_obj, slot = "embeddings_dims") <- nrow(seurat_obj@assays$BCR)
+  Misc(seurat_obj, slot = "embedding_type") <- embedding_type
+
+  seurat_obj
+}
+
+
 #'
 #' Bin the mutation frequency
 #'
