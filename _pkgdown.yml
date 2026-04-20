@@ -12,14 +12,19 @@ reference:
   - reformat_vdj_barcode_sample
 - title: Gene Expression
   desc: Functions for processing and analyzing gene expression data.
+- subtitle: Pipeline
+- contents:
+  - filter_variable_features
+  - get_airr_genes
+  - seurat_pipeline
+- subtitle: Cell type annotation
 - contents:
   - add_annotations
   - automated_annotation
+- subtitle: Clustering-related
+- contents:
   - cell_type_clusters
-  - filter_variable_features
   - find_k_clusters
-  - get_airr_genes
-  - seurat_pipeline
 - title: Adaptive Immune Receptors
   desc: Functions for processing and analyzing adaptive immune receptor data.
 - subtitle: Read in data
@@ -49,7 +54,7 @@ reference:
   - run_wnn
 - title: Evaluation
   desc: Functions for evaluating the performance of models and analyses.
-- subtitle: ADT-based on kNN
+- subtitle: ADT-based on k-nearest neighbors
 - contents:
   - calc_adt_correlation
   - calc_adt_dists
@@ -67,10 +72,24 @@ reference:
 - subtitle: Reclassification
 - title: Plotting
   desc: Functions for visualizing data and results.
+- subtitle: Accessory
 - contents:
   - add_info_bar
+  - plot_color_scale
+- subtitle: UMAPs
+- contents:
+  - plot_dimplot
+  - plot_immune_overlay
+  - plot_overview_comps
+  - plot_umap
+  - plot_umap_condition
+- subtitle: Other plots
+- contents:
   - calc_pcts
-  - contains("plot")
+  - plot_doublets
+  - plot_mws
+  - plot_pcts
+  - plot_vln_feats
 - title: Simulations
   desc: Simulate GEX and AIRR data.
 - contents:

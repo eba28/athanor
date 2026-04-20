@@ -37,7 +37,7 @@ A Seurat object with BCR assay, PCA (\code{bpca}), neighbor graphs
 }
 \description{
 Creates and processes a BCR-only Seurat object from a matrix of pre-computed
-embeddings (e.g. immune2vec, IgVec). Produces \code{bpca}, \code{BCR.nn}, \code{BCR_nn},
+embeddings (e.g. ESM2, immune2vec). Produces \code{bpca}, \code{BCR.nn}, \code{BCR_nn},
 \code{BCR_snn}, and \code{bcr.umap} reductions/graphs.
 }
 \details{
