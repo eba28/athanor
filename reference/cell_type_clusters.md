@@ -32,3 +32,10 @@ cell_type_clusters(
 ## Value
 
 A data.frame with a row for each cell type.
+
+## Details
+
+This would typically be used after
+[`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md)
+and
+[`add_annotations()`](https://eba28.github.io/athanor/reference/add_annotations.md).

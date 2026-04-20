@@ -14,7 +14,8 @@ bcr_embeddings_pipeline(
   num_dims = 20,
   k_param = 20,
   combined_airr = NULL,
-  airr_cols = NULL
+  airr_cols = NULL,
+  verbose = TRUE
 )
 ```
 
@@ -50,6 +51,10 @@ bcr_embeddings_pipeline(
 
   Character vector of columns to add from `combined_airr`. Only used
   when `combined_airr` is provided.
+
+- verbose:
+
+  Logical indicating whether to print progress messages.
 
 ## Value
 

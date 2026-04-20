@@ -1,4 +1,4 @@
-# Calculate external clustering metrics for a Seurat object
+# Calculate external clustering metrics
 
 This function calculates various external clustering metrics using the
 `mclust` and `clevr` packages, which provide a comprehensive set of

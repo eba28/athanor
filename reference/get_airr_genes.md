@@ -34,3 +34,8 @@ get_airr_genes(
 
 A character vector of IG and/or TR gene names to be filtered out from
 the most variable features.
+
+## Details
+
+This will usually just be used as part of
+[`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md).

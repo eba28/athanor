@@ -1,7 +1,10 @@
 # Calculate percentages per metadata group
 
 This function calculates the percentage of occurrences of a specified
-focus group within a dataset, grouped by specified metadata columns.
+focus group within a dataset, grouped by specified metadata columns. It
+can be used in conjunction with
+[`plot_pcts()`](https://eba28.github.io/athanor/reference/plot_pcts.md)
+to visualize the results.
 
 ## Usage
 

@@ -1,6 +1,6 @@
 # athanor
 
-**Last Updated:** 2026-04-19
+**Last Updated:** 2026-04-20
 
 The goal of `athanor` is to integrate gene expression (GEX) and B cell
 receptor (BCR) data to improve B cell subtyping. The package provides
@@ -17,14 +17,6 @@ You can install the development version of `athanor` from
 pak::pak("eba28/athanor")
 ```
 
-## Example
-
-``` r
-library(athanor)
-
-## basic example code
-```
-
 ## Details
 
 - [`automated_annotation()`](https://eba28.github.io/athanor/reference/automated_annotation.md)
@@ -34,3 +26,8 @@ library(athanor)
 - The functions were designed to operate on v5 of Seurat. If you are
   using an older version, you may have to change `layer` to `slot` in
   some of the code.
+- Since the focus is on having multiple modalities, the GEX object
+  created by
+  [`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md)
+  will have “rpca” and “rna.umap” as reductions instead of the usual
+  “pca” and “umap” respectively.

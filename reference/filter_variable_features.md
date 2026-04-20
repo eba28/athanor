@@ -40,3 +40,8 @@ filter_variable_features(
 
 The Seurat object with filtered variable features and Ensembl version
 saved to `Misc(seurat_obj, "ensembl_version")`.
+
+## Details
+
+This will usually just be used as part of
+[`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md).

@@ -49,7 +49,7 @@
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header"><h1 id="athanor">athanor<a class="anchor" aria-label="anchor" href="#athanor"></a>
 </h1></div>
-<p><strong>Last Updated:</strong> 2026-04-19</p>
+<p><strong>Last Updated:</strong> 2026-04-20</p>
 <!-- badges: start -->
 <!-- badges: end -->
 <p>The goal of <code>athanor</code> is to integrate gene expression (GEX) and B cell receptor (BCR) data to improve B cell subtyping. The package provides functions for data preprocessing, feature extraction, concatenation, weighted nearest neighbors, and plotting.</p>
@@ -62,20 +62,13 @@
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"eba28/athanor"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
-</h2>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/eba28/athanor" class="external-link">athanor</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co">## basic example code</span></span></code></pre></div>
-</div>
-<div class="section level2">
 <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a>
 </h2>
 <ul>
 <li>
 <code><a href="reference/automated_annotation.html">automated_annotation()</a></code> used to support Azimuth, but Azimuth is not currently available on CRAN and causes installation issues due to a hidden requirement of a Signac function that is no longer a part of Signac (<code>RunChromVAR()</code>)</li>
 <li>The functions were designed to operate on v5 of Seurat. If you are using an older version, you may have to change <code>layer</code> to <code>slot</code> in some of the code.</li>
+<li>Since the focus is on having multiple modalities, the GEX object created by <code><a href="reference/seurat_pipeline.html">seurat_pipeline()</a></code> will have “rpca” and “rna.umap” as reductions instead of the usual “pca” and “umap” respectively.</li>
 </ul>
 </div>
 </div>

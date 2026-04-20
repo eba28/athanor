@@ -29,3 +29,8 @@ find_k_clusters(seurat_obj, graph_name = "RNA_snn", desired_k)
 
 The Seurat object with clusters at the resolution that matches
 desired_k.
+
+## Details
+
+This would typically be used after
+[`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md).

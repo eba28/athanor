@@ -1,4 +1,4 @@
-# Plot several UMAPs side by side for a Seurat object
+# Plot several UMAPs side by side
 
 This function generates multiple UMAP plots from a Seurat object with
 various customizable options for coloring, labeling, and grouping the

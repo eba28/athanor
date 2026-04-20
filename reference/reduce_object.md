@@ -49,4 +49,5 @@ A reduced Seurat object with specified reductions kept.
 Modify this as needed if your object is built differently (e.g. tSNE
 instead). Uses `DietSeurat` to remove counts while preserving reductions
 and metadata. This is especially useful if you are making a Shiny app or
-just visualizing the data.
+just visualizing the data. This works well in conjunction with
+[`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md).

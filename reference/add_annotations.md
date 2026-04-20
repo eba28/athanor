@@ -1,8 +1,9 @@
 # Add a user-specified list of cluster annotations to a Seurat object
 
 This function adds a user-specified list of cluster annotations to the
-Seurat object. It can be used for both manual and automated annotation,
-updating cell identities and adding annotation columns to the metadata.
+Seurat object. It can be used for adding both manual and automated
+annotations, updating cell identities and adding annotation columns to
+the metadata.
 
 ## Usage
 
@@ -58,3 +59,8 @@ add_annotations(
 ## Value
 
 A Seurat object with added annotation information.
+
+## Details
+
+This would typically be used after
+[`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md).

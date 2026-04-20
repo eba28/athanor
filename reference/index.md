@@ -104,7 +104,7 @@ Functions for evaluating the performance of models and analyses.
 - [`calc_adt_dists()`](https://eba28.github.io/athanor/reference/calc_adt_dists.md)
   : Compute mean ADT distance to each cell's k nearest neighbors
 - [`calc_adt_moran()`](https://eba28.github.io/athanor/reference/calc_adt_moran.md)
-  : Calculate Moran's i for a Seurat object
+  : Calculate Moran's i
 - [`calc_adt_nn_within_range()`](https://eba28.github.io/athanor/reference/calc_adt_nn_within_range.md)
   : Calculate the proportion of neighbors within an ADT marker's
   expression range
@@ -117,11 +117,11 @@ Functions for evaluating the performance of models and analyses.
 ### Clustering-based
 
 - [`calc_distances()`](https://eba28.github.io/athanor/reference/calc_distances.md)
-  : Calculate cluster distances for a Seurat object
+  : Calculate cluster distances
 - [`calc_ext_metrics()`](https://eba28.github.io/athanor/reference/calc_ext_metrics.md)
-  : Calculate external clustering metrics for a Seurat object
+  : Calculate external clustering metrics
 - [`calc_int_metrics()`](https://eba28.github.io/athanor/reference/calc_int_metrics.md)
-  : Calculate internal clustering metrics for a Seurat object
+  : Calculate internal clustering metrics
 
 ## Applications
 
@@ -151,7 +151,7 @@ Functions for visualizing data and results.
   : Plot UMAPs with AIRR overlays
 
 - [`plot_overview_comps()`](https://eba28.github.io/athanor/reference/plot_overview_comps.md)
-  : Plot several UMAPs side by side for a Seurat object
+  : Plot several UMAPs side by side
 
 - [`plot_umap()`](https://eba28.github.io/athanor/reference/plot_umap.md)
   : Plot Seurat UMAP(s) in several useful ways

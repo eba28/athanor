@@ -45,6 +45,10 @@ Has_BCR, isotype information, mutation frequencies, and pairing status.
 
 ## Details
 
+This would typically be used after
+[`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md)
+and before
+[`concatenate_gex_bcr()`](https://eba28.github.io/athanor/reference/concatenate_gex_bcr.md).
 Right now this is just built to integrate in BCR data and assumes that
 the BCR data includes light chains. Assumes that `seurat_obj` contains
 `cell_id` and `annotated_clusters_simpler`. Collapsed light chains are

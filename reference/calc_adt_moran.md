@@ -1,4 +1,4 @@
-# Calculate Moran's i for a Seurat object
+# Calculate Moran's i
 
 Calculates the global Moran's i index for an ADT feature given a
 neighbor graph.

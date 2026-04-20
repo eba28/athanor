@@ -52,7 +52,8 @@ embeddings (e.g. ESM2, immune2vec). Produces <code>bpca</code>, <code>BCR.nn</co
 <span>  num_dims <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  k_param <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  combined_airr <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  airr_cols <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  airr_cols <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -88,6 +89,10 @@ AIRR metadata columns. If NULL, the step is skipped.</p></dd>
 <dt id="arg-airr-cols">airr_cols<a class="anchor" aria-label="anchor" href="#arg-airr-cols"></a></dt>
 <dd><p>Character vector of columns to add from <code>combined_airr</code>.
 Only used when <code>combined_airr</code> is provided.</p></dd>
+
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>Logical indicating whether to print progress messages.</p></dd>
 
 </dl></div>
     <div class="section level2">

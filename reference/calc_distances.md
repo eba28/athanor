@@ -1,4 +1,4 @@
-# Calculate cluster distances for a Seurat object
+# Calculate cluster distances
 
 This function calculates various cluster distance metrics using the
 [`fpc::cluster.stats`](https://rdrr.io/pkg/fpc/man/cluster.stats.html)

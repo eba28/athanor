@@ -85,7 +85,8 @@ Has_BCR, isotype information, mutation frequencies, and pairing status.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Right now this is just built to integrate in BCR data and assumes that the BCR data includes light chains.
+    <p>This would typically be used after <code><a href="seurat_pipeline.html">seurat_pipeline()</a></code> and before <code><a href="concatenate_gex_bcr.html">concatenate_gex_bcr()</a></code>.
+Right now this is just built to integrate in BCR data and assumes that the BCR data includes light chains.
 Assumes that <code>seurat_obj</code> contains <code>cell_id</code> and <code>annotated_clusters_simpler</code>.
 Collapsed light chains are alphabetized.
 There are columns for IGK and IGL instead of just "light" since a cell can have both.

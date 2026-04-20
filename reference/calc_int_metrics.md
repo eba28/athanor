@@ -1,4 +1,4 @@
-# Calculate internal clustering metrics for a Seurat object
+# Calculate internal clustering metrics
 
 This function calculates various internal clustering metrics using the
 `cluster` package, which provides a comprehensive set of clustering

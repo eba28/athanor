@@ -31,4 +31,6 @@ A data.frame with the annotations for each cell
 
 Supports CellTypist annotation methods. Assumes that the `Cells()` of
 `seurat_obj` are properly formatted (i.e. unique). For `CellTypist`,
-assumes the H5AD file and predictions have already been generated.
+assumes the H5AD file and predictions have already been generated. This
+would typically be used after
+[`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md).

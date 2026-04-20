@@ -9,7 +9,7 @@ the standard Seurat pipeline on the combined data.
 ``` r
 concatenate_gex_bcr(
   seurat_obj,
-  pca_stage = "Before",
+  pca_stage = c("Before", "After"),
   cols_to_include,
   var_features = FALSE,
   normalize = TRUE,
@@ -74,6 +74,10 @@ A Seurat object with:
 
 ## Details
 
+This would typically be used after
+[`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md)
+and
+[`gex_add_airr()`](https://eba28.github.io/athanor/reference/gex_add_airr.md).
 The function:
 
 1.  Extracts specified BCR metadata columns from the Seurat object
@@ -91,4 +95,3 @@ The function:
 ## Note
 
 Currently assumes BCR data is already integrated into object metadata.
-See `integrate_gex_airr()` for adding AIRR data to a Seurat object.

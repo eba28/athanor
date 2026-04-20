@@ -2,7 +2,8 @@
 
 This function creates a box plot to visualize the distribution of
 modality weights (e.g. RNA vs. BCR) across different cell types or
-clusters in a post-WNN Seurat object.
+clusters in a post-WNN Seurat object. It should be run after
+[`run_wnn()`](https://eba28.github.io/athanor/reference/run_wnn.md).
 
 ## Usage
 
@@ -49,4 +50,4 @@ A ggplot with the distribution of weights
 
 ## Details
 
-Assumes annotated_clusters is a column
+Assumes "annotated_clusters" is a column.

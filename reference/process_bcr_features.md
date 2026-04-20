@@ -42,7 +42,7 @@ Uses `recipes` to:
 1.  Rename columns to distinguish from existing metadata
 
 2.  Convert ordered factors to ordinal scores OR one-hot encode
-    categoricals
+    categorical variables
 
 3.  Center and normalize all numeric predictors
 
