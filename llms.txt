@@ -50,21 +50,29 @@ Functions for QC and filtering.
 
 Functions for processing and analyzing gene expression data.
 
-- [`add_annotations()`](https://eba28.github.io/athanor/reference/add_annotations.md)
-  : Add a user-specified list of cluster annotations to a Seurat object
-- [`automated_annotation()`](https://eba28.github.io/athanor/reference/automated_annotation.md)
-  : Run automated cell type annotation
-- [`cell_type_clusters()`](https://eba28.github.io/athanor/reference/cell_type_clusters.md)
-  : Map cell types to Seurat clusters
+### Pipeline
+
 - [`filter_variable_features()`](https://eba28.github.io/athanor/reference/filter_variable_features.md)
   : Filter AIRR genes from variable features
-- [`find_k_clusters()`](https://eba28.github.io/athanor/reference/find_k_clusters.md)
-  : Find the right clustering resolution to obtain the desired number of
-  clusters
 - [`get_airr_genes()`](https://eba28.github.io/athanor/reference/get_airr_genes.md)
   : Get IG and TR genes from Ensembl using biomaRt.
 - [`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md)
   : Run Seurat's standard pipeline
+
+### Cell type annotation
+
+- [`add_annotations()`](https://eba28.github.io/athanor/reference/add_annotations.md)
+  : Add a user-specified list of cluster annotations to a Seurat object
+- [`automated_annotation()`](https://eba28.github.io/athanor/reference/automated_annotation.md)
+  : Run automated cell type annotation
+
+### Clustering-related
+
+- [`cell_type_clusters()`](https://eba28.github.io/athanor/reference/cell_type_clusters.md)
+  : Map cell types to Seurat clusters
+- [`find_k_clusters()`](https://eba28.github.io/athanor/reference/find_k_clusters.md)
+  : Find the right clustering resolution to obtain the desired number of
+  clusters
 
 ## Adaptive Immune Receptors
 
@@ -125,7 +133,7 @@ data.
 
 Functions for evaluating the performance of models and analyses.
 
-### ADT-based on kNN
+### ADT-based on k-nearest neighbors
 
 - [`calc_adt_correlation()`](https://eba28.github.io/athanor/reference/calc_adt_correlation.md)
   : Calculate the correlation between each cell's expression and the
@@ -162,34 +170,25 @@ Functions for applying the package to specific use cases.
 
 Functions for visualizing data and results.
 
+### Accessory
+
 - [`add_info_bar()`](https://eba28.github.io/athanor/reference/add_info_bar.md)
   : Add an information bar on top of a given ggplot
-
-- [`calc_pcts()`](https://eba28.github.io/athanor/reference/calc_pcts.md)
-  : Calculate percentages per metadata group
-
 - [`plot_color_scale()`](https://eba28.github.io/athanor/reference/plot_color_scale.md)
   : Generate a color scale for a ggplot2 plot with white at zero
+
+### UMAPs
 
 - [`plot_dimplot()`](https://eba28.github.io/athanor/reference/plot_dimplot.md)
   :
 
   Plot a Seurat UMAP using `DimPlot`
 
-- [`plot_doublets()`](https://eba28.github.io/athanor/reference/plot_doublets.md)
-  : Plot an overview of a doublet identification method
-
 - [`plot_immune_overlay()`](https://eba28.github.io/athanor/reference/plot_immune_overlay.md)
   : Plot UMAPs with AIRR overlays
 
-- [`plot_mws()`](https://eba28.github.io/athanor/reference/plot_mws.md)
-  : Plot a box plot of modality weights per cell type
-
 - [`plot_overview_comps()`](https://eba28.github.io/athanor/reference/plot_overview_comps.md)
   : Plot several UMAPs side by side for a Seurat object
-
-- [`plot_pcts()`](https://eba28.github.io/athanor/reference/plot_pcts.md)
-  : Plot percentages in a stacked bar plot
 
 - [`plot_umap()`](https://eba28.github.io/athanor/reference/plot_umap.md)
   : Plot Seurat UMAP(s) in several useful ways
@@ -197,17 +196,25 @@ Functions for visualizing data and results.
 - [`plot_umap_condition()`](https://eba28.github.io/athanor/reference/plot_umap_condition.md)
   : Plot a specific condition on a Seurat UMAP
 
+### Other plots
+
+- [`calc_pcts()`](https://eba28.github.io/athanor/reference/calc_pcts.md)
+  : Calculate percentages per metadata group
+
+- [`plot_doublets()`](https://eba28.github.io/athanor/reference/plot_doublets.md)
+  : Plot an overview of a doublet identification method
+
+- [`plot_mws()`](https://eba28.github.io/athanor/reference/plot_mws.md)
+  : Plot a box plot of modality weights per cell type
+
+- [`plot_pcts()`](https://eba28.github.io/athanor/reference/plot_pcts.md)
+  : Plot percentages in a stacked bar plot
+
 - [`plot_vln_feat()`](https://eba28.github.io/athanor/reference/plot_vln_feat.md)
   :
 
   Plot a Seurat `VlnPlot` and a `FeaturePlot` side by side for the same
   marker
-
-- [`plot_wnn_testing()`](https://eba28.github.io/athanor/reference/plot_wnn_testing.md)
-  : Plot the results of manual WNN testing
-
-- [`plot_wnn_umaps()`](https://eba28.github.io/athanor/reference/plot_wnn_umaps.md)
-  : Plot UMAPs of a Seurat object post-WNN
 
 ## Simulations
 

@@ -16,6 +16,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/eba28/athanor/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -60,6 +61,41 @@
 
       <dl></dl></div><div class="section level2">
 
+      <h3 id="pipeline">Pipeline<a class="anchor" aria-label="anchor" href="#pipeline"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="filter_variable_features.html">filter_variable_features()</a></code>
+
+        </dt>
+        <dd>Filter AIRR genes from variable features</dd>
+
+        <dt>
+
+          <code><a href="get_airr_genes.html">get_airr_genes()</a></code>
+
+        </dt>
+        <dd>Get IG and TR genes from Ensembl using biomaRt.</dd>
+
+        <dt>
+
+          <code><a href="seurat_pipeline.html">seurat_pipeline()</a></code>
+
+        </dt>
+        <dd>Run Seurat's standard pipeline</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="cell-type-annotation">Cell type annotation<a class="anchor" aria-label="anchor" href="#cell-type-annotation"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
 
 
 
@@ -76,8 +112,17 @@
 
         </dt>
         <dd>Run automated cell type annotation</dd>
+      </dl></div><div class="section level2">
 
-        <dt>
+      <h3 id="clustering-related">Clustering-related<a class="anchor" aria-label="anchor" href="#clustering-related"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="cell_type_clusters.html">cell_type_clusters()</a></code>
 
@@ -86,31 +131,10 @@
 
         <dt>
 
-          <code><a href="filter_variable_features.html">filter_variable_features()</a></code>
-
-        </dt>
-        <dd>Filter AIRR genes from variable features</dd>
-
-        <dt>
-
           <code><a href="find_k_clusters.html">find_k_clusters()</a></code>
 
         </dt>
         <dd>Find the right clustering resolution to obtain the desired number of clusters</dd>
-
-        <dt>
-
-          <code><a href="get_airr_genes.html">get_airr_genes()</a></code>
-
-        </dt>
-        <dd>Get IG and TR genes from Ensembl using biomaRt.</dd>
-
-        <dt>
-
-          <code><a href="seurat_pipeline.html">seurat_pipeline()</a></code>
-
-        </dt>
-        <dd>Run Seurat's standard pipeline</dd>
       </dl></div><div class="section level2">
       <h2 id="adaptive-immune-receptors">Adaptive Immune Receptors<a class="anchor" aria-label="anchor" href="#adaptive-immune-receptors"></a></h2>
 
@@ -259,7 +283,7 @@
 
       <dl></dl></div><div class="section level2">
 
-      <h3 id="adt-based-on-knn">ADT-based on kNN<a class="anchor" aria-label="anchor" href="#adt-based-on-knn"></a></h3>
+      <h3 id="adt-based-on-k-nearest-neighbors">ADT-based on k-nearest neighbors<a class="anchor" aria-label="anchor" href="#adt-based-on-k-nearest-neighbors"></a></h3>
 
 
       <dl></dl></div><div class="section level2">
@@ -355,6 +379,11 @@
 
       <dl></dl></div><div class="section level2">
 
+      <h3 id="accessory">Accessory<a class="anchor" aria-label="anchor" href="#accessory"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
 
 
 
@@ -367,31 +396,26 @@
 
         <dt>
 
-          <code><a href="calc_pcts.html">calc_pcts()</a></code>
-
-        </dt>
-        <dd>Calculate percentages per metadata group</dd>
-
-        <dt>
-
           <code><a href="plot_color_scale.html">plot_color_scale()</a></code>
 
         </dt>
         <dd>Generate a color scale for a ggplot2 plot with white at zero</dd>
+      </dl></div><div class="section level2">
 
-        <dt>
+      <h3 id="umaps">UMAPs<a class="anchor" aria-label="anchor" href="#umaps"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="plot_dimplot.html">plot_dimplot()</a></code>
 
         </dt>
         <dd>Plot a Seurat UMAP using <code>DimPlot</code></dd>
-
-        <dt>
-
-          <code><a href="plot_doublets.html">plot_doublets()</a></code>
-
-        </dt>
-        <dd>Plot an overview of a doublet identification method</dd>
 
         <dt>
 
@@ -402,24 +426,10 @@
 
         <dt>
 
-          <code><a href="plot_mws.html">plot_mws()</a></code>
-
-        </dt>
-        <dd>Plot a box plot of modality weights per cell type</dd>
-
-        <dt>
-
           <code><a href="plot_overview_comps.html">plot_overview_comps()</a></code>
 
         </dt>
         <dd>Plot several UMAPs side by side for a Seurat object</dd>
-
-        <dt>
-
-          <code><a href="plot_pcts.html">plot_pcts()</a></code>
-
-        </dt>
-        <dd>Plot percentages in a stacked bar plot</dd>
 
         <dt>
 
@@ -434,6 +444,43 @@
 
         </dt>
         <dd>Plot a specific condition on a Seurat UMAP</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="other-plots">Other plots<a class="anchor" aria-label="anchor" href="#other-plots"></a></h3>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="calc_pcts.html">calc_pcts()</a></code>
+
+        </dt>
+        <dd>Calculate percentages per metadata group</dd>
+
+        <dt>
+
+          <code><a href="plot_doublets.html">plot_doublets()</a></code>
+
+        </dt>
+        <dd>Plot an overview of a doublet identification method</dd>
+
+        <dt>
+
+          <code><a href="plot_mws.html">plot_mws()</a></code>
+
+        </dt>
+        <dd>Plot a box plot of modality weights per cell type</dd>
+
+        <dt>
+
+          <code><a href="plot_pcts.html">plot_pcts()</a></code>
+
+        </dt>
+        <dd>Plot percentages in a stacked bar plot</dd>
 
         <dt>
 
@@ -441,20 +488,6 @@
 
         </dt>
         <dd>Plot a Seurat <code>VlnPlot</code> and a <code>FeaturePlot</code> side by side for the same marker</dd>
-
-        <dt>
-
-          <code><a href="plot_wnn_testing.html">plot_wnn_testing()</a></code>
-
-        </dt>
-        <dd>Plot the results of manual WNN testing</dd>
-
-        <dt>
-
-          <code><a href="plot_wnn_umaps.html">plot_wnn_umaps()</a></code>
-
-        </dt>
-        <dd>Plot UMAPs of a Seurat object post-WNN</dd>
       </dl></div><div class="section level2">
       <h2 id="simulations">Simulations<a class="anchor" aria-label="anchor" href="#simulations"></a></h2>
 

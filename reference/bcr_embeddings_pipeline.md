@@ -1,7 +1,7 @@
 # Build a Seurat object from BCR embeddings
 
 Creates and processes a BCR-only Seurat object from a matrix of
-pre-computed embeddings (e.g. immune2vec, IgVec). Produces `bpca`,
+pre-computed embeddings (e.g. ESM2, immune2vec). Produces `bpca`,
 `BCR.nn`, `BCR_nn`, `BCR_snn`, and `bcr.umap` reductions/graphs.
 
 ## Usage

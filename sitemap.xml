@@ -3,6 +3,7 @@
 <url><loc>https://eba28.github.io/athanor/LICENSE.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/authors.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/index.html</loc></url>
+<url><loc>https://eba28.github.io/athanor/news/index.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/add_annotations.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/add_family_info.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/add_info_bar.html</loc></url>
@@ -44,8 +45,6 @@
 <url><loc>https://eba28.github.io/athanor/reference/plot_umap.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/plot_umap_condition.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/plot_vln_feat.html</loc></url>
-<url><loc>https://eba28.github.io/athanor/reference/plot_wnn_testing.html</loc></url>
-<url><loc>https://eba28.github.io/athanor/reference/plot_wnn_umaps.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/process_airrflow.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/process_bcr_features.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/reduce_object.html</loc></url>
