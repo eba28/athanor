@@ -89,7 +89,7 @@ reference:
   - plot_doublets
   - plot_mws
   - plot_pcts
-  - plot_vln_feats
+  - plot_vln_feat
 - title: Simulations
   desc: Simulate GEX and AIRR data.
 - contents:
