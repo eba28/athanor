@@ -29,7 +29,7 @@ prepares BCR data for integration with gene expression data in a Seurat object.
 Uses \code{recipes} to:
 \enumerate{
 \item Rename columns to distinguish from existing metadata
-\item Convert ordered factors to ordinal scores OR one-hot encode categoricals
+\item Convert ordered factors to ordinal scores OR one-hot encode categorical variables
 \item Center and normalize all numeric predictors
 \item Transpose the result for compatibility with Seurat assays
 You could do something like janitor::clean_names(bcr_features) to remove the underscores from the column names right off the bat, but one-hot encoding will add names with underscores automatically unless you messing with the \code{naming} argument in \code{step_dummy()}.

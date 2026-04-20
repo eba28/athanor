@@ -100,7 +100,7 @@ calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
 }
 
 
-#' Calculate Moran's i for a Seurat object
+#' Calculate Moran's i
 #'
 #' @description
 #' Calculates the global Moran's i index for an ADT feature given a neighbor

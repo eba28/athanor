@@ -1,3 +1,35 @@
+#' Simulate an assay made from BCR embeddings independent of any GEX object
+#'
+#' @description
+#' This function simulates an assay of BCR embeddings by generating a matrix of random values between -0.6 and 0.6, with a specified number of cells and embedding dimensions.
+#'
+#' @details
+#' The choice of value ranges was based off of real data, including having 9 decimal points.
+#'
+#' @param num_cells Number of cells to simulate.
+#' @param num_dims Number of embedding dimensions to simulate.
+#' @param separator Separator for cell and dimension names.
+#'
+#' @returns A Seurat Assay
+#' @export
+sim_bcr_manual <- function(num_cells, num_dims, separator) {
+  # simulate a matrix of immune2vec-style embeddings
+  bcr_embeddings <- round(runif(n = num_cells * num_dims, -0.6, 0.6), 9)
+  bcr_embeddings <- Matrix(data = bcr_embeddings,
+                           nrow = num_cells, ncol = num_dims,
+                           sparse = TRUE)
+
+  # format the AIRR parameters and cells
+  rownames(bcr_embeddings) <- paste("Cell", 1:num_cells, sep = separator)
+  colnames(bcr_embeddings) <- paste("Dim", 1:num_dims, sep = separator)
+
+  # match the existing format
+  bcr_embeddings <- t(bcr_embeddings)
+
+  return(bcr_embeddings)
+}
+
+
 #' Manually simulate gene expression data
 #'
 #' @description
@@ -88,39 +120,21 @@ sim_gex_splatter <- function(num_genes = 1000, num_cells = 2000,
 }
 
 
-#' Simulate an assay made from BCR embeddings independent of any GEX object
+#' Run manual WNN simulations by varying a specific variable while keeping others constant
 #'
 #' @description
-#' This function simulates an assay of BCR embeddings by generating a matrix of random values between -0.6 and 0.6, with a specified number of cells and embedding dimensions.
+#' This function runs a series of WNN simulations by varying a specified variable (e.g. number of genes, cells, dimensions, GEX PCs, BCR PCs) while keeping other parameters constant. It captures whether each simulation run passes without errors or warnings and returns a data frame summarizing the results.
 #'
 #' @details
-#' The choice of value ranges was based off of real data, including having 9 decimal points.
+#' It uses both [sim_bcr_manual()] and [sim_gex_manual()] to generate the necessary data for the WNN simulations. The function also includes error handling to capture any issues that arise during the simulation runs and provides an option to display a progress bar.
 #'
-#' @param num_cells Number of cells to simulate.
-#' @param num_dims Number of embedding dimensions to simulate.
-#' @param separator Separator for cell and dimension names.
+#' @param count_range A vector of values for the variable to be varied in the simulations.
+#' @param sim_var The name of the variable being varied (e.g. "Genes", "Cells", "Dimensions", "GEX PCs", "BCR PCs").
+#' @param other_vars A list of other variables and their constant values to be used in the simulations.
+#' @param show_progress Whether to display a progress bar during the simulations.
 #'
-#' @returns A Seurat Assay
-#' @export
-sim_bcr_manual <- function(num_cells, num_dims, separator) {
-  # simulate a matrix of immune2vec-style embeddings
-  bcr_embeddings <- round(runif(n = num_cells * num_dims, -0.6, 0.6), 9)
-  bcr_embeddings <- Matrix(data = bcr_embeddings,
-                           nrow = num_cells, ncol = num_dims,
-                           sparse = TRUE)
-
-  # format the AIRR parameters and cells
-  rownames(bcr_embeddings) <- paste("Cell", 1:num_cells, sep = separator)
-  colnames(bcr_embeddings) <- paste("Dim", 1:num_dims, sep = separator)
-
-  # match the existing format
-  bcr_embeddings <- t(bcr_embeddings)
-
-  return(bcr_embeddings)
-}
-
-
-#' Run manual WNN simulations by varying a specific variable while keeping others constant
+#' @returns A data frame with columns "Count" and "Passed", where "Count" corresponds to the values in `count_range` and "Passed" indicates whether the simulation run passed without errors (1), had warnings (0.5), or had errors (0).
+#'
 #' @export
 run_wnn_sims <- function(count_range, sim_var, other_vars,
                          show_progress = FALSE) {

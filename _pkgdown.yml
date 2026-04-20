@@ -10,6 +10,7 @@ reference:
 - contents:
   - reformat_vdj_barcode
   - reformat_vdj_barcode_sample
+
 - title: Gene Expression
   desc: Functions for processing and analyzing gene expression data.
 - subtitle: Pipeline
@@ -25,6 +26,7 @@ reference:
 - contents:
   - cell_type_clusters
   - find_k_clusters
+
 - title: Adaptive Immune Receptors
   desc: Functions for processing and analyzing adaptive immune receptor data.
 - subtitle: Read in data
@@ -40,6 +42,7 @@ reference:
   - bin_mu_freq
   - factor_family_info
   - process_bcr_features
+
 - title: GEX and AIRR Integration
   desc: Functions for integrating gene expression and adaptive immune receptor data.
 - subtitle: Metadata
@@ -52,6 +55,7 @@ reference:
 - contents:
   - extract_wnn_vars
   - run_wnn
+
 - title: Evaluation
   desc: Functions for evaluating the performance of models and analyses.
 - subtitle: ADT-based on k-nearest neighbors
@@ -67,9 +71,11 @@ reference:
   - calc_distances
   - calc_ext_metrics
   - calc_int_metrics
+
 - title: Applications
   desc: Functions for applying the package to specific use cases.
 - subtitle: Reclassification
+
 - title: Plotting
   desc: Functions for visualizing data and results.
 - subtitle: Accessory
@@ -90,10 +96,12 @@ reference:
   - plot_mws
   - plot_pcts
   - plot_vln_feat
+
 - title: Simulations
   desc: Simulate GEX and AIRR data.
 - contents:
   - contains("sim")
+
 - title: Utilities
   desc: Utility functions for various tasks.
 - contents:

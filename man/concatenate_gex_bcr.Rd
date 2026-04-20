@@ -33,7 +33,7 @@ LogNormalize. If FALSE, skip normalization.}
 
 \item{filter_genes}{If specified, filter out genes from this category (e.g. "IG" and/or "TR")}
 
-\item{ensembl_version}{If filtering genes, specify the Ensembl version to use for gene annotations (e.g. "GRCh38.104"). If NULL, uses the default version in \code{get_airr_genes()}.}
+\item{ensembl_version}{If filtering genes, specify the Ensembl version to use for gene annotations (e.g. "GRCh38.104"). If NULL, uses the default version in \code{\link[=get_airr_genes]{get_airr_genes()}}.}
 }
 \value{
 A Seurat object with:
@@ -50,10 +50,11 @@ data by concatenating processed BCR features with RNA data. Runs the standard
 Seurat pipeline on the combined data.
 }
 \details{
+This would typically be used after \code{\link[=seurat_pipeline]{seurat_pipeline()}} and \code{\link[=gex_add_airr]{gex_add_airr()}}.
 The function:
 \enumerate{
 \item Extracts specified BCR metadata columns from the Seurat object
-\item Processes BCR features using \code{process_bcr_features()}
+\item Processes BCR features using \code{\link[=process_bcr_features]{process_bcr_features()}}
 \item Creates a new assay by row-binding RNA and BCR data
 \item Optionally filters out IG/TR genes from variable features
 \item Runs standard Seurat workflow: normalize, scale, PCA, neighbors, UMAP
@@ -61,5 +62,4 @@ The function:
 }
 \note{
 Currently assumes BCR data is already integrated into object metadata.
-See \code{integrate_gex_airr()} for adding AIRR data to a Seurat object.
 }

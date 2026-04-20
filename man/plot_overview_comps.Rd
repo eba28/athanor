@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotting.R
 \name{plot_overview_comps}
 \alias{plot_overview_comps}
-\title{Plot several UMAPs side by side for a Seurat object}
+\title{Plot several UMAPs side by side}
 \usage{
 plot_overview_comps(
   seurat_objs,

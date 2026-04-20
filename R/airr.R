@@ -272,11 +272,11 @@ corresponding cell IDs in the combined AIRR file were removed.")
 #' Convert family and gene information to sorted factors
 #'
 #' @description
-#' Converts the gene family and gene columns added by `add_family_info()` to
+#' Converts the gene family and gene columns added by [add_family_info()] to
 #' properly ordered factors using numeric sorting.
 #'
 #' @details
-#' For after `add_family_info()` has been run
+#' For after [add_family_info()] has been run
 #'
 #' @param combined_airr An AIRR-formatted data.frame. This function ensures that gene
 #' families and genes are ordered correctly (e.g. IGHV1, IGHV2, IGHV10 instead
@@ -345,6 +345,7 @@ process_airrflow <- function(dataset_path, version_airrflow) {
   version_airrflow_num <-
     str_split_1(version_airrflow, pattern = "")[1:3] %>% str_c(collapse = "")
 
+  # TODO: make this more efficient
   # determine where the files are depending on the airrflow version
   path_repertoire <- file.path(dataset_path, "airrflow",
                                "bcr", version_airrflow, "results")
@@ -366,10 +367,10 @@ process_airrflow <- function(dataset_path, version_airrflow) {
   if (length(rep_files) == 0) {
     stop("No files found, are you sure you're using the correct directory?")
   }
-  combined_bcr <- map(rep_files, read_tsv, show_col_types = FALSE,
-                      # sometimes a "sex" column will use M or F which then
-                      # incorrectly reads as logical
-                      col_types = readr::cols(sex = readr::col_character())) %>%
+  combined_bcr <- purrr::map(rep_files, read_tsv, show_col_types = FALSE,
+                             # sometimes a "sex" column will use M or F which then
+                             # incorrectly reads as logical
+                             col_types = readr::cols(sex = readr::col_character())) %>%
                   bind_rows()
 
   # add in useful columns
@@ -392,11 +393,11 @@ process_airrflow <- function(dataset_path, version_airrflow) {
   if (!"isotype" %in% colnames(combined_bcr)) {
     combined_bcr <-
       combined_bcr %>%
-      mutate(isotype = case_when(str_detect(c_call, "IGHA") ~ "IgA",
-                                 str_detect(c_call, "IGHD") ~ "IgD",
-                                 str_detect(c_call, "IGHE") ~ "IgE",
-                                 str_detect(c_call, "IGHG") ~ "IgG",
-                                 str_detect(c_call, "IGHM") ~ "IgM"))
+      mutate(isotype = case_when(stringr::str_detect(c_call, "IGHA") ~ "IgA",
+                                 stringr::str_detect(c_call, "IGHD") ~ "IgD",
+                                 stringr::str_detect(c_call, "IGHE") ~ "IgE",
+                                 stringr::str_detect(c_call, "IGHG") ~ "IgG",
+                                 stringr::str_detect(c_call, "IGHM") ~ "IgM"))
   }
 
   # filter out heavy chains with unassigned isotypes
@@ -411,6 +412,7 @@ heavy chain{?s} with {.code NA} c_calls.")
     group_by(cell_id) %>%
     filter(!any(locus == "IGH")) %>%
     pull(cell_id)
+
   cli::cli_inform("{length(unpaired_light_chains)} unpaired light chain{?s} \\
 (no corresponding heavy chain with the same cell ID).")
   combined_bcr <- combined_bcr %>% filter(!cell_id %in% unpaired_light_chains)
@@ -421,6 +423,7 @@ heavy chain{?s} with {.code NA} c_calls.")
   multi_heavy_chains <- combined_bcr %>%
     filter(locus == "IGH", is.na(isotype)) %>%
     pull(cell_id)
+
   cli::cli_inform("{length(multi_heavy_chains)} heavy chain{?s} with light chain c_calls.")
   combined_bcr <- combined_bcr %>% filter(!cell_id %in% multi_heavy_chains)
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/clustering.R
 \name{calc_distances}
 \alias{calc_distances}
-\title{Calculate cluster distances for a Seurat object}
+\title{Calculate cluster distances}
 \usage{
 calc_distances(
   seurat_obj,

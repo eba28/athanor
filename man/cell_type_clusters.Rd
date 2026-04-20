@@ -24,3 +24,6 @@ A data.frame with a row for each cell type.
 This function maps cell types to Seurat clusters by counting the number of cells in each cluster that belong to each cell type, and then assigning the most common cell type to each cluster.
 It returns a data frame with the assigned cell types for each cluster.
 }
+\details{
+This would typically be used after \code{\link[=seurat_pipeline]{seurat_pipeline()}} and \code{\link[=add_annotations]{add_annotations()}}.
+}

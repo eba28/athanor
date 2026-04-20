@@ -25,6 +25,7 @@ A data.frame with the calculated percentages and counts for each group.
 }
 \description{
 This function calculates the percentage of occurrences of a specified focus group within a dataset, grouped by specified metadata columns.
+It can be used in conjunction with \code{\link[=plot_pcts]{plot_pcts()}} to visualize the results.
 }
 \details{
 This is not very elegant, but seems to work (dealing with string args is weird).

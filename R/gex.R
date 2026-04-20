@@ -2,8 +2,11 @@
 #'
 #' @description
 #' This function adds a user-specified list of cluster annotations to the Seurat object.
-#' It can be used for both manual and automated annotation, updating cell identities
+#' It can be used for adding both manual and automated annotations, updating cell identities
 #' and adding annotation columns to the metadata.
+#'
+#' @details
+#' This would typically be used after [seurat_pipeline()].
 #'
 #' @param seurat_obj The Seurat object to annotate.
 #' @param annotations_df Data frame containing cluster-to-cell-type mappings, typically
@@ -63,6 +66,7 @@ add_annotations <- function(seurat_obj, annotations_df,
 #' Supports CellTypist annotation methods.
 #' Assumes that the `Cells()` of `seurat_obj` are properly formatted (i.e. unique).
 #' For `CellTypist`, assumes the H5AD file and predictions have already been generated.
+#' This would typically be used after [seurat_pipeline()].
 #'
 #' @param seurat_obj The Seurat object. Must be the path to a H5AD object if using CellTypist.
 #' @param annotation_method Which method to use: CellTypist"
@@ -110,6 +114,9 @@ automated_annotation <- function(seurat_obj, annotation_method,
 #' This function maps cell types to Seurat clusters by counting the number of cells in each cluster that belong to each cell type, and then assigning the most common cell type to each cluster.
 #' It returns a data frame with the assigned cell types for each cluster.
 #'
+#' @details
+#' This would typically be used after [seurat_pipeline()] and [add_annotations()].
+#'
 #' @param seurat_obj The Seurat object.
 #' @param clusters_col The metadata column with the Seurat clusters.
 #' @param annotations_col The metadata column with the cell types.
@@ -136,6 +143,9 @@ cell_type_clusters <- function(seurat_obj, clusters_col = "seurat_clusters",
 #' @description
 #' Removes IG and/or TR genes from a Seurat object's variable features list.
 #' Optionally reports how many remaining features are GEX-only when BCR features are present.
+#'
+#' @details
+#' This will usually just be used as part of [seurat_pipeline()].
 #'
 #' @param seurat_obj A Seurat object.
 #' @param filter_genes Category of genes to remove (e.g. "IG" and/or "TR").
@@ -177,6 +187,9 @@ filter_variable_features <- function(seurat_obj, filter_genes,
 #' that yields the desired number of clusters. It uses the specified graph and returns the
 #' Seurat object with clusters if successful, or stops if the desired number is exceeded or not found.
 #'
+#' @details
+#' This would typically be used after [seurat_pipeline()].
+#'
 #' @param seurat_obj The Seurat object.
 #' @param graph_name The name of the graph to use for clustering.
 #' @param desired_k The desired number of clusters.
@@ -213,6 +226,9 @@ find_k_clusters <- function(seurat_obj, graph_name = "RNA_snn", desired_k) {
 #'
 #' @description
 #' This function retrieves IG and TR genes from Ensembl using the biomaRt package. This allows for accurate IG and TR gene names instead of using a search for genes that begin with "IG" or "TR".
+#'
+#' @details
+#' This will usually just be used as part of [seurat_pipeline()].
 #'
 #' @param genome The genome to use for gene annotation (e.g. "hsapiens" or "mmusculus").
 #' @param ensembl_version The Ensembl version to use for gene annotation (e.g. "114").

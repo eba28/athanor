@@ -63,7 +63,7 @@ plot_pcts(
 A stacked ggplot bar plot
 }
 \description{
-This function plots a stacked bar plot of percentages calculated using \code{calc_pcts()} with percentages
+This function plots a stacked bar plot of percentages calculated using \code{\link[=calc_pcts]{calc_pcts()}} with percentages
 labeled and total counts on top.
 }
 \details{

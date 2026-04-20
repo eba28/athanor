@@ -169,6 +169,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
 #' @export
 extract_wnn_vars <- function(seurat_obj, gex_pca = "rpca",
                              other_pca = "bpca", other_type = "BCR") {
+  # TODO: update this to work on a concatenated object too
   # base message (after AIRR integration)
   message <- paste("This object has", ncol(seurat_obj), "cells, ")
 

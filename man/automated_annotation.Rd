@@ -23,4 +23,5 @@ This function runs automated cell type annotation using \code{CellTypist}.
 Supports CellTypist annotation methods.
 Assumes that the \code{Cells()} of \code{seurat_obj} are properly formatted (i.e. unique).
 For \code{CellTypist}, assumes the H5AD file and predictions have already been generated.
+This would typically be used after \code{\link[=seurat_pipeline]{seurat_pipeline()}}.
 }

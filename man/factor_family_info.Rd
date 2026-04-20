@@ -15,9 +15,9 @@ of IGHV1, IGHV10, IGHV2).}
 A data.frame with up to six columns converted to sorted factors.
 }
 \description{
-Converts the gene family and gene columns added by \code{add_family_info()} to
+Converts the gene family and gene columns added by \code{\link[=add_family_info]{add_family_info()}} to
 properly ordered factors using numeric sorting.
 }
 \details{
-For after \code{add_family_info()} has been run
+For after \code{\link[=add_family_info]{add_family_info()}} has been run
 }

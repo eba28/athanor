@@ -1,4 +1,4 @@
-#' Calculate cluster distances for a Seurat object
+#' Calculate cluster distances
 #'
 #' @description
 #' This function calculates various cluster distance metrics using the `fpc::cluster.stats` function, which provides a comprehensive set of clustering statistics based on a distance matrix and cluster assignments.
@@ -131,7 +131,7 @@ calc_distances <- function(seurat_obj, reduction_name, criteria = "Within_Max",
 }
 
 
-#' Calculate external clustering metrics for a Seurat object
+#' Calculate external clustering metrics
 #'
 #' @description
 #' This function calculates various external clustering metrics using the `mclust` and `clevr` packages, which provide a comprehensive set of clustering evaluation statistics based on true cluster labels and predicted cluster assignments.
@@ -195,7 +195,7 @@ calc_ext_metrics <- function(seurat_obj, reduction_name,
 }
 
 
-#' Calculate internal clustering metrics for a Seurat object
+#' Calculate internal clustering metrics
 #'
 #' @description
 #' This function calculates various internal clustering metrics using the `cluster` package, which provides a comprehensive set of clustering evaluation statistics based on a distance matrix and cluster assignments.

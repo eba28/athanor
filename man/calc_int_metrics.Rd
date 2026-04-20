@@ -2,7 +2,7 @@
 % Please edit documentation in R/clustering.R
 \name{calc_int_metrics}
 \alias{calc_int_metrics}
-\title{Calculate internal clustering metrics for a Seurat object}
+\title{Calculate internal clustering metrics}
 \usage{
 calc_int_metrics(
   seurat_obj,

@@ -36,4 +36,5 @@ lightweight objects for Shiny apps or sharing.
 Modify this as needed if your object is built differently (e.g. tSNE instead).
 Uses \code{DietSeurat} to remove counts while preserving reductions and metadata.
 This is especially useful if you are making a Shiny app or just visualizing the data.
+This works well in conjunction with \code{\link[=seurat_pipeline]{seurat_pipeline()}}.
 }

@@ -31,7 +31,8 @@ A ggplot with the distribution of weights
 }
 \description{
 This function creates a box plot to visualize the distribution of modality weights (e.g. RNA vs. BCR) across different cell types or clusters in a post-WNN Seurat object.
+It should be run after \code{\link[=run_wnn]{run_wnn()}}.
 }
 \details{
-Assumes annotated_clusters is a column
+Assumes "annotated_clusters" is a column.
 }

@@ -21,3 +21,6 @@ This function iteratively tests clustering resolutions in Seurat to find the res
 that yields the desired number of clusters. It uses the specified graph and returns the
 Seurat object with clusters if successful, or stops if the desired number is exceeded or not found.
 }
+\details{
+This would typically be used after \code{\link[=seurat_pipeline]{seurat_pipeline()}}.
+}

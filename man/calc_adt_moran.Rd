@@ -2,7 +2,7 @@
 % Please edit documentation in R/evaluation.R
 \name{calc_adt_moran}
 \alias{calc_adt_moran}
-\title{Calculate Moran's i for a Seurat object}
+\title{Calculate Moran's i}
 \usage{
 calc_adt_moran(
   seurat_obj,

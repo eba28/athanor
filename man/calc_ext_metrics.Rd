@@ -2,7 +2,7 @@
 % Please edit documentation in R/clustering.R
 \name{calc_ext_metrics}
 \alias{calc_ext_metrics}
-\title{Calculate external clustering metrics for a Seurat object}
+\title{Calculate external clustering metrics}
 \usage{
 calc_ext_metrics(
   seurat_obj,

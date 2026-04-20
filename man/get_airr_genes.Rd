@@ -23,3 +23,6 @@ A character vector of IG and/or TR gene names to be filtered out from the most v
 \description{
 This function retrieves IG and TR genes from Ensembl using the biomaRt package. This allows for accurate IG and TR gene names instead of using a search for genes that begin with "IG" or "TR".
 }
+\details{
+This will usually just be used as part of \code{\link[=seurat_pipeline]{seurat_pipeline()}}.
+}

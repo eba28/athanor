@@ -119,6 +119,7 @@ map_assay_name <- function(base_assay) {
 #' Modify this as needed if your object is built differently (e.g. tSNE instead).
 #' Uses `DietSeurat` to remove counts while preserving reductions and metadata.
 #' This is especially useful if you are making a Shiny app or just visualizing the data.
+#' This works well in conjunction with [seurat_pipeline()].
 #'
 #' @param seurat_obj Processed Seurat object to reduce.
 #' @param dim_reducs Vector of dimensionality reductions to keep.

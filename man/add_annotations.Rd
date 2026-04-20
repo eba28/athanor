@@ -39,6 +39,9 @@ A Seurat object with added annotation information.
 }
 \description{
 This function adds a user-specified list of cluster annotations to the Seurat object.
-It can be used for both manual and automated annotation, updating cell identities
+It can be used for adding both manual and automated annotations, updating cell identities
 and adding annotation columns to the metadata.
+}
+\details{
+This would typically be used after \code{\link[=seurat_pipeline]{seurat_pipeline()}}.
 }

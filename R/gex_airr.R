@@ -6,6 +6,7 @@
 #' BCR data, including both heavy and light chain information.
 #'
 #' @details
+#' This would typically be used after [seurat_pipeline()] and before [concatenate_gex_bcr()].
 #' Right now this is just built to integrate in BCR data and assumes that the BCR data includes light chains.
 #' Assumes that `seurat_obj` contains `cell_id` and `annotated_clusters_simpler`.
 #' Collapsed light chains are alphabetized.

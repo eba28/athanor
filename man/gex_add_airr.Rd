@@ -33,6 +33,7 @@ gene expression (GEX) data in a Seurat object. Currently built to integrate
 BCR data, including both heavy and light chain information.
 }
 \details{
+This would typically be used after \code{\link[=seurat_pipeline]{seurat_pipeline()}} and before \code{\link[=concatenate_gex_bcr]{concatenate_gex_bcr()}}.
 Right now this is just built to integrate in BCR data and assumes that the BCR data includes light chains.
 Assumes that \code{seurat_obj} contains \code{cell_id} and \code{annotated_clusters_simpler}.
 Collapsed light chains are alphabetized.

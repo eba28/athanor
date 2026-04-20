@@ -28,3 +28,6 @@ The Seurat object with filtered variable features and Ensembl version saved to \
 Removes IG and/or TR genes from a Seurat object's variable features list.
 Optionally reports how many remaining features are GEX-only when BCR features are present.
 }
+\details{
+This will usually just be used as part of \code{\link[=seurat_pipeline]{seurat_pipeline()}}.
+}
