@@ -182,18 +182,19 @@ gex_add_airr <- function(seurat_obj, airr_type = "BCR",
     coverage <- mean(Cells(seurat_obj) %in% combined_airr_select$cell_id)
     count_excluded <- 1 - mean(combined_airr_select$cell_id %in% Cells(seurat_obj))
 
-    cat(sprintf("There are %d %s chain %s being integrated, %d of which have at least one paired %s chain. When filtered to just the ones that match by cell_id, they cover %d cells (%s of the GEX data (%d cells)). %d of these %s (%s of the total %s chains) did not have a match with the GEX cell ids and were excluded.\n",
-                count_gex_airr, chain_main, airr_type, count_paired, chain_other,
-                count_filtered, label_percent(accuracy = 0.1)(coverage),
-                ncol(seurat_obj), count_unmatched, airr_type,
-                label_percent(accuracy = 0.1)(count_excluded), count_gex_airr))
+    new_cols <- str_c(setdiff(colnames(seurat_obj[[]]), meta_cols_orig),
+                      collapse = ", ")
 
-    # good way to double check the right columns that were added
-    cat(paste0("The following new columns were added to the Seurat object's metadata: ",
-               str_c(setdiff(colnames(seurat_obj[[]]), meta_cols_orig),
-                     collapse = ", "), "."))
+    cli::cli_inform(c(
+      "i" = "There are {count_gex_airr} {chain_main} chain {airr_type} being integrated, \\
+{count_paired} of which have at least one paired {chain_other} chain.",
+      "i" = "When filtered to matching cell IDs: {count_filtered} cells \\
+({label_percent(accuracy = 0.1)(coverage)} of GEX data ({ncol(seurat_obj)} cells)).",
+      "i" = "{count_unmatched} {airr_type} \\
+({label_percent(accuracy = 0.1)(count_excluded)} of total {chain_main} chains) \\
+had no matching GEX cell IDs and were excluded.",
+      "i" = "New metadata columns added: {new_cols}."))
   }
-
 
   # return the updated Seurat object
   seurat_obj

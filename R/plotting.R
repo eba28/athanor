@@ -904,7 +904,7 @@ plot_umap_condition <- function(seurat_obj, tissue_type, clrs_specific,
     clrs_highlight <- clrs_specific[[condition_val]]
     plot_title <- condition_val
   } else {
-    cat("Invalid coloring system, please try again.")
+    cli::cli_abort("Invalid {.arg color_by} value: {.val {color_by}}. Please try again.")
   }
 
   # set up the plot

@@ -130,7 +130,7 @@ map_assay_name <- function(base_assay) {
 #' @export
 reduce_object <- function(seurat_obj, dim_reducs = "rna.umap", meta_cols,
                           remove_neighbors = TRUE, print_size = TRUE, ...) {
-  cat(paste("Currently reducing:", deparse(substitute(seurat_obj)), "\n"))
+  cli::cli_inform("Currently reducing: {deparse(substitute(seurat_obj))}")
 
   # modify this as desired
   obj_reduced <- DietSeurat(object = seurat_obj, dimreducs = dim_reducs, ...)
@@ -151,10 +151,10 @@ reduce_object <- function(seurat_obj, dim_reducs = "rna.umap", meta_cols,
 
   # print the before and after sizes
   if (print_size) {
-    cat(paste("Original object size:",
-              format(object.size(seurat_obj), units = "auto"), "\n"))
-    cat(paste("Reduced object size:",
-              format(object.size(obj_reduced), units = "auto"), "\n"))
+    cli::cli_inform(c(
+      "i" = "Original object size: {format(object.size(seurat_obj), units = 'auto')}",
+      "i" = "Reduced object size: {format(object.size(obj_reduced), units = 'auto')}"
+    ))
   }
 
   return(obj_reduced)

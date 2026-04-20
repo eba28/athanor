@@ -489,9 +489,9 @@ calc_neighbor_matches <- function(seurat_obj, nn_name,
   neighbor_matches <- neighbor_matches %>%
     mutate(Meta_Col = ifelse(Assay == "ADT", toupper(Meta_Col), Meta_Col))
 
-  cat(paste("Scores calculated on", k, "neighbors for",
-            str_replace_all(seurat_obj@misc$category, "_", " "),
-            str_replace_all(seurat_obj@misc$category_details, "_", " "), "\n"))
+  cli::cli_inform("Scores calculated on {k} neighbors for \\
+{str_replace_all(seurat_obj@misc$category, '_', ' ')} \\
+{str_replace_all(seurat_obj@misc$category_details, '_', ' ')}.")
 
   if (!rlang::is_missing(path_save)) {
     file_name <- tolower(str_c(category, category_details, sep = "_"))

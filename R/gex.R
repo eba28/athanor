@@ -79,7 +79,7 @@ automated_annotation <- function(seurat_obj, annotation_method,
    }
    # run CellTypist annotation
    if (annotation_method == "CellTypist") {
-      cat("Processing CellTypist annotation...\n")
+      cli::cli_inform("Processing CellTypist annotation...")
 
       if (!requireNamespace("reticulate", quietly = TRUE)) {
          stop("reticulate package is required for running CellTypist predictions")
@@ -159,13 +159,11 @@ filter_variable_features <- function(seurat_obj, filter_genes,
    if (!is.null(bcr_features)) {
       n_gex <- length(setdiff(VariableFeatures(seurat_obj),
                               str_replace_all(rownames(bcr_features), "_", "-")))
-      cat(paste0("After removing ", str_c(filter_genes, collapse = "/"),
-                 " genes: ", n_remaining, " variable features (",
-                 n_gex, " GEX-only).\n"))
+      cli::cli_inform("After removing {str_c(filter_genes, collapse = '/')} genes: \\
+{n_remaining} variable features ({n_gex} GEX-only).")
    } else {
-      cat(paste("After removing", str_c(filter_genes, collapse = "/"),
-                "genes, the total number of variable features is:",
-                n_remaining, "\n"))
+      cli::cli_inform("After removing {str_c(filter_genes, collapse = '/')} genes: \\
+{n_remaining} variable features.")
    }
 
    seurat_obj
@@ -187,15 +185,15 @@ filter_variable_features <- function(seurat_obj, filter_genes,
 #' @export
 find_k_clusters <- function(seurat_obj, graph_name = "RNA_snn", desired_k) {
    # TODO: increase this range
-   for (res in seq(0.1, 2, by = 0.1)) {
-      cat(paste0("Checking resolution ", res, ": "))
+   cli::cli_inform("Checking resolution {res}...")
 
+   for (res in seq(0.1, 2, by = 0.1)) {
       seurat_obj <-
          suppressWarnings(FindClusters(seurat_obj, resolution = res,
                                        graph.name = graph_name, algorithm = 1, # 4
                                        verbose = FALSE))
       n_clusters <- n_distinct(seurat_obj$seurat_clusters)
-      cat(paste(n_clusters, "clusters\n"))
+      cli::cli_inform("Resolution {res}: {n_clusters} cluster{?s}")
 
       if (n_clusters == desired_k) {
          # message(paste("Resolution", res, "gives", desired_k, "clusters"))

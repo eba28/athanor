@@ -226,5 +226,5 @@ extract_wnn_vars <- function(seurat_obj, gex_pca = "rpca",
   }
 
   # output the message
-  cat(message)
+  cli::cli_inform(message)
 }

@@ -20,6 +20,7 @@ Imports:
     ape,
     biomaRt,
     clevr,
+    cli,
     cluster,
     clusterSim,
     clValid,

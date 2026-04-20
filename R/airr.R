@@ -224,8 +224,8 @@ convert_embeddings <- function(embeddings, combined_airr, combined_airr_input) {
   if (length(embeddings_only_cell_ids) > 0) { # or any(is.na(cell_ids))
     embeddings <- filter(embeddings, !cell_id %in% embeddings_only_cell_ids)
   }
-  cat(paste(length(embeddings_only_cell_ids), "cells in the embedding with no",
-            "corresponding cell ids in the combined AIRR file were removed.\n"))
+  cli::cli_inform("{length(embeddings_only_cell_ids)} cell{?s} in the embedding with no \\
+corresponding cell IDs in the combined AIRR file were removed.")
 
   # depending on how AMULETy was run and read in, there might be sample names
   # in their own column
@@ -400,9 +400,8 @@ process_airrflow <- function(dataset_path, version_airrflow) {
   }
 
   # filter out heavy chains with unassigned isotypes
-  cat(paste("There are",
-            nrow(filter(combined_bcr, locus == "IGH", is.na(c_call))),
-            "heavy chains with `NA` c_calls.\n"))
+  cli::cli_inform("{nrow(filter(combined_bcr, locus == 'IGH', is.na(c_call)))} \\
+heavy chain{?s} with {.code NA} c_calls.")
   combined_bcr <- combined_bcr %>% filter(!is.na(c_call) | locus != "IGH")
 
   # filter out cells with unpaired light chains
@@ -412,8 +411,8 @@ process_airrflow <- function(dataset_path, version_airrflow) {
     group_by(cell_id) %>%
     filter(!any(locus == "IGH")) %>%
     pull(cell_id)
-  cat(paste("There are", length(unpaired_light_chains), "unpaired light",
-            "chains (no corresponding heavy chain with the same cell id).\n"))
+  cli::cli_inform("{length(unpaired_light_chains)} unpaired light chain{?s} \\
+(no corresponding heavy chain with the same cell ID).")
   combined_bcr <- combined_bcr %>% filter(!cell_id %in% unpaired_light_chains)
 
   # filter out heavy chains with light chains assigned to the isotype
@@ -422,8 +421,7 @@ process_airrflow <- function(dataset_path, version_airrflow) {
   multi_heavy_chains <- combined_bcr %>%
     filter(locus == "IGH", is.na(isotype)) %>%
     pull(cell_id)
-  cat(paste("There are", length(multi_heavy_chains), "heavy chains with light",
-            "chain c_calls.\n"))
+  cli::cli_inform("{length(multi_heavy_chains)} heavy chain{?s} with light chain c_calls.")
   combined_bcr <- combined_bcr %>% filter(!cell_id %in% multi_heavy_chains)
 
   # preserve the original c_call column and create a simplified version
@@ -451,8 +449,7 @@ process_airrflow <- function(dataset_path, version_airrflow) {
   # add gene family information
   combined_bcr <- add_family_info(combined_airr = combined_bcr)
 
-  cat(paste("There are", nrow(filter(combined_bcr)),
-            "total chains in the combined data."))
+  cli::cli_inform("{nrow(combined_bcr)} total chain{?s} in the combined data.")
 
   return(combined_bcr)
 }

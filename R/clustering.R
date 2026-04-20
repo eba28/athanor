@@ -32,24 +32,24 @@ calc_distances <- function(seurat_obj, reduction_name, criteria = "Within_Max",
 
   # check for issues before calling cluster.stats
   if (any(is.na(dist_matrix))) {
-    cat("Warning: Distance matrix contains NAs.\n")
+    cli::cli_warn("Distance matrix contains NAs.")
     # Option: Remove NAs or use complete cases only
   }
   if (any(is.na(clusters_int))) {
-    cat("Warning: Clustering vector contains NAs.\n") # should never happen
+    cli::cli_warn("Clustering vector contains NAs.") # should never happen
     valid_indices <- !is.na(clusters_int)
     clusters_int <- clusters_int[valid_indices]
     # may also need to subset the distance matrix accordingly
   }
   if (xfun::attr2(dist_matrix, "Size") != length(clusters_int)) {
-    cat("Length mismatch between the distance matrix and the clustering.\n")
+    cli::cli_warn("Length mismatch between the distance matrix and the clustering.")
   }
 
   # call cluster.stats with error handling
   tryCatch({
     cluster_stats <- fpc::cluster.stats(d = dist_matrix, clustering = clusters_int)
   }, error = function(e) {
-    cat("Error in cluster.stats:", e$message, "\n")
+    cli::cli_warn("Error in {.fn cluster.stats}: {e$message}")
     return(NULL)
   })
 
