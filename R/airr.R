@@ -58,43 +58,60 @@ add_family_info <- function(combined_airr) {
 #'   AIRR metadata columns. If NULL, the step is skipped.
 #' @param airr_cols Character vector of columns to add from `combined_airr`.
 #'   Only used when `combined_airr` is provided.
+#' @param verbose Logical indicating whether to print progress messages.
 #'
 #' @returns A Seurat object with BCR assay, PCA (`bpca`), neighbor graphs
 #'   (`BCR_nn`, `BCR_snn`, `BCR.nn`), and UMAP (`bcr.umap`).
 #' @export
 bcr_embeddings_pipeline <- function(embeddings, embedding_type,
                                     num_pcs = 50, num_dims = 20, k_param = 20,
-                                    combined_airr = NULL, airr_cols = NULL) {
-  seurat_obj <- CreateSeuratObject(counts = embeddings, assay = "BCR")
-  seurat_obj$cell_id <- Cells(seurat_obj)
-  VariableFeatures(seurat_obj) <- rownames(seurat_obj[["BCR"]])
+                                    combined_airr = NULL, airr_cols = NULL,
+                                    verbose = TRUE) {
+  # if embeddings are not already given as a sparse numeric matrix, convert them
+  if (!is(embeddings, "dgCMatrix")) {
+    embeddings <- as(embeddings, "dgCMatrix")
+  }
 
-  seurat_obj <- SetAssayData(seurat_obj, layer = "data",
-                             new.data = GetAssayData(seurat_obj, assay = "BCR",
-                                                     layer = "counts"))
-  seurat_obj <- SetAssayData(seurat_obj, layer = "scale.data",
-                             new.data = as.matrix(embeddings))
+  # set up an empty Seurat object
+  seurat_obj <- Seurat::CreateSeuratObject(counts = embeddings, assay = "BCR")
+  seurat_obj$cell_id <- Seurat::Cells(seurat_obj)
+  Seurat::VariableFeatures(seurat_obj) <- rownames(seurat_obj[["BCR"]])
+
+  # embeddings are already normalized and scaled so those steps can be skipped
+  seurat_obj <-
+    Seurat::SetAssayData(seurat_obj, layer = "data",
+                         new.data = GetAssayData(seurat_obj, assay = "BCR",
+                                                 layer = "counts"))
+  seurat_obj <-
+    Seurat::SetAssayData(seurat_obj, layer = "scale.data",
+                         new.data = as.matrix(embeddings))
 
   if (!is.null(combined_airr)) {
     seurat_obj <- gex_add_airr(seurat_obj, combined_airr = combined_airr,
                                new_cols = airr_cols)
   }
 
-  seurat_obj <- RunPCA(object = seurat_obj, npcs = num_pcs,
-                       reduction.name = "bpca", reduction.key = "bpca_")
-  seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "bpca",
-                              dims = 1:num_dims, k.param = k_param,
-                              return.neighbor = TRUE, graph.name = "BCR.nn")
-  seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "bpca",
-                              dims = 1:num_dims, k.param = k_param,
-                              compute.SNN = TRUE,
-                              graph.name = str_c("BCR_", c("", "s"), "nn"))
-  seurat_obj <- RunUMAP(object = seurat_obj, reduction = "bpca",
-                        n.neighbors = k_param, nn.name = "BCR.nn",
-                        reduction.name = "bcr.umap", reduction.key = "bcrUMAP_")
+  seurat_obj <- Seurat::RunPCA(object = seurat_obj, npcs = num_pcs,
+                               reduction.name = "bpca", reduction.key = "bpca_",
+                               verbose = verbose)
+  seurat_obj <- Seurat::FindNeighbors(object = seurat_obj, reduction = "bpca",
+                                      dims = 1:num_dims, k.param = k_param,
+                                      return.neighbor = TRUE,
+                                      graph.name = "BCR.nn", verbose = verbose)
+  seurat_obj <- Seurat::FindNeighbors(object = seurat_obj, reduction = "bpca",
+                                      dims = 1:num_dims, k.param = k_param,
+                                      compute.SNN = TRUE,
+                                      graph.name =
+                                        str_c("BCR_", c("", "s"), "nn"),
+                                      verbose = verbose)
+  seurat_obj <- Seurat::RunUMAP(object = seurat_obj, reduction = "bpca",
+                                n.neighbors = k_param, nn.name = "BCR.nn",
+                                reduction.name = "bcr.umap",
+                                reduction.key = "bcrUMAP_",
+                                verbose = verbose)
 
-  Misc(seurat_obj, slot = "embeddings_dims") <- nrow(seurat_obj@assays$BCR)
-  Misc(seurat_obj, slot = "embedding_type") <- embedding_type
+  Seurat::Misc(seurat_obj, slot = "embeddings_dims") <- nrow(embeddings)
+  Seurat::Misc(seurat_obj, slot = "embedding_type") <- embedding_type
 
   seurat_obj
 }
@@ -450,7 +467,7 @@ process_airrflow <- function(dataset_path, version_airrflow) {
 #'
 #' @details Uses `recipes` to:
 #'   1. Rename columns to distinguish from existing metadata
-#'   2. Convert ordered factors to ordinal scores OR one-hot encode categoricals
+#'   2. Convert ordered factors to ordinal scores OR one-hot encode categorical variables
 #'   3. Center and normalize all numeric predictors
 #'   4. Transpose the result for compatibility with Seurat assays
 #'  You could do something like janitor::clean_names(bcr_features) to remove the underscores from the column names right off the bat, but one-hot encoding will add names with underscores automatically unless you messing with the `naming` argument in `step_dummy()`.
@@ -466,37 +483,48 @@ process_airrflow <- function(dataset_path, version_airrflow) {
 #'   - Underscores are removed from feature names (so Seurat doesn't throw a warning)
 #' @export
 process_bcr_features <- function(bcr_features) {
-  # TODO: print out what steps were taken
+  has_ordered <- any(sapply(bcr_features, is.ordered))
+
+  # rename numeric columns
+  bcr_features <- bcr_features %>%
+                    rename_with(~str_c(., "-scaled"), where(is.numeric))
 
   # rename (to distinguish from existing metadata) and convert the columns
-  if (any(sapply(bcr_features, is.ordered))) {
+  if (has_ordered) {
+    cli::cli_inform(c("i" = "Ordered variables detected: converting with ordinal scoring"))
     bcr_features <- bcr_features %>%
-      rename_with(~paste0(., "-ordered"), where(is.ordered)) %>%
-      rename_with(~paste0(., "-scaled"), where(is.numeric))
+                      rename_with(~str_c(., "-ordered"), where(is.ordered))
 
     # convert ordered variables to numeric
     ref_cell <- recipe( ~ ., data = bcr_features) %>%
-      step_ordinalscore(all_ordered_predictors())
+                  step_ordinalscore(all_ordered_predictors())
   } else {
-    bcr_features <- bcr_features %>%
-      rename_with(~paste0(., "-scaled"), everything())
+    cli::cli_inform(c("i" = "No ordered variables: applying one-hot encoding to nominal predictors"))
 
     # one-hot encoding of categorical variables
     ref_cell <- recipe( ~ ., data = bcr_features) %>%
-      # cover missing values just in case
-      step_unknown(all_nominal_predictors()) %>%
-      step_dummy(all_nominal_predictors(), one_hot = TRUE)
+                  # cover missing values just in case
+                  step_unknown(all_nominal_predictors()) %>%
+                  step_dummy(all_nominal_predictors(), one_hot = TRUE)
   }
 
-  # TODO: add step_zv()?
-
-  # centers and normalizes to mean of 0 and sd of 1
+  # step_zv removes zero-variance columns (e.g. uniform "unknown" levels from step_unknown)
+  # before normalization, which would produce NaN/Inf for them
   ref_cell <- ref_cell %>%
-    step_normalize(all_numeric_predictors()) %>%
-    prep(training = bcr_features)
+                step_zv(all_predictors()) %>%
+                step_normalize(all_numeric_predictors()) %>%
+                prep(training = bcr_features)
+
+  n_removed <- length(ref_cell$steps[[which(sapply(ref_cell$steps, \(s) inherits(s, "step_zv")))]]$removals)
+  if (n_removed > 0) {
+    cli::cli_inform(c("i" = "Removed {n_removed} zero-variance feature{?s}"))
+  }
+
   bcr_features <- bake(ref_cell, new_data = NULL) %>% t()
 
-  # "Feature names cannot have underscores ('_'), replacing with dashes ('-')"
+  cli::cli_inform(c("v" = "Processed {nrow(bcr_features)} feature{?s} across {ncol(bcr_features)} cell{?s}"))
+
+  # step_dummy uses underscores for level names; Seurat requires dashes in feature names
   rownames(bcr_features) <- gsub("_", "-", rownames(bcr_features))
 
   return(bcr_features)
