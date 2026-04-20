@@ -1,14 +1,4 @@
 # helper functions ####
-make_embeddings <- function(num_dims = 100, num_cells = 100, seed = 42) {
-  set.seed(seed)
-
-  m <- matrix(rnorm(num_dims * num_cells), nrow = num_dims, ncol = num_cells)
-  rownames(m) <- paste0("Dim-", seq_len(num_dims))
-  colnames(m) <- paste0("Cell-", seq_len(num_cells))
-
-  return(m)
-}
-
 make_airr_df <- function(barcodes, num_dims = 5, seed = 42) {
   set.seed(seed)
 
@@ -19,9 +9,52 @@ make_airr_df <- function(barcodes, num_dims = 5, seed = 42) {
   return(df)
 }
 
+make_airrflow_dir <- function(base_dir, version) {
+  version_num <- str_split_1(version, pattern = "")[1:3] %>% str_c(collapse = "")
+  results_path <- file.path(base_dir, "airrflow", "bcr", version, "results")
+
+  rep_path <- if (version_num < 4.2) {
+    file.path(results_path, "repertoire_comparison", "repertoires")
+  } else if (version_num == "4.3") {
+    file.path(results_path, "clonal_analysis", "define_clones",
+              "all_reps_clone_report", "repertoires")
+  } else {
+    file.path(results_path, "clonal_analysis", "clonal_assignment",
+              "all_reps_clone_report", "repertoires")
+  }
+
+  dir.create(rep_path, recursive = TRUE)
+  rep_path
+}
+
+make_bcr_row <- function(cell_id, locus, c_call,
+                         sample_id = "S1", subject_id = "Subj1", sex = "Female",
+                         clone_id = "1", v_call = "IGHV1-2*01",
+                         d_call = "IGHD3-10*01", j_call = "IGHJ4*02") {
+  # 60-nt junction: divisible by 3, starts with conserved Cys (TGT), valid for
+  # `aminoAcidProperties(nt = TRUE, trim = TRUE)`
+  junction <- "TGTGCGAGAGATTACGGTATGGACTACTGGGGCCAAGGAACCCTGGTCACCGTCTCCTCA"
+
+  data.frame(sequence_id = paste0(cell_id, "_", locus),
+             cell_id = cell_id, locus = locus, c_call  = c_call,
+             sample_id = sample_id, subject_id  = subject_id, sex = sex,
+             clone_id = clone_id, junction = junction,
+             v_call = v_call, d_call = d_call, j_call = j_call)
+}
+
 make_combined_airr <- function(barcodes, sample = "sample") {
   data.frame(cell_id = paste0(sample, "_", sub("-.*", "", barcodes)),
              cell_id_original = barcodes)
+}
+
+make_embeddings <- function(num_dims = 100, num_cells = 100, seed = 42) {
+  set.seed(seed)
+
+  m <- matrix(rnorm(num_dims * num_cells), nrow = num_dims, ncol = num_cells)
+  rownames(m) <- paste0("Dim-", seq_len(num_dims))
+  colnames(m) <- paste0("Cell-", seq_len(num_cells))
+
+  return(m)
 }
 
 make_seurat_mu_freq <- function(mu_freqs, seed = 42) {
@@ -34,6 +67,10 @@ make_seurat_mu_freq <- function(mu_freqs, seed = 42) {
   obj$mu_freq <- mu_freqs
 
   return(obj)
+}
+
+write_airrflow_tsv <- function(rep_path, data, filename = "reps.tsv") {
+  readr::write_tsv(data, file.path(rep_path, filename))
 }
 
 # test data ####
@@ -212,6 +249,229 @@ test_that("factor_family_info skips absent call columns", {
   result <- factor_family_info(df)
 
   expect_false("d_call_family" %in% names(result))
+})
+
+
+# process_airrflow ####
+test_that("process_airrflow errors when no repertoire files are found", {
+  dir <- withr::local_tempdir()
+  make_airrflow_dir(dir, "4.0")
+
+  expect_error(process_airrflow(dir, "4.0"), "No files found")
+})
+
+test_that("process_airrflow creates clone_id_unique as subject_id + clone_id", {
+  dir <- withr::local_tempdir()
+  rep_path <- make_airrflow_dir(dir, "4.0")
+  data <- rbind(make_bcr_row(cell_id = "AAAC1-1", locus = "IGH",
+                             v_call = "IGHM*01", subject_id = "S1",
+                             clone_id = "7"),
+                make_bcr_row(cell_id = "AAAC1-1", locus = "IGK",
+                             v_call = "IGKC", subject_id = "S1",
+                             clone_id = "7"))
+  write_airrflow_tsv(rep_path, data)
+
+  result <- suppressMessages(process_airrflow(dir, "4.0"))
+
+  expect_true("clone_id_unique" %in% colnames(result))
+  expect_equal(result$clone_id_unique[result$locus == "IGH"], "S1_7")
+})
+
+test_that("process_airrflow stores original cell_id and adds sample_id prefix", {
+  dir <- withr::local_tempdir()
+  rep_path <- make_airrflow_dir(dir, "4.0")
+  data <- rbind(make_bcr_row(cell_id = "AAAC1-1", locus = "IGH",
+                             v_call = "IGHM*01", sample_id = "S1"),
+                make_bcr_row(cell_id = "AAAC1-1", locus = "IGK",
+                             v_call = "IGKC", sample_id = "S1"))
+  write_airrflow_tsv(rep_path, data)
+
+  result <- suppressMessages(process_airrflow(dir, "4.0"))
+
+  expect_true("cell_id_original" %in% colnames(result))
+  expect_equal(result$cell_id_original[result$locus == "IGH"], "AAAC1-1")
+  expect_equal(result$cell_id[result$locus == "IGH"], "S1_AAAC1")
+})
+
+test_that("process_airrflow derives isotype from c_call when column is absent", {
+  dir <- withr::local_tempdir()
+  rep_path <- make_airrflow_dir(dir, "4.0")
+  data <- rbind(make_bcr_row(cell_id = "AAAC1-1", locus = "IGH",
+                             v_call = "IGHG1*01"),
+                make_bcr_row(cell_id = "AAAC1-1", locus = "IGK",
+                             v_call = "IGKC"))
+  write_airrflow_tsv(rep_path, data)
+
+  result <- suppressMessages(process_airrflow(dir, "4.0"))
+
+  expect_true("isotype" %in% colnames(result))
+  expect_equal(result$isotype[result$locus == "IGH"], "IgG")
+})
+
+test_that("process_airrflow converts sex column to character", {
+  # TODO: write this
+})
+
+test_that("process_airrflow preserves a pre-existing isotype column unchanged", {
+  dir <- withr::local_tempdir()
+  rep_path <- make_airrflow_dir(dir, "4.0")
+  data <- rbind(make_bcr_row(cell_id = "AAAC1-1", locus = "IGH",
+                             v_call = "IGHM*01"),
+                make_bcr_row(cell_id = "AAAC1-1", locus = "IGK",
+                             v_call = "IGKC"))
+  data$isotype <- c("IgM", NA)
+  write_airrflow_tsv(rep_path, data)
+
+  result <- suppressMessages(process_airrflow(dir, "4.0"))
+
+  expect_equal(result$isotype[result$locus == "IGH"], "IgM")
+})
+
+test_that("process_airrflow filters out IGH rows with NA c_call", {
+  dir <- withr::local_tempdir()
+  rep_path <- make_airrflow_dir(dir, "4.0")
+  data <- rbind(make_bcr_row(cell_id = "AAAC1-1", locus = "IGH",
+                             v_call = NA),
+                make_bcr_row(cell_id = "AAAC1-1", locus = "IGK",
+                             v_call = "IGKC"),
+                make_bcr_row(cell_id = "AAAC2-1", locus = "IGH",
+                             v_call = "IGHM*01"),
+                make_bcr_row(cell_id = "AAAC2-1", locus = "IGK",
+                             v_call = "IGKC"))
+  write_airrflow_tsv(rep_path, data)
+
+  result <- suppressMessages(process_airrflow(dir, "4.0"))
+
+  expect_false("S1_AAAC1" %in% result$cell_id)
+  expect_true("S1_AAAC2" %in% result$cell_id)
+})
+
+test_that("process_airrflow filters out light chains with no paired heavy chain", {
+  dir <- withr::local_tempdir()
+  rep_path <- make_airrflow_dir(dir, "4.0")
+  data <- rbind(make_bcr_row(cell_id = "AAAC1-1", locus = "IGH",
+                             v_call = "IGHM*01"),
+                make_bcr_row(cell_id = "AAAC1-1", locus = "IGK",
+                             v_call = "IGKC"),
+                make_bcr_row(cell_id = "AAAC2-1", locus = "IGK",
+                             v_call = "IGKC"))  # no IGH
+  write_airrflow_tsv(rep_path, data)
+
+  result <- suppressMessages(process_airrflow(dir, "4.0"))
+
+  expect_false("S1_AAAC2" %in% result$cell_id)
+  expect_true("S1_AAAC1" %in% result$cell_id)
+})
+
+test_that("process_airrflow filters out IGH rows with a non-IGH c_call (multi chains)", {
+  dir <- withr::local_tempdir()
+  rep_path <- make_airrflow_dir(dir, "4.0")
+  data <- rbind(make_bcr_row(cell_id = "AAAC1-1", locus = "IGH",
+                             v_call = "IGHM*01"),
+                make_bcr_row(cell_id = "AAAC1-1", locus = "IGK",
+                             v_call = "IGKC"),
+                make_bcr_row(cell_id = "AAAC2-1", locus = "IGH",
+                             v_call = "IGLC1"),  # light c_call on IGH
+                make_bcr_row(cell_id = "AAAC2-1", locus = "IGK",
+                             v_call = "IGKC"))
+  write_airrflow_tsv(rep_path, data)
+
+  result <- suppressMessages(process_airrflow(dir, "4.0"))
+
+  expect_false("S1_AAAC2" %in% result$cell_id)
+  expect_true("S1_AAAC1" %in% result$cell_id)
+})
+
+test_that("process_airrflow stores original c_call in c_call_original", {
+  dir <- withr::local_tempdir()
+  rep_path <- make_airrflow_dir(dir, "4.0")
+  data <- rbind(make_bcr_row(cell_id = "AAAC1-1", locus = "IGH",
+                             v_call = "IGHM*01"),
+                make_bcr_row(cell_id = "AAAC1-1", locus = "IGK",
+                             v_call = "IGKC"))
+  write_airrflow_tsv(rep_path, data)
+
+  result <- suppressMessages(process_airrflow(dir, "4.0"))
+
+  expect_true("c_call_original" %in% colnames(result))
+  expect_equal(result$c_call_original[result$locus == "IGH"], "IGHM*01")
+})
+
+test_that("process_airrflow simplifies c_call to gene family level", {
+  dir <- withr::local_tempdir()
+  rep_path <- make_airrflow_dir(dir, "4.0")
+  data <- rbind(make_bcr_row(cell_id = "AAAC1-1", locus = "IGH",
+                             v_call = "IGHM*01"),
+                make_bcr_row(cell_id = "AAAC1-1", locus = "IGK",
+                             v_call = "IGKC"))
+  write_airrflow_tsv(rep_path, data)
+
+  result <- suppressMessages(process_airrflow(dir, "4.0"))
+
+  expect_equal(result$c_call[result$locus == "IGH"], "IGHM")
+})
+
+test_that("process_airrflow adds v_call_family and v_call_gene columns", {
+  dir <- withr::local_tempdir()
+  rep_path <- make_airrflow_dir(dir, "4.0")
+  data <- rbind(make_bcr_row(cell_id = "AAAC1-1", locus = "IGH",
+                             v_call = "IGHM*01"),
+                make_bcr_row(cell_id = "AAAC1-1", locus = "IGK",
+                             v_call = "IGKC"))
+  write_airrflow_tsv(rep_path, data)
+
+  result <- suppressMessages(process_airrflow(dir, "4.0"))
+
+  expect_true("v_call_family" %in% colnames(result))
+  expect_true("v_call_gene" %in% colnames(result))
+})
+
+test_that("process_airrflow combines rows from multiple TSV files", {
+  dir <- withr::local_tempdir()
+  rep_path <- make_airrflow_dir(dir, "4.0")
+  data1 <- rbind(make_bcr_row(cell_id = "AAAC1-1", locus = "IGH",
+                              v_call = "IGHM*01", sample_id = "S1"),
+                 make_bcr_row(cell_id = "AAAC1-1", locus = "IGK",
+                              v_call = "IGKC", sample_id = "S1"))
+  data2 <- rbind(make_bcr_row(cell_id = "AAAC2-1", locus = "IGH",
+                              v_call = "IGHA1", sample_id = "S2"),
+                 make_bcr_row(cell_id = "AAAC2-1", locus = "IGK",
+                              v_call = "IGKC", sample_id = "S2"))
+  write_airrflow_tsv(rep_path, data1, "sub1.tsv")
+  write_airrflow_tsv(rep_path, data2, "sub2.tsv")
+
+  result <- suppressMessages(process_airrflow(dir, "4.0"))
+
+  expect_true("S1_AAAC1" %in% result$cell_id)
+  expect_true("S2_AAAC2" %in% result$cell_id)
+})
+
+test_that("process_airrflow uses the v4.3 path for version 4.3.1", {
+  dir <- withr::local_tempdir()
+  rep_path <- make_airrflow_dir(dir, "4.3.1")
+  data <- rbind(make_bcr_row(cell_id = "AAAC1-1", locus = "IGH",
+                             v_call = "IGHM*01"),
+                make_bcr_row(cell_id = "AAAC1-1", locus = "IGK",
+                             v_call = "IGKC"))
+  write_airrflow_tsv(rep_path, data)
+
+  result <- suppressMessages(process_airrflow(dir, "4.3.1"))
+
+  expect_true("S1_AAAC1" %in% result$cell_id)
+})
+
+test_that("process_airrflow uses the v5 path for version 5.0.0", {
+  dir <- withr::local_tempdir()
+  rep_path <- make_airrflow_dir(dir, "5.0.0")
+  data <- rbind(make_bcr_row(cell_id = "AAAC1-1", locus = "IGH",
+                             v_call = "IGHM*01"),
+                make_bcr_row(cell_id = "AAAC1-1", locus = "IGK",
+                             v_call = "IGKC"))
+  write_airrflow_tsv(rep_path, data)
+
+  result <- suppressMessages(process_airrflow(dir, "5.0.0"))
+
+  expect_true("S1_AAAC1" %in% result$cell_id)
 })
 
 

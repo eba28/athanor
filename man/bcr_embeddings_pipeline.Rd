@@ -11,7 +11,8 @@ bcr_embeddings_pipeline(
   num_dims = 20,
   k_param = 20,
   combined_airr = NULL,
-  airr_cols = NULL
+  airr_cols = NULL,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -30,6 +31,8 @@ AIRR metadata columns. If NULL, the step is skipped.}
 
 \item{airr_cols}{Character vector of columns to add from \code{combined_airr}.
 Only used when \code{combined_airr} is provided.}
+
+\item{verbose}{Logical indicating whether to print progress messages.}
 }
 \value{
 A Seurat object with BCR assay, PCA (\code{bpca}), neighbor graphs

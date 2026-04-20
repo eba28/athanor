@@ -6,7 +6,7 @@
 \usage{
 concatenate_gex_bcr(
   seurat_obj,
-  pca_stage = "Before",
+  pca_stage = c("Before", "After"),
   cols_to_include,
   var_features = FALSE,
   normalize = TRUE,

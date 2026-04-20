@@ -27,14 +27,6 @@ You can install the development version of `athanor` from [GitHub](https://githu
 pak::pak("eba28/athanor")
 ```
 
-## Example
-
-```{r example}
-library(athanor)
-
-## basic example code
-```
-
 ## Details
 
 - `automated_annotation()` used to support Azimuth, but Azimuth is not currently available on CRAN and causes installation issues due to a hidden requirement of a Signac function that is no longer a part of Signac (`RunChromVAR()`)

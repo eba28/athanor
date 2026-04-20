@@ -36,10 +36,12 @@
 #'   - UMAP reduction (`rna_bcr.umap`)
 #'   - Neighbor graphs computed on the combined data
 #' @export
-concatenate_gex_bcr <- function(seurat_obj, pca_stage = "Before",
+concatenate_gex_bcr <- function(seurat_obj, pca_stage = c("Before", "After"),
                                 cols_to_include, var_features = FALSE,
-                                normalize = TRUE, num_dims = 20, # k
+                                normalize = TRUE, num_dims = 20,
                                 filter_genes, ensembl_version = NULL) {
+  # TODO: include k as a parameter?
+  pca_stage <- match.arg(pca_stage)
   # TODO: double check the formatting of filter genes
   # TODO: give an option to use a pre-defined list of filter_genes
 
@@ -62,8 +64,8 @@ concatenate_gex_bcr <- function(seurat_obj, pca_stage = "Before",
 
     # need counts if we're going to normalize later
     seurat_layer <- ifelse(normalize, "counts", "data")
-    seurat_obj@assays$RNA_BCR <-
-      CreateAssayObject(counts = rbind(GetAssayData(seurat_obj, assay = "RNA", # CreateAssay5Object
+    seurat_obj[["RNA_BCR"]] <-
+      CreateAssayObject(counts = rbind(GetAssayData(seurat_obj, assay = "RNA",
                                                     layer = seurat_layer),
                                        bcr_features))
     DefaultAssay(seurat_obj) <- "RNA_BCR"
@@ -123,27 +125,36 @@ concatenate_gex_bcr <- function(seurat_obj, pca_stage = "Before",
   } else {
     # check that the necessary PCAs exist
     if (!"rpca" %in% names(seurat_obj@reductions)) {
-      stop("Make sure that the Seurat object contains an RNA PCA.")
+      cli::cli_abort(c(
+        "{.arg seurat_obj} must contain an RNA PCA reduction.",
+        i = "Run {.fn RunPCA} with {.code reduction.name = \"rpca\"} first."
+      ))
     }
     if (!"bpca" %in% names(seurat_obj@reductions)) {
-      stop("Make sure that the Seurat object contains a BCR PCA.")
+      cli::cli_abort(c(
+        "{.arg seurat_obj} must contain a BCR PCA reduction.",
+        i = "Run {.fn RunPCA} with {.code reduction.name = \"bpca\"} first."
+      ))
     }
 
     # remove unnecessary WNN information
-    seurat_obj@graphs$w_nn <- c()
-    seurat_obj@graphs$w_snn <- c()
-    seurat_obj@neighbors$w.nn <- c()
-    seurat_obj@reductions$wnn.umap <- c()
+    # seurat_obj@graphs$w_nn <- c()
+    # seurat_obj@graphs$w_snn <- c()
+    # seurat_obj@neighbors$w.nn <- c()
+    # seurat_obj@reductions$wnn.umap <- c()
+    seurat_obj[["w_nn"]] <- NULL
+    seurat_obj[["w_snn"]] <- NULL
+    seurat_obj[["w.nn"]] <- NULL
+    seurat_obj[["wnn.umap"]] <- NULL
 
     # just use the RNA slot by default
 
-    # update the number of dimension
-    num_dims <- num_dims * 2
-
     # assumes that both reductions have the same number of PCs
+    # TODO: address how in the combined PCA has total_dims columns but FindNeighbors uses dims = 1:num_dims, which only covers half the combined dimensions
+    total_dims <- num_dims * 2
     combined_pca <-
       cbind(Embeddings(seurat_obj, "rpca"), Embeddings(seurat_obj, "bpca"))
-    colnames(combined_pca) <- str_c("pca_", 1:num_dims) # necessary? what about cell ids?
+    colnames(combined_pca) <- str_c("pca_", 1:total_dims) # TODO: check if this is necessary and what happens to cell ids
     # what about the feature loadings?
 
     # new PCA reduction
@@ -164,7 +175,7 @@ concatenate_gex_bcr <- function(seurat_obj, pca_stage = "Before",
                         nn.name = "RNA_BCR.nn",
                         reduction = "rna_bcr.pca", # dims = 1:num_dims,
                         reduction.name = "rna_bcr.umap") # , verbose = FALSE
-  ## 16:48:25 Commencing smooth kNN distance calibration using 1 thread with target n_neighbors = 30
+  ## TODO: address ...Commencing smooth kNN distance calibration using 1 thread with target n_neighbors = 30
 
   return(seurat_obj)
 }
