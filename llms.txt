@@ -52,7 +52,7 @@ Functions for processing and analyzing gene expression data.
 - [`filter_variable_features()`](https://eba28.github.io/athanor/reference/filter_variable_features.md)
   : Filter AIRR genes from variable features
 - [`get_airr_genes()`](https://eba28.github.io/athanor/reference/get_airr_genes.md)
-  : Get IG and TR genes from Ensembl using biomaRt.
+  : Get IG and TR genes from Ensembl using biomaRt
 - [`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md)
   : Run Seurat's standard pipeline
 
@@ -186,9 +186,6 @@ Functions for visualizing data and results.
 
 - [`plot_overview_comps()`](https://eba28.github.io/athanor/reference/plot_overview_comps.md)
   : Plot several UMAPs side by side
-
-- [`plot_umap()`](https://eba28.github.io/athanor/reference/plot_umap.md)
-  : Plot Seurat UMAP(s) in several useful ways
 
 - [`plot_umap_condition()`](https://eba28.github.io/athanor/reference/plot_umap_condition.md)
   : Plot a specific condition on a Seurat UMAP

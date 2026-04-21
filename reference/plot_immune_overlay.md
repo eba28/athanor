@@ -60,5 +60,4 @@ grouping.
 
 lightgray is Seurat's default background color and cells_total has to be
 a list for the labels to work later. This could probably be replaced
-with
-[`plot_umap()`](https://eba28.github.io/athanor/reference/plot_umap.md).
+with `plot_umap()`.

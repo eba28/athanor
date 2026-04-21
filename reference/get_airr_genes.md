@@ -1,4 +1,4 @@
-# Get IG and TR genes from Ensembl using biomaRt.
+# Get IG and TR genes from Ensembl using biomaRt
 
 This function retrieves IG and TR genes from Ensembl using the biomaRt
 package. This allows for accurate IG and TR gene names instead of using

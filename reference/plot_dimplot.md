@@ -14,7 +14,7 @@ plot_dimplot(
   use_hues = FALSE,
   pt_size = 0.2,
   assay,
-  reduc,
+  reduc = "umap",
   plot_label = TRUE,
   label_box = TRUE,
   label_size = 3,
@@ -25,6 +25,7 @@ plot_dimplot(
   include_legend = TRUE,
   legend_label,
   factor_idents = TRUE,
+  order = FALSE,
   details,
   ...
 )
@@ -102,6 +103,10 @@ plot_dimplot(
 
   Whether or not to factorize the idents (for proper ordering of the
   colors). This can mess up the order you want, so be careful.
+
+- order:
+
+  Plot cells on top or not.
 
 - details:
 
