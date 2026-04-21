@@ -219,8 +219,7 @@ plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
 #' @param label_size The size of the plot labels.
 #' @param annotated If the cell types have been identified.
 #' @param specific_clusters Can overlay clusters of interest e.g. B cell or by #. Overrides the annotated option.
-#' @param clusters_col Which column in the object stores the clusters.
-#' @param annotations_col Which column in the object stores the cell types.
+#' @param meta_col Which column in the object metadata to color by.
 #' @param include_legend Include the legend or not.
 #' @param legend_label The label for the legend.
 #' @param factor_idents Whether or not to factorize the idents (for proper ordering of the colors). This can mess up the order you want, so be careful.
@@ -234,16 +233,16 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
                          use_hues = FALSE, pt_size = 0.2, assay, reduc = "umap",
                          plot_label = TRUE, label_box = TRUE, label_size = 3,
                          annotated = FALSE, specific_clusters,
-                         clusters_col = "seurat_clusters",
-                         annotations_col = "annotated_clusters",
+                         meta_col = "seurat_clusters",
                          include_legend = TRUE, legend_label,
                          factor_idents = TRUE, order = FALSE,
                          details, ...) {
   # TODO: change assay to something more informative?
+  # TODO: change annotated to TRUE or remove it?
 
   # set identities in case they aren't already set (needed for group.by)
   cluster_legend <- if (annotated) "Cell Type" else "Cluster"
-  Idents(seurat_obj) <- if (annotated) annotations_col else clusters_col
+  Idents(seurat_obj) <- meta_col
 
   # alphabetize (and factorize) just in case
   # be careful, sometimes this can mess up the order you want
@@ -266,13 +265,6 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
     clrs_specific <- setNames(clrs_specific, levels(Idents(seurat_obj)))
   }
 
-  # to overlay clusters of interest
-  if (!rlang::is_missing(specific_clusters)) {
-    cells_total <- CellsByIdentities(seurat_obj, idents = specific_clusters)
-    clrs_highlight <- clrs_specific[specific_clusters]
-    clrs_highlight <- rev(clrs_highlight) # for some reason
-  }
-
   # base plot
   base_args <- list(object = seurat_obj, pt.size = pt_size, reduction = reduc,
                     label = plot_label, label.size = label_size, label.box = label_box,
@@ -281,14 +273,19 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
     extra_args <- list(cols = clrs_specific, order = order)
     color_label <- cluster_legend
   } else {
+    cells_total <- CellsByIdentities(seurat_obj, idents = specific_clusters)
+    clrs_highlight <- clrs_specific[specific_clusters]
+    clrs_highlight <- rev(clrs_highlight) # for some reason
+
+    # if specific clusters are being plotted, order them to be on top
     extra_args <- list(cells.highlight = cells_total, cols.highlight = clrs_highlight,
                        sizes.highlight = pt_size, order = TRUE)
     color_label <- "Highlighted"
   }
   p <- do.call(DimPlot, c(base_args, extra_args)) +
-    labs(title = assay, subtitle = data_source, color = color_label)
+         labs(title = assay, subtitle = data_source, color = color_label)
 
-  # custom subtitle
+  # custom subtitle if provided (otherwise the data source is the subtitle)
   if (!rlang::is_missing(details)) {
     p <- p + labs(title = paste(data_source, assay), subtitle = details)
   }
@@ -376,7 +373,7 @@ plot_doublets <- function(seurat_obj, tissue_type, clrs_specific,
   # UMAP colored by doublets/singlets
   p1 <- plot_dimplot(seurat_obj = seurat_obj, assay = tissue_type,
                      clrs_specific = named_colors$doublet, specific_clusters = "doublet",
-                     clusters_col = doublet_col,
+                     meta_col =doublet_col,
                      plot_label = FALSE, order = TRUE,
                      include_legend = FALSE) +
     labs(subtitle = details)
@@ -404,12 +401,12 @@ plot_doublets <- function(seurat_obj, tissue_type, clrs_specific,
 
     p3 <- plot_dimplot(seurat_obj = seurat_obj, assay = tissue_type,
                        clrs_specific = clrs_specific,
-                       annotated = TRUE, annotations_col = group_col,
+                       annotated = TRUE, meta_col =group_col,
                        include_legend = FALSE)
   } else {
     p3 <- plot_dimplot(seurat_obj = seurat_obj, assay = tissue_type,
                        clrs_specific = clrs_specific,
-                       clusters_col = group_col,
+                       meta_col =group_col,
                        include_legend = FALSE)
   }
 
@@ -720,7 +717,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        assay = assay_name,
                        reduc = reduction,
                        plot_label = FALSE, annotated = TRUE,
-                       annotations_col = "annotated_clusters",
+                       meta_col = "annotated_clusters",
                        legend_label = "Cell Type", details = details)
       }
 
@@ -732,7 +729,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        assay = assay_name,
                        reduc = reduction,
                        plot_label = FALSE, annotated = TRUE,
-                       annotations_col = "annotated_clusters_simpler",
+                       meta_col = "annotated_clusters_simpler",
                        legend_label = "Cell Type", details = details)
       }
 
@@ -744,7 +741,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        clrs_specific = named_colors$v_call_family,
                        assay = paste(assay_name, "V Call Families"),
                        reduc = reduction,
-                       plot_label = FALSE, clusters_col = "v_call_family",
+                       plot_label = FALSE, meta_col ="v_call_family",
                        legend_label = "V Call Family", details = details)
       }
 
@@ -756,7 +753,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        clrs_specific = named_colors$light,
                        assay = paste(assay_name, "Light Chain Types"),
                        reduc = reduction,
-                       plot_label = FALSE, clusters_col = "locus_light",
+                       plot_label = FALSE, meta_col ="locus_light",
                        legend_label = "Light Chain Type", details = details)
       }
 
@@ -768,7 +765,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        clrs_specific = named_colors$isotype,
                        assay = paste(assay_name, "Isotypes"),
                        reduc = reduction,
-                       plot_label = FALSE, clusters_col = "isotype",
+                       plot_label = FALSE, meta_col ="isotype",
                        legend_label = "Isotype", details = details)
       }
 
@@ -780,7 +777,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        clrs_specific = named_colors$c_call,
                        assay = paste(assay_name, "Subisotypes"),
                        reduc = reduction,
-                       plot_label = FALSE, clusters_col = "c_call",
+                       plot_label = FALSE, meta_col ="c_call",
                        legend_label = "Subisotype", details = details)
       }
 
@@ -792,7 +789,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        clrs_specific = named_colors$mu_freq_bins,
                        assay = paste(assay_name, "SHM Frequencies (Binned)"),
                        reduc = reduction,
-                       plot_label = FALSE, clusters_col = "mu_freq_bins",
+                       plot_label = FALSE, meta_col ="mu_freq_bins",
                        legend_label = "Bins", details = details)
       }
 
@@ -804,7 +801,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        clrs_specific = named_colors$cdr3,
                        assay = paste(assay_name, "CDR3 Length"),
                        reduc = reduction,
-                       plot_label = FALSE, clusters_col = "cdr3_aa_length",
+                       plot_label = FALSE, meta_col ="cdr3_aa_length",
                        legend_label = "CDR3 Length", details = details)
       }
 
@@ -815,7 +812,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        clrs_specific = named_colors$weight_assay,
                        assay = paste(assay_name, "Modality Weights"),
                        reduc = reduction,
-                       plot_label = FALSE, clusters_col = "weight_assay",
+                       plot_label = FALSE, meta_col ="weight_assay",
                        legend_label = "Chosen Assay", details = details)
       }
     }
