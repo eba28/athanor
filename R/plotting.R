@@ -224,41 +224,33 @@ plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
 #' @param include_legend Include the legend or not.
 #' @param legend_label The label for the legend.
 #' @param factor_idents Whether or not to factorize the idents (for proper ordering of the colors). This can mess up the order you want, so be careful.
+#' @param order Plot cells on top or not.
 #' @param details A custom subtitle.
 #' @param ... Any other Seurat parameters.
 #'
 #' @returns A Seurat UMAPPlot.
 #' @export
 plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
-                         use_hues = FALSE, pt_size = 0.2, assay, reduc,
+                         use_hues = FALSE, pt_size = 0.2, assay, reduc = "umap",
                          plot_label = TRUE, label_box = TRUE, label_size = 3,
-                         annotated = FALSE, specific_clusters, # order = FALSE
+                         annotated = FALSE, specific_clusters,
                          clusters_col = "seurat_clusters",
                          annotations_col = "annotated_clusters",
                          include_legend = TRUE, legend_label,
-                         factor_idents = TRUE, details, ...) {
+                         factor_idents = TRUE, order = FALSE,
+                         details, ...) {
+  # TODO: change assay to something more informative?
+
   # set identities in case they aren't already set (needed for group.by)
-  if (annotated) {
-    cluster_legend <- "Cell Type"
-    Idents(seurat_obj) <- annotations_col
+  cluster_legend <- if (annotated) "Cell Type" else "Cluster"
+  Idents(seurat_obj) <- if (annotated) annotations_col else clusters_col
 
-    # alphabetize (and factorize) just in case
-    # be careful, sometimes this can mess up the order you want
-    if (factor_idents) {
-      Idents(seurat_obj) <-
-        factor(Idents(seurat_obj), levels = sort(levels(seurat_obj)))
-    }
-  } else {
-    cluster_legend <- "Cluster"
-    Idents(seurat_obj) <- clusters_col
-
-    # alphabetize (and factorize) just in case
-    # be careful, sometimes this can mess up the order you want
-    if (factor_idents) {
-      Idents(seurat_obj) <-
-        factor(Idents(seurat_obj),
-               levels = str_sort(levels(seurat_obj), numeric = TRUE))
-    }
+  # alphabetize (and factorize) just in case
+  # be careful, sometimes this can mess up the order you want
+  if (factor_idents) {
+    sort_fn <- if (annotated) sort else function(x) str_sort(x, numeric = TRUE)
+    Idents(seurat_obj) <-
+      factor(Idents(seurat_obj), levels = sort_fn(levels(seurat_obj)))
   }
 
   # specific legend
@@ -276,31 +268,25 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 
   # to overlay clusters of interest
   if (!rlang::is_missing(specific_clusters)) {
-    cells_total <- c()
-    for (cluster in specific_clusters) {
-      cells_cluster <- WhichCells(seurat_obj, idents = cluster)
-      cells_total[cluster] <- list(cells_cluster) # has to be a list for the labels to work later
-    }
+    cells_total <- CellsByIdentities(seurat_obj, idents = specific_clusters)
     clrs_highlight <- clrs_specific[specific_clusters]
     clrs_highlight <- rev(clrs_highlight) # for some reason
   }
 
   # base plot
+  base_args <- list(object = seurat_obj, pt.size = pt_size, reduction = reduc,
+                    label = plot_label, label.size = label_size, label.box = label_box,
+                    repel = TRUE, na.value = "lightgray", raster = FALSE, ...)
   if (rlang::is_missing(specific_clusters)) {
-    p <- DimPlot(object = seurat_obj, cols = clrs_specific, pt.size = pt_size,
-                 reduction = reduc, label = plot_label,
-                 label.size = label_size, label.box = label_box,
-                 repel = TRUE, na.value = "lightgray", raster = FALSE, ...) +
-      labs(title = assay, subtitle = data_source, color = cluster_legend)
+    extra_args <- list(cols = clrs_specific, order = order)
+    color_label <- cluster_legend
   } else {
-    p <- DimPlot(object = seurat_obj, pt.size = pt_size,
-                 reduction = reduc, order = TRUE, label = plot_label,
-                 label.size = label_size, label.box = label_box,
-                 cells.highlight = cells_total, cols.highlight = clrs_highlight,
-                 sizes.highlight = pt_size,
-                 repel = TRUE, na.value = "lightgray", raster = FALSE, ...) +
-      labs(title = assay, subtitle = data_source, color = "Highlighted") # subtitle = toString(specific_clusters)
+    extra_args <- list(cells.highlight = cells_total, cols.highlight = clrs_highlight,
+                       sizes.highlight = pt_size, order = TRUE)
+    color_label <- "Highlighted"
   }
+  p <- do.call(DimPlot, c(base_args, extra_args)) +
+    labs(title = assay, subtitle = data_source, color = color_label)
 
   # custom subtitle
   if (!rlang::is_missing(details)) {
@@ -388,11 +374,11 @@ plot_doublets <- function(seurat_obj, tissue_type, clrs_specific,
   Idents(seurat_obj) <- group_col
 
   # UMAP colored by doublets/singlets
-  p1 <- plot_umap(seurat_obj = seurat_obj, tissue_type = tissue_type,
-                  clrs_specific = named_colors$doublet, specific_clusters = "doublet",
-                  specific_col = doublet_col,
-                  plot_by = "cluster_all", plot_label = FALSE, order = TRUE,
-                  include_legend = FALSE) +
+  p1 <- plot_dimplot(seurat_obj = seurat_obj, assay = tissue_type,
+                     clrs_specific = named_colors$doublet, specific_clusters = "doublet",
+                     clusters_col = doublet_col,
+                     plot_label = FALSE, order = TRUE,
+                     include_legend = FALSE) +
     labs(subtitle = details)
 
   # bar plot of doublets with raw counts
@@ -416,16 +402,15 @@ plot_doublets <- function(seurat_obj, tissue_type, clrs_specific,
     # rotate x-axis labels for annotation plots
     p2 <- p2 + labels_rotate_x
 
-    p3 <- plot_umap(seurat_obj = seurat_obj, tissue_type = tissue_type,
-                    clrs_specific = clrs_specific,
-                    plot_by = "cluster_all", annotated = TRUE,
-                    annotations_col = group_col,
-                    include_legend = FALSE)
+    p3 <- plot_dimplot(seurat_obj = seurat_obj, assay = tissue_type,
+                       clrs_specific = clrs_specific,
+                       annotated = TRUE, annotations_col = group_col,
+                       include_legend = FALSE)
   } else {
-    p3 <- plot_umap(seurat_obj = seurat_obj, tissue_type = tissue_type,
-                    clrs_specific = clrs_specific,
-                    plot_by = "cluster_all", clusters_col = group_col,
-                    include_legend = FALSE)
+    p3 <- plot_dimplot(seurat_obj = seurat_obj, assay = tissue_type,
+                       clrs_specific = clrs_specific,
+                       clusters_col = group_col,
+                       include_legend = FALSE)
   }
 
   # bar plot of doublets with percentage counts
@@ -999,217 +984,6 @@ plot_pcts <- function(pcts, tissue_type, clrs_specific,
                     "annotated_subclusters")) {
     p <- p + labels_rotate_x
   }
-
-  return(p)
-}
-
-
-#' Plot Seurat UMAP(s) in several useful ways
-#'
-#' @description
-#' This function generates UMAP plots from a Seurat object with various customizable options for coloring, labeling, and grouping the data.
-#' It allows for flexible visualization based on different metadata columns, cluster annotations, and specific clusters of interest, making it easier to explore and interpret the underlying structure of the data.
-#'
-#' @details
-#' Includes whether or not the object has been annotated with specific cell types.
-#'
-#' @param seurat_obj The Seurat object.
-#' @param tissue_type Blood, Skin.
-#' @param clrs_specific The specific color palette (should be named).
-#' @param use_hues Use the `iwanthue` hues instead of the default ggplot colors. Doesn't let you set any other settings.
-#' @param plot_by What to plot by: by dataset, by sample type (control vs EM/blood), by cluster, by sample, with all samples, or with all subjects.
-#' @param specific_clusters Can overlay clusters of interest e.g. B cell or by #.
-#' @param specific_col Overlay a specific column in the object e.g. "annotated_clusters" or "sample_id". Overrides the other options.
-#' @param plot_label Add labels to the plot (or not).
-#' @param label_box Whether or not to give the labels a background.
-#' @param label_size The size of the plot labels.
-#' @param clusters_col Which column in the object stores the clusters.
-#' @param annotated If the cell types have been identified.
-#' @param annotations_col Which column in the object stores the cell types.
-#' @param annotations_type The method for annotation e.g. Manual, singleR, etc..
-#' @param order Plot cells on top or not.
-#' @param include_legend Include the legend or not.
-#' @param ncol The number of columns if outputting multiple plots.
-#' @param details A custom subtitle.
-#'
-#' @returns A Seurat UMAPPlot.
-#' @export
-plot_umap <- function(seurat_obj, tissue_type = "", clrs_specific,
-                      use_hues = FALSE, plot_by = "all", specific_clusters = c(),
-                      specific_col, plot_label = TRUE, label_size = 3,
-                      label_box = TRUE, clusters_col = "seurat_clusters",
-                      annotated = FALSE, annotations_col = "annotated_clusters",
-                      annotations_type, order = FALSE,
-                      include_legend = TRUE, ncol = 4, details) {
-  # make sure that the object is properly formatted
-  # all(colnames(seurat_obj) == rownames(seurat_obj[[]]))
-
-  # set identities in case they aren't already set
-  if (annotated) {
-    # don't include "Manual" in the title since we can consider it implied
-    if (!rlang::is_missing(annotations_type)) {
-      plot_title <- paste0("Annotated (", annotations_type, ") ", tissue_type)
-    } else {
-      plot_title <- paste("Annotated", tissue_type)
-    }
-
-    if (grepl("annotated_", annotations_col)) {
-      cluster_legend <- "Cell Type"
-
-      # special case
-      if (annotations_col == "annotated_subclusters") {
-        cluster_legend <- paste("Subclustered", cluster_legend)
-      }
-    } else {
-      cluster_legend <- annotations_col
-    }
-
-    Idents(seurat_obj) <- annotations_col
-    # alphabetize just in case
-    Idents(seurat_obj) <- factor(Idents(seurat_obj),
-                                 levels = sort(levels(seurat_obj)))
-  } else {
-    plot_title <- tissue_type
-    cluster_legend <- "Cluster"
-
-    # subclustered only
-    if (clusters_col == "seurat_subclusters") {
-      cluster_legend <- "Subcluster"
-    }
-
-    Idents(seurat_obj) <- clusters_col
-  }
-
-  # like an overlay
-  if (!rlang::is_missing(specific_col)) {
-    Idents(seurat_obj) <- specific_col
-    cluster_legend <- specific_col
-  }
-
-  # plot options
-  pt_size <- 0.2
-  sizes_highlight <- 0.2
-
-  # if you want to use default ggplot2 or generated iwanthue colors
-  # this needs fixing
-  if (rlang::is_missing(clrs_specific)) {
-    if (plot_by == "all") {
-      if (use_hues) clrs_specific <- hues::iwanthue(length(unique(seurat_obj$sample_id)))
-      else clrs_specific <- hue_pal()(length(unique(seurat_obj$sample_id)))
-    } else {
-      if (use_hues) clrs_specific <- hues::iwanthue(nlevels(seurat_obj))
-      else clrs_specific <- hue_pal()(nlevels(seurat_obj))
-
-      clrs_specific <- setNames(clrs_specific, levels(Idents(seurat_obj)))
-    }
-  }
-
-  # this option needs a little more setup
-  if (plot_by == "cluster_specific") {
-    # has to be a list for the labels to work later
-    cells_total <- CellsByIdentities(seurat_obj, idents = specific_clusters)
-
-    clrs_highlight <- clrs_specific[specific_clusters]
-    clrs_highlight <- rev(clrs_highlight) # for some reason
-  }
-
-  # specific plots
-  p <- switch(plot_by,
-              "all" = UMAPPlot(seurat_obj, cols = clrs_specific,
-                               pt.size = pt_size, order = order,
-                               group.by = "sample_id",
-                               label = plot_label,
-                               label.size = label_size, label.box = label_box,
-                               raster = FALSE) +
-                labs(subtitle = "All Samples",
-                     color = "Sample"),
-
-              "subject" = UMAPPlot(seurat_obj, cols = clrs_specific,
-                                   pt.size = pt_size, order = order,
-                                   group.by = "subject_id",
-                                   label = plot_label,
-                                   label.size = label_size, label.box = label_box,
-                                   raster = FALSE) +
-                labs(subtitle = "All Subjects",
-                     color = "Subject"),
-
-              "dataset" = UMAPPlot(seurat_obj, cols = clrs_specific,
-                                   pt.size = pt_size, order = order,
-                                   group.by = "Dataset",
-                                   label.box = label_box, raster = FALSE) +
-                labs(subtitle = "by Dataset",
-                     color = "Dataset"),
-
-              "sample_type" = UMAPPlot(seurat_obj, cols = clrs_specific,
-                                       pt.size = pt_size, order = order,
-                                       group.by = "SampleType",
-                                       label.box = label_box, raster = FALSE) +
-                labs(subtitle = "by Sample Type",
-                     color = "Sample Type"),
-
-              "cluster_all" = UMAPPlot(seurat_obj, cols = clrs_specific,
-                                       pt.size = pt_size, order = order,
-                                       label = plot_label,
-                                       label.size = label_size,
-                                       label.box = label_box,
-                                       repel = TRUE, raster = FALSE) +
-                labs(subtitle = paste("by", cluster_legend),
-                     color = cluster_legend),
-
-              "cluster_sample" = UMAPPlot(seurat_obj, cols = clrs_specific,
-                                          pt.size = pt_size, order = order,
-                                          split.by = "sample_id",
-                                          label.box = label_box, ncol = ncol,
-                                          raster = FALSE) +
-                labs(subtitle = paste(cluster_legend, "by Sample"),
-                     color = cluster_legend),
-
-              # only if annotated, plot all cells on top
-              "cluster_specific" = UMAPPlot(seurat_obj, pt.size = pt_size,
-                                            order = TRUE, label = plot_label,
-                                            label.size = label_size,
-                                            label.box = label_box,
-                                            cells.highlight = cells_total,
-                                            cols.highlight = clrs_highlight,
-                                            sizes.highlight = sizes_highlight,
-                                            repel = TRUE, raster = FALSE) +
-                labs(subtitle = toString(specific_clusters),
-                     color = "Highlighted"),
-
-              "sample_type_split" = UMAPPlot(seurat_obj, cols = clrs_specific,
-                                             pt.size = pt_size, order = order,
-                                             split.by = "SampleType",
-                                             label = plot_label, label.size = label_size,
-                                             label.box = label_box, repel = TRUE,
-                                             raster = FALSE) +
-                labs(subtitle = paste(cluster_legend,
-                                      "Split by Sample Type"),
-                     color = cluster_legend)
-  )
-
-  # add the plot title
-  p <- p + labs(title = plot_title)
-
-  # don't plot super long subtitles (change nchar as needed)
-  if (nchar(toString(specific_clusters)) > 80) p <- p + labs(subtitle = NULL)
-
-  # custom subtitle
-  if (!rlang::is_missing(details)) p <- p + labs(subtitle = details)
-
-  # remove the legend if desired
-  if (!include_legend) p <- p + NoLegend()
-
-  # give white background to the boxes
-  if (label_box) {
-    p <- p + scale_fill_manual(values = rep("white", length(clrs_specific)))
-    # okay this seems to be broken right now, so do this too
-    if ("geom.use" %in% names(p@layers)) {
-      p@layers$geom.use$aes_params$fill <- rep("white", length(clrs_specific))
-    }
-  }
-
-  # standardize the labels
-  p <- p & labels_standard & clean_umap
 
   return(p)
 }

@@ -11,7 +11,7 @@ plot_dimplot(
   use_hues = FALSE,
   pt_size = 0.2,
   assay,
-  reduc,
+  reduc = "umap",
   plot_label = TRUE,
   label_box = TRUE,
   label_size = 3,
@@ -22,6 +22,7 @@ plot_dimplot(
   include_legend = TRUE,
   legend_label,
   factor_idents = TRUE,
+  order = FALSE,
   details,
   ...
 )
@@ -60,6 +61,8 @@ plot_dimplot(
 \item{legend_label}{The label for the legend.}
 
 \item{factor_idents}{Whether or not to factorize the idents (for proper ordering of the colors). This can mess up the order you want, so be careful.}
+
+\item{order}{Plot cells on top or not.}
 
 \item{details}{A custom subtitle.}
 

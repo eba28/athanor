@@ -222,7 +222,7 @@ find_k_clusters <- function(seurat_obj, graph_name = "RNA_snn", desired_k) {
 }
 
 
-#' Get IG and TR genes from Ensembl using biomaRt.
+#' Get IG and TR genes from Ensembl using biomaRt
 #'
 #' @description
 #' This function retrieves IG and TR genes from Ensembl using the biomaRt package. This allows for accurate IG and TR gene names instead of using a search for genes that begin with "IG" or "TR".

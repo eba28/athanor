@@ -2,7 +2,7 @@
 % Please edit documentation in R/gex.R
 \name{get_airr_genes}
 \alias{get_airr_genes}
-\title{Get IG and TR genes from Ensembl using biomaRt.}
+\title{Get IG and TR genes from Ensembl using biomaRt}
 \usage{
 get_airr_genes(
   genome = "hsapiens",

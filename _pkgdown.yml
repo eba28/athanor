@@ -87,7 +87,6 @@ reference:
   - plot_dimplot
   - plot_immune_overlay
   - plot_overview_comps
-  - plot_umap
   - plot_umap_condition
 - subtitle: Other plots
 - contents:
