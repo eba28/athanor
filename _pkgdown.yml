@@ -1,9 +1,17 @@
 url: https://eba28.github.io/athanor/
+
 template:
   bootstrap: 5
   # bootswatch: flatly
   theme: atom-one-light
   theme-dark: atom-one-dark
+
+articles:
+- title: Visualization
+  navbar: Visualization
+  contents:
+  - plot_dimplot
+
 reference:
 - title: Quality Control
   desc: Functions for QC and filtering.

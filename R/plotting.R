@@ -253,6 +253,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
   # TODO: change assay to something more informative like title?
   # TODO: change annotated to TRUE or remove it?
   # TODO: remove some of the parameters like include_legend and use ...?
+  # TODO: rearrange the order of parameters
 
   # set identities in case they aren't already set (needed for group.by)
   cluster_legend <- if (annotated) "Cell Type" else "Cluster"
@@ -287,6 +288,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
     extra_args <- list(cols = clrs_specific, order = order)
     color_label <- cluster_legend
   } else {
+    # TODO: don't show labels for unselected groups
     cells_total <- CellsByIdentities(seurat_obj, idents = specific_clusters)
     cells_total <- cells_total[specific_clusters] # removes `NA`s
     clrs_highlight <- clrs_specific[specific_clusters]

@@ -330,6 +330,8 @@ seurat_pipeline <- function(seurat_obj, nfeatures_RNA, perc_mt,
                             k_param = 20, cluster_res = NULL,
                             filter_genes, ensembl_version = NULL,
                             verbose = TRUE) {
+   # TODO: allow the reductions to be called pca and umap instead
+
    # TODO: keep the default values for nfeatures_RNA (200) and perc_mt (15), but allow the user to override them if they want to do filtering
    if (!rlang::is_missing(nfeatures_RNA) && !rlang::is_missing(perc_mt)) {
       if ("percent.mt" %in% names(seurat_obj[[]])) {

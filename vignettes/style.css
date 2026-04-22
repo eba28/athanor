@@ -1,0 +1,78 @@
+/* Horizontal Lines */
+
+hr {
+    border-top: 3px solid #63AAFF;
+}
+
+/* Font */
+
+body {
+  font-family: "Source Sans Pro", "Segoe UI", "Helvetica Neue", Arial;
+}
+
+/* Lists */
+
+.list-group {
+    font-size: 14px;
+}
+
+.list-group-item.active {
+    font-weight: 600;
+}
+
+.list-group-item.active, .list-group-item.active:hover, .list-group-item.active:focus {
+    background-color: #286DC0;
+}
+
+/* Table of Contents */
+
+.tocify-header {
+    font-weight: 600;
+}
+
+.toc-content {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+/* Headings */
+
+h1.title {
+    font-weight: 400;
+}
+
+h2 {
+    border-bottom: 3px solid #dee2eb;
+    padding-bottom: 0.5rem;
+}
+
+/*
+h3.title {
+    font-weight: 500;
+}
+*/
+
+h3 {
+    font-weight: 600; /* 400 */
+}
+
+h4 {
+    font-weight: 600; /* 400 */
+}
+
+/* Code Buttons */
+
+.pull-right {
+    float: left !important;
+}
+
+#header .pull-right {
+    float: right !important;
+}
+
+
+/*
+main ul ul {
+  margin-bottom: 0;
+}
+*/
