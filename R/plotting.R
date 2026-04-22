@@ -219,7 +219,7 @@ plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
 #' @param label_size The size of the plot labels.
 #' @param annotated If the cell types have been identified.
 #' @param specific_clusters Can overlay clusters of interest e.g. B cell or by #. Overrides the annotated option.
-#' @param meta_col Which column in the object metadata to color by.
+#' @param meta_col Which column in the object metadata to color by. When combined with `specific_clusters`, highlights those values as an overlay instead of coloring all cells.
 #' @param include_legend Include the legend or not.
 #' @param legend_label The label for the legend.
 #' @param factor_idents Whether or not to factorize the idents (for proper ordering of the colors). This can mess up the order you want, so be careful.
@@ -237,8 +237,9 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
                          include_legend = TRUE, legend_label,
                          factor_idents = TRUE, order = FALSE,
                          details, ...) {
-  # TODO: change assay to something more informative?
+  # TODO: change assay to something more informative like title?
   # TODO: change annotated to TRUE or remove it?
+  # TODO: remove some of the parameters like include_legend and use ...?
 
   # set identities in case they aren't already set (needed for group.by)
   cluster_legend <- if (annotated) "Cell Type" else "Cluster"
@@ -274,13 +275,14 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
     color_label <- cluster_legend
   } else {
     cells_total <- CellsByIdentities(seurat_obj, idents = specific_clusters)
+    cells_total <- cells_total[specific_clusters] # removes `NA`s
     clrs_highlight <- clrs_specific[specific_clusters]
     clrs_highlight <- rev(clrs_highlight) # for some reason
 
     # if specific clusters are being plotted, order them to be on top
     extra_args <- list(cells.highlight = cells_total, cols.highlight = clrs_highlight,
                        sizes.highlight = pt_size, order = TRUE)
-    color_label <- "Highlighted"
+    color_label <- if (!rlang::is_missing(legend_label)) legend_label else "Highlighted"
   }
   p <- do.call(DimPlot, c(base_args, extra_args)) +
          labs(title = assay, subtitle = data_source, color = color_label)
@@ -293,8 +295,8 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
   # remove the legend if desired
   if (!include_legend) p <- p + NoLegend()
 
-  # give white background to the boxes
-  if (label_box) {
+  # give white background to the boxes (skip in highlight modes)
+  if (label_box && rlang::is_missing(specific_clusters)) {
     p <- p + scale_fill_manual(values = rep("white", length(clrs_specific)))
     # okay this seems to be broken right now, so do this too
     if ("geom.use" %in% names(p@layers)) {
@@ -424,130 +426,6 @@ plot_doublets <- function(seurat_obj, tissue_type, clrs_specific,
   p1 + p2 + p3 + p4 +
     plot_layout(guides = "collect", widths = c(1, 3)) + plot_anno &
     theme(plot.tag = element_text(face = "plain", size = 12))
-}
-
-
-#' Plot UMAPs with AIRR overlays
-#'
-#' @description
-#' This function plots the annotated UMAPs alongside the BCR/TCR overlays.
-#'
-#' @details
-#' lightgray is Seurat's default background color and cells_total has to be a list for the labels to work later.
-#' This could probably be replaced with `plot_umap()`.
-#'
-#' @param seurat_obj The Seurat object (must contain Has_BCR/Has_TCR cols)
-#' @param tissue_type The tissue type of interest.
-#' @param airr_type BCR or TCR
-#' @param clrs_specific The specific color palette (should be named).
-#' @param barcode_col The barcode column name: barcode, cell_id, or Cell_ID_Unique.
-#' @param plot_label Whether or not to include the labels.
-#' @param plot_by The grouping method: all samples, by dataset, by sample, by isotype.
-#' @param ncol_sample The number of columns for sample-wise plots.
-#'
-#' @returns A Seurat UMAP plot with AIRR cells highlighted by the specified grouping.
-#' @export
-plot_immune_overlay <- function(seurat_obj, tissue_type, airr_type,
-                                clrs_specific, plot_by = "all",
-                                barcode_col = "cell_id",
-                                plot_label = FALSE, ncol_sample = 6) {
-  # plot options
-  pt_size <- 0.2
-  label_size <- 4
-  sizes_highlight <- 0.2 # should probably be the same size as the points
-  plot_title <- paste(tissue_type, airr_type, "Overlay")
-
-  # if you want to use the default Seurat colors
-  # if (rlang::is_missing(clrs_specific)) clrs_specific <- hue_pal()(num_clusts)
-
-  # AIRR info
-  airr_col <- paste0("Has_", airr_type)
-  combined_vdj_gex <- filter(seurat_obj[[]], !!rlang::sym(airr_col))
-
-  if (plot_by == "dataset" || plot_by == "sample") {
-    # set up the cells to be highlighted
-    cells_total <- c()
-    datasets <- as.character(unique(combined_vdj_gex$Dataset))
-
-    for (dataset in datasets) {
-      cells_dataset <- filter(combined_vdj_gex,
-                              Dataset == dataset)[[barcode_col]]
-      cells_total[dataset] <- list(cells_dataset)
-    }
-
-    # main plot (coloring the samples by dataset is helpful)
-    if (plot_by == "sample") {
-      p <- UMAPPlot(object = seurat_obj, pt.size = pt_size,
-                    split.by = "sample_id",
-                    repel = TRUE,
-                    cells.highlight = cells_total,
-                    sizes.highlight = sizes_highlight,
-                    ncol = ncol_sample, raster = FALSE) +
-        labs(title = paste(plot_title, "by Sample"), color = "Dataset")
-    } else { # dataset
-      p <- UMAPPlot(object = seurat_obj, pt.size = pt_size,
-                    label = plot_label, label.size = label_size,
-                    repel = TRUE,
-                    cells.highlight = cells_total,
-                    sizes.highlight = sizes_highlight,
-                    raster = FALSE) +
-        labs(title = paste(plot_title, "by Dataset"), color = "Dataset")
-    }
-
-    # the legend
-    p <- p + scale_color_manual(labels = c(paste0("non-", airr_type), rev(datasets)),
-                                values = c("lightgray", unname(clrs_specific[rev(datasets)])))
-  } else if (plot_by == "isotype") {
-    # select the cells to be highlighted
-    # Idents(seurat_obj) <- "isotype"
-    # cells_total <- CellsByIdentities(seurat_obj)
-    # cells_total <- lapply(cells_total, function(x) x[!is.na(x)])
-    # cells_total["NA"] <- c()
-    # isotypes <- rev(names(cells_total)) # need to reverse for plotting
-    cells_total <- c()
-    isotypes <- sort(unique(combined_vdj_gex$isotype))
-
-    for (isotype in isotypes) {
-      cells_isotype <- filter(combined_vdj_gex, isotype == isotype)[[barcode_col]]
-      cells_total[isotype] <- list(cells_isotype)
-    }
-
-    # main plot
-    p <- UMAPPlot(object = seurat_obj, pt.size = pt_size,
-                  label = plot_label, label.size = label_size,
-                  repel = TRUE,
-                  cells.highlight = cells_total,
-                  sizes.highlight = sizes_highlight,
-                  raster = FALSE) +
-      labs(title = paste(plot_title, "by Isotype"), color = "Isotype")
-
-    # the legend
-    p <- p + scale_color_manual(labels = c(paste0("non-", airr_type), rev(isotypes)),
-                                values = c("lightgray", unname(clrs_specific[rev(isotypes)])))
-  } else { # all
-    # set up the cells to be highlighted
-    cells_total <- combined_vdj_gex[[barcode_col]]
-
-    # plot all samples
-    p <- UMAPPlot(object = seurat_obj, pt.size = pt_size,
-                  label = plot_label, label.size = label_size,
-                  repel = TRUE,
-                  cols.highlight = clrs_specific[airr_type],
-                  cells.highlight = cells_total,
-                  sizes.highlight = sizes_highlight,
-                  raster = FALSE) +
-      labs(title = plot_title, color = "Data Type")
-
-    # the legend
-    p <- p + scale_color_manual(name = "Data Type",
-                                labels = c(paste0("non-", airr_type), airr_type),
-                                values = c("lightgray", unname(clrs_specific[airr_type])))
-  }
-
-  # standardize the labels
-  p <- p & labels_standard & clean_umap
-
-  return(p)
 }
 
 
@@ -981,108 +859,6 @@ plot_pcts <- function(pcts, tissue_type, clrs_specific,
                     "annotated_subclusters")) {
     p <- p + labels_rotate_x
   }
-
-  return(p)
-}
-
-
-#' Plot a specific condition on a Seurat UMAP
-#'
-#' @description
-#' This function generates a UMAP plot from a Seurat object using `DimPlot` with various customizable options for coloring, labeling, and grouping the data based on a specific condition of interest.
-#'
-#' @details
-#' Based on: https://github.com/satijalab/seurat/issues/1053
-#' Can be used for plotting QC metrics, isolating specific cell types, overlaying AIRR data, overlaying B cell isotypes, etc.
-#'
-#' @param seurat_obj The Seurat object.
-#' @param tissue_type The tissue type e.g. Blood, Skin.
-#' @param clrs_specific The specific color palette (should be named).
-#' @param condition_name The column in the object that contains the condition of interest e.g. "annotated_clusters", "mu_freq", "isotype", etc.
-#' @param operator <, >, ==
-#' @param condition_val The value to compare the condition to. If color_by is "name", this should be a name in the condition_name column. If color_by is "value", this should be a value in the condition_name column.
-#' @param color_by name, value
-#' @param plot_type general, overlay (BCR/TCR)
-#' @param label_plot Put labels on the plot (or not).
-#' @param include_subtitle Include a subtitle (or not).
-#' @param include_legend Include a legend (or not).
-#'
-#' @returns A Seurat UMAPPlot.
-#' @export
-plot_umap_condition <- function(seurat_obj, tissue_type, clrs_specific,
-                                condition_name, operator, condition_val,
-                                color_by = "value", plot_type = "general",
-                                label_plot = TRUE, include_subtitle = TRUE,
-                                include_legend = FALSE) {
-  # plot options
-  pt_size <- 0.2
-  label_size <- 4
-  sizes_highlight <- 0.2
-
-  # cells of interest
-  # condition <- FetchData(seurat_obj, vars = condition_name)
-  seurat_obj <-
-    switch(operator,
-           "<" = subset(seurat_obj,
-                        subset = !!sym(condition_name) < condition_val),
-           ">" = subset(seurat_obj,
-                        subset = !!sym(condition_name) > condition_val),
-           "==" = subset(seurat_obj,
-                         subset = !!sym(condition_name) == condition_val),
-           stop("Invalid operator, please try again."))
-  cells_highlight <- Cells(seurat_obj)
-
-  # color by
-  if (color_by == "name") {
-    clrs_highlight <- clrs_specific[[condition_name]]
-    plot_title <- paste(condition_name, operator, condition_val)
-  } else if (color_by == "value") {
-    clrs_highlight <- clrs_specific[[condition_val]]
-    plot_title <- condition_val
-  } else {
-    cli::cli_abort("Invalid {.arg color_by} value: {.val {color_by}}. Please try again.")
-  }
-
-  # set up the plot
-  p <- UMAPPlot(seurat_obj, pt.size = pt_size,
-                label = label_plot, label.size = label_size,
-                cells.highlight = cells_highlight,
-                cols.highlight = clrs_highlight,
-                sizes.highlight = sizes_highlight,
-                raster = FALSE) +
-    labs(title = paste(tissue_type, paste0("(", plot_title, ")"))) +
-    # cols.highlight isn't working
-    scale_color_manual(values = clrs_highlight)
-
-  # include a subtitle counting the condition
-  if (include_subtitle) {
-    p <- p + labs(subtitle = paste("Count:", length(cells_highlight)))
-  }
-
-  # remove the legend if desired
-  if (!include_legend) {
-    p <- p + NoLegend()
-  } else {
-    if (plot_type == "overlay") {
-      data_type <- substr(condition_name, nchar(condition_name) - 2,
-                          nchar(condition_name)) # BCR or TCR
-
-      p <- p + scale_color_manual(name = "Data Type",
-                                  labels = c(paste0("non-", data_type), data_type),
-                                  values = c("lightgray",
-                                             unname(clrs_specific[data_type]))
-      )
-    } else {
-      p <- p + scale_color_manual(name = paste(condition_name, operator, condition_val),
-                                  labels = c("False", "True"),
-                                  values = c("lightgray",
-                                             unname(clrs_specific[condition_name]))
-      )
-    }
-  }
-
-  # standardize the labels
-  p <- p + labels_standard + clean_umap
 
   return(p)
 }

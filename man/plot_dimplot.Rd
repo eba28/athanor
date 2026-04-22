@@ -51,7 +51,7 @@ plot_dimplot(
 
 \item{specific_clusters}{Can overlay clusters of interest e.g. B cell or by #. Overrides the annotated option.}
 
-\item{meta_col}{Which column in the object metadata to color by.}
+\item{meta_col}{Which column in the object metadata to color by. When combined with \code{specific_clusters}, highlights those values as an overlay instead of coloring all cells.}
 
 \item{include_legend}{Include the legend or not.}
 
