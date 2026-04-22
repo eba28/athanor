@@ -20,8 +20,7 @@ plot_dimplot(
   label_size = 3,
   annotated = FALSE,
   specific_clusters,
-  clusters_col = "seurat_clusters",
-  annotations_col = "annotated_clusters",
+  meta_col = "seurat_clusters",
   include_legend = TRUE,
   legend_label,
   factor_idents = TRUE,
@@ -83,13 +82,11 @@ plot_dimplot(
   Can overlay clusters of interest e.g. B cell or by \#. Overrides the
   annotated option.
 
-- clusters_col:
+- meta_col:
 
-  Which column in the object stores the clusters.
-
-- annotations_col:
-
-  Which column in the object stores the cell types.
+  Which column in the object metadata to color by. When combined with
+  `specific_clusters`, highlights those values as an overlay instead of
+  coloring all cells.
 
 - include_legend:
 

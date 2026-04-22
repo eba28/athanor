@@ -181,14 +181,8 @@ Functions for visualizing data and results.
 
   Plot a Seurat UMAP using `DimPlot`
 
-- [`plot_immune_overlay()`](https://eba28.github.io/athanor/reference/plot_immune_overlay.md)
-  : Plot UMAPs with AIRR overlays
-
 - [`plot_overview_comps()`](https://eba28.github.io/athanor/reference/plot_overview_comps.md)
   : Plot several UMAPs side by side
-
-- [`plot_umap_condition()`](https://eba28.github.io/athanor/reference/plot_umap_condition.md)
-  : Plot a specific condition on a Seurat UMAP
 
 ### Other plots
 

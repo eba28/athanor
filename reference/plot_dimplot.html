@@ -52,8 +52,7 @@
 <span>  label_size <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  annotated <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">specific_clusters</span>,</span>
-<span>  clusters_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>,</span>
-<span>  annotations_col <span class="op">=</span> <span class="st">"annotated_clusters"</span>,</span>
+<span>  meta_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>,</span>
 <span>  include_legend <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">legend_label</span>,</span>
 <span>  factor_idents <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -115,12 +114,8 @@
 <dd><p>Can overlay clusters of interest e.g. B cell or by #. Overrides the annotated option.</p></dd>
 
 
-<dt id="arg-clusters-col">clusters_col<a class="anchor" aria-label="anchor" href="#arg-clusters-col"></a></dt>
-<dd><p>Which column in the object stores the clusters.</p></dd>
-
-
-<dt id="arg-annotations-col">annotations_col<a class="anchor" aria-label="anchor" href="#arg-annotations-col"></a></dt>
-<dd><p>Which column in the object stores the cell types.</p></dd>
+<dt id="arg-meta-col">meta_col<a class="anchor" aria-label="anchor" href="#arg-meta-col"></a></dt>
+<dd><p>Which column in the object metadata to color by. When combined with <code>specific_clusters</code>, highlights those values as an overlay instead of coloring all cells.</p></dd>
 
 
 <dt id="arg-include-legend">include_legend<a class="anchor" aria-label="anchor" href="#arg-include-legend"></a></dt>
