@@ -55,11 +55,12 @@ plot_dimplot(
 
 - assay:
 
-  The data type e.g. ADT, GEX, BCR, WNN...
+  The data type e.g. ADT, GEX, BCR, WNN... Will be used for the plot
+  title.
 
 - reduc:
 
-  The reduction to use for plotting e.g. wnn.umap
+  The reduction to use for plotting e.g. "bpca" or wnn.umap".
 
 - plot_label:
 
@@ -115,4 +116,4 @@ plot_dimplot(
 
 ## Value
 
-A Seurat UMAPPlot.
+A Seurat plot of the specified reduction.

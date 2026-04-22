@@ -226,3 +226,9 @@ Utility functions for various tasks.
 - [`reduce_object()`](https://eba28.github.io/athanor/reference/reduce_object.md)
   : Reduce a Seurat object's size
 
+# Articles
+
+### Visualization
+
+- [Visualizing scRNA-Seq data with
+  plot_dimplot()](https://eba28.github.io/athanor/articles/plot_dimplot.md):

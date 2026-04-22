@@ -75,7 +75,7 @@ this function.
 
 ``` r
 if (FALSE) { # \dontrun{
-p <- ggplot(data, aes(x, y)) + geom_point()
-add_info_bar(p, info_type = "Dataset", info = dataset_info)
+p <- Seurat::DotPlot(seurat_obj, features = c("CD19", "MS4A1"))
+add_info_bar(p, method = "join", info_type = "Dataset", info = dataset_df)
 } # }
 ```

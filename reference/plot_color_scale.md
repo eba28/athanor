@@ -53,3 +53,11 @@ something like
 `scale_color_gradient2(low = "#2166AC", mid = "white", high = "#B2182B")`
 Can also be used to generated a color scale for a general ggplot2. Use
 the function via a pipe right after the function call.
+
+## Examples
+
+``` r
+p <- ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg, color = mpg)) +
+  ggplot2::geom_point()
+plot_color_scale(plot = p, val_col = "mpg")
+```
