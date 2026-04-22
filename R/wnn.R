@@ -88,8 +88,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
   # RNA processing
   # TODO: filter out genes
   DefaultAssay(seurat_obj) <- "RNA"
-  seurat_obj <- seurat_pipeline(seurat_obj, run_qc = FALSE,
-                                num_pcs = pc_gex, num_dims = pc_gex,
+  seurat_obj <- seurat_pipeline(seurat_obj, num_pcs = pc_gex, num_dims = pc_gex,
                                 k_param = k_param, verbose = show_output)
 
   # find multimodal neighbors, then do clustering and make a UMAP
@@ -120,6 +119,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                                resolution = cluster_res[["BCR"]],
                                algorithm = 1, verbose = show_output)
     # cluster the GEX assay
+    # TODO: do this in seurat_pipeline??
     seurat_obj <- FindClusters(object = seurat_obj,
                                graph.name = "RNA_snn",
                                resolution = cluster_res[["GEX"]],

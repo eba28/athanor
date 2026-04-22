@@ -12,6 +12,7 @@
 #' @param cor_method Correlation method to use (e.g. "pearson", "spearman").
 #'
 #' @returns A data frame with columns: Graph, Feature, Score.
+#' @export
 calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
                                  cor_method = "spearman") {
   if (rlang::is_missing(features_adt)) {
@@ -19,14 +20,30 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
   }
 
   if (any(!(features_adt %in% rownames(seurat_obj@assays[[adt_assay]])))) {
-    stop("The requested ADT feature is not present in assay '", adt_assay,
-         "'. Available features: ",
-         paste(sort(rownames(seurat_obj@assays[[adt_assay]])), collapse = ", "))
+    available_features <- rownames(seurat_obj@assays[[adt_assay]])
+    unavailable_features <- setdiff(features_adt, available_features)
+
+    # only use features that are present in the object
+    features_adt <- intersect(features_adt, available_features)
+
+    # just for formatting
+    available_features <- paste(sort(available_features), collapse = ", ")
+    unavailable_features <- paste(sort(unavailable_features), collapse = ", ")
+
+    # pass the pre-formatted strings to cli_inform
+    cli::cli_inform(c(
+      "i" = "Available features: {available_features}",
+      "i" = "Unavailable features: {unavailable_features}",
+      "v" = "Proceeding with: {features_adt}\n"
+    ))
+    # TODO: make having a print-out optional?
   }
 
   if (length(seurat_obj@neighbors) == 0) {
-    stop("No neighbor graphs found in object. Please run FindNeighbors() first.")
+    cli::cli_abort("No neighbor graphs found in object. Please run `FindNeighbors()` first.")
   }
+
+  # TODO: throw an error if no RNA graph is found
 
   adt_data <- GetAssayData(seurat_obj, assay = adt_assay, layer = "data")
   metrics_df <- c()
@@ -48,6 +65,7 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
     }
   }
 
+  # TODO: return with a column for Type = "Correlation" # spearman too
   metrics_df
 }
 

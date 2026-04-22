@@ -325,11 +325,11 @@ get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
 #' @returns A processed Seurat object with PCA (`rpca`), neighbor graphs (`RNA_nn`,
 #'   `RNA_snn`, `RNA.nn`), optional clusters, and UMAP (`rna.umap`).
 #' @export
-seurat_pipeline <- function(seurat_obj,
-                            nfeatures_RNA, perc_mt,
-                            num_features = 2000, num_pcs = 50, num_dims = 30, k_param = 20,
-                            cluster_res = NULL,
-                            filter_genes, ensembl_version = NULL, verbose = TRUE) {
+seurat_pipeline <- function(seurat_obj, nfeatures_RNA, perc_mt,
+                            num_features = 2000, num_pcs = 50, num_dims = 30,
+                            k_param = 20, cluster_res = NULL,
+                            filter_genes, ensembl_version = NULL,
+                            verbose = TRUE) {
    # TODO: keep the default values for nfeatures_RNA (200) and perc_mt (15), but allow the user to override them if they want to do filtering
    if (!rlang::is_missing(nfeatures_RNA) && !rlang::is_missing(perc_mt)) {
       if ("percent.mt" %in% names(seurat_obj[[]])) {

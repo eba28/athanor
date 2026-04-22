@@ -23,8 +23,8 @@
 #'
 #' @examples
 #' \dontrun{
-#' p <- ggplot(data, aes(x, y)) + geom_point()
-#' add_info_bar(p, info_type = "Dataset", info = dataset_info)
+#' p <- Seurat::DotPlot(seurat_obj, features = c("CD19", "MS4A1"))
+#' add_info_bar(p, method = "join", info_type = "Dataset", info = dataset_df)
 #' }
 #' @export
 add_info_bar <- function(plot, method = "contains", info_type, info,
@@ -100,6 +100,14 @@ add_info_bar <- function(plot, method = "contains", info_type, info,
 #' @param order_by An optional character string specifying the focus group value to order the results by. If not provided, no ordering is applied.
 #'
 #' @returns A data.frame with the calculated percentages and counts for each group.
+#'
+#' @examples
+#' df <- data.frame(
+#'   sample_id = rep(c("S1", "S2"), each = 50),
+#'   cell_type = c(rep(c("B", "T", "NK"), times = c(20, 20, 10)),
+#'                 rep(c("B", "T", "NK"), times = c(10, 30, 10)))
+#' )
+#' calc_pcts(df, meta_group_by = "sample_id", focus_group = "cell_type")
 #' @export
 calc_pcts <- function(data, meta_group_by = c("sample_id", "Dataset"),
                       focus_group, order_by) {
@@ -147,6 +155,11 @@ calc_pcts <- function(data, meta_group_by = c("sample_id", "Dataset"),
 #' @param fill_by One of "color" or "fill".
 #'
 #' @returns A Seurat dot plot or ggplot with an updated color scale, or just a vector of colors if a plot is not provided.
+#'
+#' @examples
+#' p <- ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg, color = mpg)) +
+#'   ggplot2::geom_point()
+#' plot_color_scale(plot = p, val_col = "mpg")
 #' @export
 plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
                              palette = rev(pals::brewer.rdbu(n = 7)),
@@ -212,8 +225,8 @@ plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
 #' @param clrs_specific Specific colors for plotting (make sure it has names).
 #' @param use_hues Use the iwanthue hues instead of the default ggplot colors. Doesn't let you set any other settings.
 #' @param pt_size The point size.
-#' @param assay The data type e.g. ADT, GEX, BCR, WNN...
-#' @param reduc The reduction to use for plotting e.g. wnn.umap
+#' @param assay The data type e.g. ADT, GEX, BCR, WNN... Will be used for the plot title.
+#' @param reduc The reduction to use for plotting e.g. "bpca" or wnn.umap".
 #' @param plot_label Add labels to the plot (or not).
 #' @param label_box Whether or not to give the labels a background.
 #' @param label_size The size of the plot labels.
@@ -227,7 +240,7 @@ plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
 #' @param details A custom subtitle.
 #' @param ... Any other Seurat parameters.
 #'
-#' @returns A Seurat UMAPPlot.
+#' @returns A Seurat plot of the specified reduction.
 #' @export
 plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
                          use_hues = FALSE, pt_size = 0.2, assay, reduc = "umap",

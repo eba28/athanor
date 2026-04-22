@@ -37,9 +37,9 @@ plot_dimplot(
 
 \item{pt_size}{The point size.}
 
-\item{assay}{The data type e.g. ADT, GEX, BCR, WNN...}
+\item{assay}{The data type e.g. ADT, GEX, BCR, WNN... Will be used for the plot title.}
 
-\item{reduc}{The reduction to use for plotting e.g. wnn.umap}
+\item{reduc}{The reduction to use for plotting e.g. "bpca" or wnn.umap".}
 
 \item{plot_label}{Add labels to the plot (or not).}
 
@@ -66,7 +66,7 @@ plot_dimplot(
 \item{...}{Any other Seurat parameters.}
 }
 \value{
-A Seurat UMAPPlot.
+A Seurat plot of the specified reduction.
 }
 \description{
 This function generates a UMAP plot from a Seurat object using \code{DimPlot} with various customizable options for coloring, labeling, and grouping the data.

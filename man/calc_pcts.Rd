@@ -35,3 +35,11 @@ The percentages will be doubles between 0 and 100.
 It will fill in missing values (especially needed for ordering if provided).
 You could alternatively use the fill option in geom_bar() instead.
 }
+\examples{
+df <- data.frame(
+  sample_id = rep(c("S1", "S2"), each = 50),
+  cell_type = c(rep(c("B", "T", "NK"), times = c(20, 20, 10)),
+                rep(c("B", "T", "NK"), times = c(10, 30, 10)))
+)
+calc_pcts(df, meta_group_by = "sample_id", focus_group = "cell_type")
+}
