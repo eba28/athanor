@@ -15,6 +15,8 @@
 #' @export
 calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
                                  cor_method = "spearman") {
+  # TODO: only calculate on a subset of the neighbors if desired
+
   if (rlang::is_missing(features_adt)) {
     features_adt <- rownames(seurat_obj@assays[[adt_assay]])
   }
@@ -347,6 +349,10 @@ calc_neighbor_matches <- function(seurat_obj, nn_name,
                                   adt_methods = c("mean_abs", "range"),
                                   permute = FALSE, n_permutations = 10,
                                   previous_matches, path_save) {
+  # TODO: improve the assay that is returned
+  # TODO: don't require category and category details
+  # TODO: return the mean
+
   if (!rlang::is_missing(path_save)) {
     if (!dir.exists(path_save)) dir.create(path_save, recursive = TRUE)
   }

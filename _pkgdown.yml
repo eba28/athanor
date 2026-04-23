@@ -3,10 +3,14 @@ url: https://eba28.github.io/athanor/
 template:
   bootstrap: 5
   # bootswatch: flatly
-  theme: atom-one-light
-  theme-dark: atom-one-dark
+  theme: arrow-light # atom-one-light, https://pkgdown.r-lib.org/articles/customise.html#syntax-highlighting
+  theme-dark: arrow-dark # atom-one-dark
 
 articles:
+- title: Pipeline
+  navbar: Pipeline
+  contents:
+  - main_pipeline
 - title: Visualization
   navbar: Visualization
   contents:

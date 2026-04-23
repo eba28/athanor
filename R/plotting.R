@@ -898,6 +898,13 @@ plot_pcts <- function(pcts, tissue_type, clrs_specific,
 #' @export
 plot_vln_feat <- function(seurat_obj, feature, assay = "RNA", group_col = NULL,
                           rotate = FALSE) {
+  # TODO: add clrs_specific as a parameter
+  # TODO: pass additional parameters, make labelling optional (be careful with additional)
+  # TODO: check if setting the assay is even necessary
+  # TODO: deal with how clean_umap messing up the heights
+  # TODO: give an option for how to sort the violin plot (or not)
+  # TODO: add a parameter for reduction
+
   # set the assay and idents
   if (!is.null(group_col)) Idents(seurat_obj) <- group_col
   DefaultAssay(seurat_obj) <- assay
@@ -912,7 +919,7 @@ plot_vln_feat <- function(seurat_obj, feature, assay = "RNA", group_col = NULL,
   p2 <- FeaturePlot(object = seurat_obj, features = feature, pt.size = 0.1,
                     order = TRUE, min.cutoff = 0, label = TRUE, label.size = 3,
                     raster = FALSE) +
-    scale_color_viridis_c(option = "G") +
+    scale_color_viridis_c(option = "G", direction = -1) +
     labels_standard + clean_umap
 
   (p1 | p2) & plot_layout(nrow = 1, widths = c(2, 1))
