@@ -194,7 +194,7 @@ names(obj_cat@reductions)
 ```{r concatenated-umap}
 #| fig.dim = c(8, 6)
 
-plot_dimplot(obj, data_source = data_desc,
+plot_dimplot(obj_cat, data_source = data_desc,
              assay = "Concatenated GEX & BCR", reduc = "rna_bcr.umap",
              meta_col = "annotated_clusters", annotated = TRUE,
              plot_label = FALSE, legend_label = "Cell Type")
