@@ -2,8 +2,9 @@ pandoc: 3.1.11
 pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
+  main_pipeline: main_pipeline.html
   plot_dimplot: plot_dimplot.html
-last_built: 2026-04-22T21:50Z
+last_built: 2026-04-23T19:26Z
 urls:
   reference: https://eba28.github.io/athanor/reference
   article: https://eba28.github.io/athanor/articles

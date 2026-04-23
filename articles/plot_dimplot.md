@@ -39,7 +39,7 @@ adt_counts <- Matrix(as.integer(rexp(num_proteins * num_cells, rate = 0.3)),
 
 rownames(gex_counts) <- paste0("Gene-", seq_len(num_genes))
 colnames(gex_counts) <- paste0("Cell-", seq_len(num_cells))
-rownames(adt_counts) <- c("CD19", "CD21", "CD27", "CD38", "IgD", "IgM")
+rownames(adt_counts) <- c("CD19", "CD21", "CD27", "CD38", "IGD", "IGM")
 colnames(adt_counts) <- colnames(gex_counts)
 
 obj <- CreateSeuratObject(counts = gex_counts, project = "Example")
