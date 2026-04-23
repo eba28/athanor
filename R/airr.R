@@ -495,9 +495,11 @@ process_bcr_features <- function(bcr_features) {
     bcr_features <- bcr_features %>%
                       rename_with(~str_c(., "-ordered"), where(is.ordered))
 
-    # convert ordered variables to numeric
+    # convert ordered variables to numeric; one-hot encode any remaining nominals
     ref_cell <- recipe( ~ ., data = bcr_features) %>%
-                  step_ordinalscore(all_ordered_predictors())
+                  step_ordinalscore(all_ordered_predictors()) %>%
+                  step_unknown(all_nominal_predictors()) %>%
+                  step_dummy(all_nominal_predictors(), one_hot = TRUE)
   } else {
     cli::cli_inform(c("i" = "No ordered variables: applying one-hot encoding to nominal predictors"))
 
@@ -511,7 +513,7 @@ process_bcr_features <- function(bcr_features) {
   # step_zv removes zero-variance columns (e.g. uniform "unknown" levels from step_unknown)
   # before normalization, which would produce NaN/Inf for them
   ref_cell <- ref_cell %>%
-                step_zv(all_predictors()) %>%
+                step_zv(all_numeric_predictors()) %>%
                 step_normalize(all_numeric_predictors()) %>%
                 prep(training = bcr_features)
 
@@ -520,7 +522,7 @@ process_bcr_features <- function(bcr_features) {
     cli::cli_inform(c("i" = "Removed {n_removed} zero-variance feature{?s}"))
   }
 
-  bcr_features <- bake(ref_cell, new_data = NULL) %>% t()
+  bcr_features <- bake(ref_cell, new_data = NULL) %>% base::t()
 
   cli::cli_inform(c("v" = "Processed {nrow(bcr_features)} feature{?s} across {ncol(bcr_features)} cell{?s}"))
 

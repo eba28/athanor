@@ -68,11 +68,15 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
     embedding_type = embedding_type,
     num_pcs = pc_bcr, num_dims = pc_bcr, k_param = k_param)
 
-  # add BCR assay (brings nCount_BCR and nFeature_BCR into metadata)
+  # add BCR assay; Seurat v5 does not propagate nCount/nFeature automatically
   suppressWarnings(seurat_obj[["BCR"]] <- bcr_obj[["BCR"]])
-  seurat_obj@meta.data <-
-    seurat_obj[[]] %>%
-    relocate(nCount_BCR, nFeature_BCR, .after = nFeature_ADT)
+  seurat_obj$nCount_BCR   <- bcr_obj[[]][Cells(seurat_obj), "nCount_BCR"]
+  seurat_obj$nFeature_BCR <- bcr_obj[[]][Cells(seurat_obj), "nFeature_BCR"]
+  if ("nFeature_ADT" %in% names(seurat_obj[[]])) {
+    seurat_obj@meta.data <-
+      seurat_obj[[]] %>%
+      relocate(nCount_BCR, nFeature_BCR, .after = nFeature_ADT)
+  }
 
   if (ncol(seurat_obj@assays$RNA) != ncol(seurat_obj@assays$BCR)) {
     stop("The number of cells in the RNA and BCR assays do not match.")
