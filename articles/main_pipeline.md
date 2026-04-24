@@ -1,18 +1,20 @@
 # Main processing pipeline: GEX, concatenation, and WNN
 
-This vignette walks through the full athanor pipeline on simulated data:
+This vignette walks through the full `athanor` pipeline on simulated
+data:
 
-1.  **GEX processing** —
+1.  **GEX processing**:
     [`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md) +
     [`add_annotations()`](https://eba28.github.io/athanor/reference/add_annotations.md)
-2.  **BCR metadata** — adding AIRR-derived features to the Seurat object
-3.  **Concatenation** —
+2.  **BCR metadata**: adding AIRR-derived features to the Seurat object
+3.  **Concatenation**:
     [`concatenate_gex_bcr()`](https://eba28.github.io/athanor/reference/concatenate_gex_bcr.md)
     combines gene expression and BCR features into a single assay
-4.  **WNN** —
+4.  **WNN**:
     [`run_wnn()`](https://eba28.github.io/athanor/reference/run_wnn.md)
-    integrates GEX and BCR embeddings via Weighted Nearest Neighbors
-5.  **Evaluation** — clustering quality metrics across methods
+    integrates GEX and BCR embeddings via Seurat’s Weighted Nearest
+    Neighbors
+5.  **Evaluation**: ADT-based metrics across methods
 
 ------------------------------------------------------------------------
 
@@ -126,9 +128,10 @@ table(obj$annotated_clusters)
 ```
 
 ``` r
-plot_dimplot(obj, assay = "GEX", data_source = data_desc,
+plot_dimplot(obj, data_source = data_desc,
+             assay = "GEX", reduc = "rna.umap",
              meta_col = "annotated_clusters", annotated = TRUE,
-             plot_label = FALSE, reduc = "rna.umap")
+             plot_label = FALSE, legend_label = "Cell Type")
 ```
 
 ![](main_pipeline_files/figure-html/annotated-umap-1.png)
@@ -201,9 +204,10 @@ names(obj_cat@reductions)
 ```
 
 ``` r
-plot_dimplot(obj_cat, assay = "Concatenated GEX & BCR",
-             data_source = data_desc,
-             meta_col = "annotated_clusters", reduc = "rna_bcr.umap")
+plot_dimplot(obj_cat, data_source = data_desc,
+             assay = "Concatenated GEX & BCR", reduc = "rna_bcr.umap",
+             meta_col = "annotated_clusters", annotated = TRUE,
+             plot_label = FALSE, legend_label = "Cell Type")
 ```
 
 ![](main_pipeline_files/figure-html/concatenated-umap-1.png)
@@ -251,16 +255,16 @@ names(obj_wnn@reductions)
 ``` r
 p_gex <- plot_dimplot(obj_wnn, assay = "GEX", data_source = data_desc,
                       meta_col = "annotated_clusters", reduc = "rna.umap",
-                      plot_label = FALSE)
+                      plot_label = FALSE, legend_label = "Cell Type")
 p_bcr <- plot_dimplot(obj_wnn, assay = "BCR", data_source = data_desc,
                       meta_col = "annotated_clusters", reduc = "bcr.umap",
-                      plot_label = FALSE)
+                      plot_label = FALSE, legend_label = "Cell Type")
 p_wnn <- plot_dimplot(obj_wnn, assay = "WNN", data_source = data_desc,
                       meta_col = "annotated_clusters", reduc = "wnn.umap",
-                      plot_label = FALSE)
+                      plot_label = FALSE, legend_label = "Cell Type")
 
 # use patchwork
-p_gex + p_bcr + p_wnn
+(p_gex + p_bcr + p_wnn) + plot_layout(nrow = 1, guides = "collect")
 ```
 
 ![](main_pipeline_files/figure-html/wnn-umap-1.png)

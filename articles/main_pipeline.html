@@ -70,25 +70,24 @@
 
     
     
-<p>This vignette walks through the full athanor pipeline on simulated
-data:</p>
+<p>This vignette walks through the full <code>athanor</code> pipeline on
+simulated data:</p>
 <ol style="list-style-type: decimal">
 <li>
-<strong>GEX processing</strong> — <code><a href="../reference/seurat_pipeline.html">seurat_pipeline()</a></code> +
+<strong>GEX processing</strong>: <code><a href="../reference/seurat_pipeline.html">seurat_pipeline()</a></code> +
 <code><a href="../reference/add_annotations.html">add_annotations()</a></code>
 </li>
 <li>
-<strong>BCR metadata</strong> — adding AIRR-derived features to the
+<strong>BCR metadata</strong>: adding AIRR-derived features to the
 Seurat object</li>
 <li>
-<strong>Concatenation</strong> — <code><a href="../reference/concatenate_gex_bcr.html">concatenate_gex_bcr()</a></code>
+<strong>Concatenation</strong>: <code><a href="../reference/concatenate_gex_bcr.html">concatenate_gex_bcr()</a></code>
 combines gene expression and BCR features into a single assay</li>
 <li>
-<strong>WNN</strong> — <code><a href="../reference/run_wnn.html">run_wnn()</a></code> integrates GEX and BCR
-embeddings via Weighted Nearest Neighbors</li>
+<strong>WNN</strong>: <code><a href="../reference/run_wnn.html">run_wnn()</a></code> integrates GEX and BCR
+embeddings via Seurat’s Weighted Nearest Neighbors</li>
 <li>
-<strong>Evaluation</strong> — clustering quality metrics across
-methods</li>
+<strong>Evaluation</strong>: ADT-based metrics across methods</li>
 </ol>
 <hr>
 <div class="section level2">
@@ -193,9 +192,10 @@ must have one row per cluster in the same order as
 <span><span class="co">#&gt; Memory B cells </span></span>
 <span><span class="co">#&gt;           2000</span></span></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj</span>, assay <span class="op">=</span> <span class="st">"GEX"</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<span>             assay <span class="op">=</span> <span class="st">"GEX"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
 <span>             meta_col <span class="op">=</span> <span class="st">"annotated_clusters"</span>, annotated <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>             plot_label <span class="op">=</span> <span class="cn">FALSE</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span><span class="op">)</span></span></code></pre></div>
+<span>             plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"Cell Type"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="main_pipeline_files/figure-html/annotated-umap-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <hr>
 </div>
@@ -268,9 +268,10 @@ and one-hot encodes categoricals.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">obj_cat</span><span class="op">@</span><span class="va">reductions</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "rpca"         "rna.umap"     "rna_bcr.pca"  "rna_bcr.umap"</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj_cat</span>, assay <span class="op">=</span> <span class="st">"Concatenated GEX &amp; BCR"</span>,</span>
-<span>             data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
-<span>             meta_col <span class="op">=</span> <span class="st">"annotated_clusters"</span>, reduc <span class="op">=</span> <span class="st">"rna_bcr.umap"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj_cat</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<span>             assay <span class="op">=</span> <span class="st">"Concatenated GEX &amp; BCR"</span>, reduc <span class="op">=</span> <span class="st">"rna_bcr.umap"</span>,</span>
+<span>             meta_col <span class="op">=</span> <span class="st">"annotated_clusters"</span>, annotated <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>             plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"Cell Type"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="main_pipeline_files/figure-html/concatenated-umap-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <hr>
 </div>
@@ -314,16 +315,16 @@ names match <code>cell_id</code>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p_gex</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj_wnn</span>, assay <span class="op">=</span> <span class="st">"GEX"</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
 <span>                      meta_col <span class="op">=</span> <span class="st">"annotated_clusters"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
-<span>                      plot_label <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span>                      plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"Cell Type"</span><span class="op">)</span></span>
 <span><span class="va">p_bcr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj_wnn</span>, assay <span class="op">=</span> <span class="st">"BCR"</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
 <span>                      meta_col <span class="op">=</span> <span class="st">"annotated_clusters"</span>, reduc <span class="op">=</span> <span class="st">"bcr.umap"</span>,</span>
-<span>                      plot_label <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span>                      plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"Cell Type"</span><span class="op">)</span></span>
 <span><span class="va">p_wnn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj_wnn</span>, assay <span class="op">=</span> <span class="st">"WNN"</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
 <span>                      meta_col <span class="op">=</span> <span class="st">"annotated_clusters"</span>, reduc <span class="op">=</span> <span class="st">"wnn.umap"</span>,</span>
-<span>                      plot_label <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span>                      plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"Cell Type"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># use patchwork</span></span>
-<span><span class="va">p_gex</span> <span class="op">+</span> <span class="va">p_bcr</span> <span class="op">+</span> <span class="va">p_wnn</span></span></code></pre></div>
+<span><span class="op">(</span><span class="va">p_gex</span> <span class="op">+</span> <span class="va">p_bcr</span> <span class="op">+</span> <span class="va">p_wnn</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_layout.html" class="external-link">plot_layout</a></span><span class="op">(</span>nrow <span class="op">=</span> <span class="fl">1</span>, guides <span class="op">=</span> <span class="st">"collect"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="main_pipeline_files/figure-html/wnn-umap-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">

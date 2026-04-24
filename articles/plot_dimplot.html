@@ -77,22 +77,19 @@ making it easy to overlay any categorical metadata column onto a UMAP
 use cases:</p>
 <ol style="list-style-type: decimal">
 <li>
-<strong>GEX metadata</strong> — Seurat clusters and cell-type
+<strong>GEX metadata</strong>: Seurat clusters and cell-type
 annotations</li>
 <li>
-<strong>BCR metadata</strong> — BCR features transferred from paired
+<strong>BCR metadata</strong>: BCR features transferred from paired
 AIRR data</li>
 <li>
-<strong>ADT expression</strong> — cell surface protein levels via
+<strong>ADT expression</strong>: cell surface protein levels via
 <code><a href="https://satijalab.org/seurat/reference/FeaturePlot.html" class="external-link">FeaturePlot()</a></code>
 </li>
 </ol>
 <div class="section level2">
 <h2 id="setup">Setup<a class="anchor" aria-label="anchor" href="#setup"></a>
 </h2>
-<div class="section level4">
-<h4 id="initial-gex-object">Initial GEX object<a class="anchor" aria-label="anchor" href="#initial-gex-object"></a>
-</h4>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/eba28/athanor" class="external-link">athanor</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
@@ -100,12 +97,16 @@ AIRR data</li>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://satijalab.org/seurat" class="external-link">Seurat</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># could change these</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="initial-gex-object">Initial GEX object<a class="anchor" aria-label="anchor" href="#initial-gex-object"></a>
+</h3>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># could change these</span></span>
 <span><span class="va">num_genes</span> <span class="op">&lt;-</span> <span class="fl">400</span></span>
 <span><span class="va">num_cells</span> <span class="op">&lt;-</span> <span class="fl">200</span></span>
 <span><span class="va">num_proteins</span> <span class="op">&lt;-</span> <span class="fl">6</span></span>
+<span><span class="va">data_desc</span> <span class="op">&lt;-</span> <span class="st">"Simulated"</span></span>
 <span><span class="va">named_clrs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># so that there aren't a bunch of color variables</span></span>
 <span></span>
 <span><span class="co"># TODO: use my simple simulator functions</span></span>
@@ -140,7 +141,7 @@ AIRR data</li>
 <code><a href="../reference/process_bcr_features.html">process_bcr_features()</a></code> on real data, BCR-derived columns
 are available in <code>obj@meta.data</code>. Here we simulate them for
 illustration:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># TODO: correlate these values with cell types instead of having them be random</span></span>
 <span></span>
 <span><span class="co"># TODO: change these to actual numbers</span></span>
@@ -168,15 +169,16 @@ illustration:</p>
 <p>The simplest call colors cells by <code>seurat_clusters</code> (the
 default <code>meta_col</code>). Passing the assay name to
 <code>assay</code> populates the plot title.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># could also just use umap</span></span>
-<span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, assay <span class="op">=</span> <span class="st">"GEX"</span>, data_source <span class="op">=</span> <span class="st">"Example dataset"</span>,</span>
-<span>             reduc <span class="op">=</span> <span class="st">"rna.umap"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<span>             assay <span class="op">=</span> <span class="st">"GEX"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="plot_dimplot_files/figure-html/gex-clusters-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p>To suppress labels and the legend:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, assay <span class="op">=</span> <span class="st">"GEX"</span>, data_source <span class="op">=</span> <span class="st">"Example dataset"</span>,</span>
-<span>             plot_label <span class="op">=</span> <span class="cn">FALSE</span>, include_legend <span class="op">=</span> <span class="cn">FALSE</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<span>             assay <span class="op">=</span> <span class="st">"GEX"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>             plot_label <span class="op">=</span> <span class="cn">FALSE</span>, include_legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="plot_dimplot_files/figure-html/gex-clusters-clean-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
@@ -184,15 +186,16 @@ default <code>meta_col</code>). Passing the assay name to
 </h3>
 <p>Set <code>annotated = TRUE</code> to switch the legend title to “Cell
 Type” and sort levels alphabetically.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">named_clrs</span><span class="op">$</span><span class="va">annotated_clusters</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Naive B cells"</span> <span class="op">=</span> <span class="st">"#93cc3d"</span>, <span class="st">"Memory B cells"</span> <span class="op">=</span> <span class="st">"#2d5f3f"</span>,</span>
 <span>    <span class="st">"Plasma cells"</span> <span class="op">=</span> <span class="st">"#cc095d"</span>, <span class="st">"Transitional B cells"</span> <span class="op">=</span> <span class="st">"#22e6e6"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, assay <span class="op">=</span> <span class="st">"GEX"</span>, data_source <span class="op">=</span> <span class="st">"Example dataset"</span>,</span>
+<span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<span>             assay <span class="op">=</span> <span class="st">"GEX"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>, </span>
 <span>             clrs_specific <span class="op">=</span> <span class="va">named_clrs</span><span class="op">$</span><span class="va">annotated_clusters</span>,</span>
 <span>             meta_col <span class="op">=</span> <span class="st">"annotated_clusters"</span>,</span>
-<span>             annotated <span class="op">=</span> <span class="cn">TRUE</span>, plot_label <span class="op">=</span> <span class="cn">FALSE</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span><span class="op">)</span></span></code></pre></div>
+<span>             annotated <span class="op">=</span> <span class="cn">TRUE</span>, plot_label <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="plot_dimplot_files/figure-html/gex-annotations-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
@@ -200,10 +203,11 @@ Type” and sort levels alphabetically.</p>
 </h3>
 <p>Pass a character vector to <code>specific_clusters</code> to draw a
 subset of cells on top of a grey background.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, assay <span class="op">=</span> <span class="st">"GEX"</span>,</span>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<span>             assay <span class="op">=</span> <span class="st">"GEX"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
 <span>             specific_clusters <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Naive B cells"</span>, <span class="st">"Plasma cells"</span><span class="op">)</span>,</span>
-<span>             meta_col <span class="op">=</span> <span class="st">"annotated_clusters"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span><span class="op">)</span></span></code></pre></div>
+<span>             meta_col <span class="op">=</span> <span class="st">"annotated_clusters"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="plot_dimplot_files/figure-html/gex-highlight-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <hr>
 </div>
@@ -217,27 +221,28 @@ so they are plotted exactly like any other metadata column.</p>
 <div class="section level3">
 <h3 id="cdr3-length">CDR3 length<a class="anchor" aria-label="anchor" href="#cdr3-length"></a>
 </h3>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># named_clrs$cdr3 &lt;- setNames(viridis(length(4:41)), nm = 4:41)</span></span>
 <span><span class="va">named_clrs</span><span class="op">$</span><span class="va">cdr3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>Short <span class="op">=</span> <span class="st">"#482778"</span>, Medium <span class="op">=</span> <span class="st">"#20938C"</span>, Long <span class="op">=</span> <span class="st">"#C9E020"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, assay <span class="op">=</span> <span class="st">"CDR3 Length"</span>,</span>
-<span>             meta_col <span class="op">=</span> <span class="st">"cdr3_aa_length"</span>, clrs_specific <span class="op">=</span> <span class="va">named_clrs</span><span class="op">$</span><span class="va">cdr3</span>,</span>
-<span>             plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"CDR3 Length"</span>,</span>
-<span>             reduc <span class="op">=</span> <span class="st">"rna.umap"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<span>             assay <span class="op">=</span> <span class="st">"CDR3 Length"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>             clrs_specific <span class="op">=</span> <span class="va">named_clrs</span><span class="op">$</span><span class="va">cdr3</span>, meta_col <span class="op">=</span> <span class="st">"cdr3_aa_length"</span>,</span>
+<span>             plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"CDR3 Length"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="plot_dimplot_files/figure-html/bcr-cdr3-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="isotype">Isotype<a class="anchor" aria-label="anchor" href="#isotype"></a>
 </h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># uses the colors from the alakazam package</span></span>
 <span><span class="va">named_clrs</span><span class="op">$</span><span class="va">isotype</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"IgA"</span> <span class="op">=</span> <span class="st">"#377EB8"</span>, <span class="st">"IgD"</span> <span class="op">=</span> <span class="st">"#FF7F00"</span>, <span class="st">"IgE"</span> <span class="op">=</span> <span class="st">"#E41A1C"</span>,</span>
 <span>                        <span class="st">"IgG"</span> <span class="op">=</span> <span class="st">"#4DAF4A"</span>, <span class="st">"IgM"</span> <span class="op">=</span> <span class="st">"#984EA3"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, assay <span class="op">=</span> <span class="st">"BCR Isotype"</span>, meta_col <span class="op">=</span> <span class="st">"isotype"</span>,</span>
-<span>             clrs_specific <span class="op">=</span> <span class="va">named_clrs</span><span class="op">$</span><span class="va">isotype</span>, plot_label <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>             legend_label <span class="op">=</span> <span class="st">"Isotype"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<span>             assay <span class="op">=</span> <span class="st">"Isotype"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>             clrs_specific <span class="op">=</span> <span class="va">named_clrs</span><span class="op">$</span><span class="va">isotype</span>, meta_col <span class="op">=</span> <span class="st">"isotype"</span>,</span>
+<span>             plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"Isotype"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="plot_dimplot_files/figure-html/bcr-isotype-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
@@ -245,7 +250,7 @@ so they are plotted exactly like any other metadata column.</p>
 </h3>
 <p>You could also use a <code>FeaturePlot</code> to see the actual
 values.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># named_clrs$mu_freq_bins &lt;-</span></span>
 <span><span class="co">#   viridis_pal(direction = -1, option = "C")(n = 5) %&gt;% str_sub(1, 7)</span></span>
 <span><span class="co"># note that the last bin's name is dependent on your dataset</span></span>
@@ -254,21 +259,22 @@ values.</p>
 <span>                             <span class="st">"10% to 25%"</span> <span class="op">=</span> <span class="st">"#0D0887"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># be careful with the order</span></span>
-<span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, assay <span class="op">=</span> <span class="st">"SHM Frequency"</span>,</span>
-<span>             meta_col <span class="op">=</span> <span class="st">"mu_freq_bins"</span>,</span>
-<span>             clrs_specific <span class="op">=</span> <span class="va">named_clrs</span><span class="op">$</span><span class="va">mu_freq_bins</span>, plot_label <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>             legend_label <span class="op">=</span> <span class="st">"SHM Bins"</span>, order <span class="op">=</span> <span class="cn">TRUE</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<span>             assay <span class="op">=</span> <span class="st">"SHM Frequency"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>             clrs_specific <span class="op">=</span> <span class="va">named_clrs</span><span class="op">$</span><span class="va">mu_freq_bins</span>, meta_col <span class="op">=</span> <span class="st">"mu_freq_bins"</span>,</span>
+<span>             plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"SHM Bins"</span>, order <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="plot_dimplot_files/figure-html/bcr-shm-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="v-gene-family">V gene family<a class="anchor" aria-label="anchor" href="#v-gene-family"></a>
 </h3>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">named_clrs</span><span class="op">$</span><span class="va">v_call_family</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#7690c7"</span>, <span class="st">"#8d4bca"</span>, <span class="st">"#90b648"</span>, <span class="st">"#d16099"</span>, <span class="st">"#57865f"</span>, <span class="st">"#62396e"</span>,</span>
 <span>             <span class="st">"#bc9149"</span><span class="op">)</span>, nm <span class="op">=</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_c.html" class="external-link">str_c</a></span><span class="op">(</span><span class="st">"IGHV"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">7</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, assay <span class="op">=</span> <span class="st">"V Gene Family"</span>,</span>
+<span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<span>             assay <span class="op">=</span> <span class="st">"V Gene Family"</span>,</span>
 <span>             clrs_specific <span class="op">=</span> <span class="va">named_clrs</span><span class="op">$</span><span class="va">v_call_family</span>,</span>
 <span>             meta_col <span class="op">=</span> <span class="st">"v_call_family"</span>, plot_label <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>             legend_label <span class="op">=</span> <span class="st">"V Gene Family"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span><span class="op">)</span></span></code></pre></div>
@@ -277,19 +283,25 @@ values.</p>
 <div class="section level3">
 <h3 id="combining-plots-with-patchwork">Combining plots with patchwork<a class="anchor" aria-label="anchor" href="#combining-plots-with-patchwork"></a>
 </h3>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">p_iso</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj</span>, assay <span class="op">=</span> <span class="st">"Isotype"</span>, meta_col <span class="op">=</span> <span class="st">"isotype"</span>,</span>
-<span>                      clrs_specific <span class="op">=</span> <span class="va">named_clrs</span><span class="op">$</span><span class="va">isotype</span>, plot_label <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>                      legend_label <span class="op">=</span> <span class="st">"Isotype"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span><span class="op">)</span></span>
-<span><span class="va">p_shm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj</span>, assay <span class="op">=</span> <span class="st">"SHM"</span>, meta_col <span class="op">=</span> <span class="st">"mu_freq_bins"</span>,</span>
-<span>                      clrs_specific <span class="op">=</span> <span class="va">named_clrs</span><span class="op">$</span><span class="va">mu_freq_bins</span>, plot_label <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>                      legend_label <span class="op">=</span> <span class="st">"SHM Bins"</span>, order <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>                      reduc <span class="op">=</span> <span class="st">"rna.umap"</span><span class="op">)</span></span>
-<span><span class="va">p_cdr3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj</span>, assay <span class="op">=</span> <span class="st">"CDR3 Length"</span>, meta_col <span class="op">=</span> <span class="st">"cdr3_aa_length"</span>,</span>
-<span>                       clrs_specific <span class="op">=</span> <span class="va">named_clrs</span><span class="op">$</span><span class="va">cdr3</span>, plot_label <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>                       legend_label <span class="op">=</span> <span class="st">"CDR3 Length"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p_iso</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<span>                      assay <span class="op">=</span> <span class="st">"Isotype"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>                      clrs_specific <span class="op">=</span> <span class="va">named_clrs</span><span class="op">$</span><span class="va">isotype</span>,</span>
+<span>                      meta_col <span class="op">=</span> <span class="st">"isotype"</span>,</span>
+<span>                      plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"Isotype"</span><span class="op">)</span></span>
+<span><span class="va">p_shm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<span>                      assay <span class="op">=</span> <span class="st">"SHM"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>                      clrs_specific <span class="op">=</span> <span class="va">named_clrs</span><span class="op">$</span><span class="va">mu_freq_bins</span>,</span>
+<span>                      meta_col <span class="op">=</span> <span class="st">"mu_freq_bins"</span>,</span>
+<span>                      plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"SHM Bins"</span>,</span>
+<span>                      order <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">p_cdr3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<span>                       assay <span class="op">=</span> <span class="st">"CDR3 Length"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>                       clrs_specific <span class="op">=</span> <span class="va">named_clrs</span><span class="op">$</span><span class="va">cdr3</span>,</span>
+<span>                       meta_col <span class="op">=</span> <span class="st">"cdr3_aa_length"</span>,</span>
+<span>                       plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"CDR3 Length"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">p_iso</span> <span class="op">+</span> <span class="va">p_shm</span> <span class="op">+</span> <span class="va">p_cdr3</span></span></code></pre></div>
+<span><span class="op">(</span><span class="va">p_iso</span> <span class="op">+</span> <span class="va">p_shm</span> <span class="op">+</span> <span class="va">p_cdr3</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_layout.html" class="external-link">plot_layout</a></span><span class="op">(</span>nrow <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p><img src="plot_dimplot_files/figure-html/bcr-combined-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <hr>
 </div>
@@ -303,29 +315,29 @@ these are best visualized with Seurat’s <code><a href="https://satijalab.org/s
 sequential color scale rather than <code><a href="../reference/plot_dimplot.html">plot_dimplot()</a></code>.
 <code><a href="../reference/seurat_pipeline.html">seurat_pipeline()</a></code> automatically normalizes the ADT assay
 with CLR, so no extra step is needed.</p>
-<p>ADT features are referenced as <code>"adt_&lt;marker&gt;"</code> —
-the assay key prepended to the feature name.</p>
+<p>ADT features are referenced as <code>"adt_&lt;marker&gt;"</code> (the
+assay key is prepended to the feature name).</p>
 <div class="section level3">
 <h3 id="single-marker">Single marker<a class="anchor" aria-label="anchor" href="#single-marker"></a>
 </h3>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># use CD19 as an example</span></span>
 <span><span class="fu"><a href="https://satijalab.org/seurat/reference/FeaturePlot.html" class="external-link">FeaturePlot</a></span><span class="op">(</span><span class="va">obj</span>, features <span class="op">=</span> <span class="st">"adt_CD19"</span>,</span>
 <span>            reduction <span class="op">=</span> <span class="st">"rna.umap"</span>, order <span class="op">=</span> <span class="cn">TRUE</span>, raster <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_color_viridis_c</a></span><span class="op">(</span>option <span class="op">=</span> <span class="st">"G"</span>, direction <span class="op">=</span> <span class="op">-</span><span class="fl">1</span><span class="op">)</span> <span class="co"># name = "CD19"</span></span></code></pre></div>
 <p><img src="plot_dimplot_files/figure-html/adt-single-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span>  <span class="co"># clean_umap</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="multiple-markers-side-by-side">Multiple markers side by side<a class="anchor" aria-label="anchor" href="#multiple-markers-side-by-side"></a>
 </h3>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://satijalab.org/seurat/reference/FeaturePlot.html" class="external-link">FeaturePlot</a></span><span class="op">(</span><span class="va">obj</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"adt_"</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">obj</span><span class="op">@</span><span class="va">assays</span><span class="op">$</span><span class="va">ADT</span><span class="op">@</span><span class="va">data</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>            reduction <span class="op">=</span> <span class="st">"rna.umap"</span>, order <span class="op">=</span> <span class="cn">TRUE</span>, ncol <span class="op">=</span> <span class="fl">3</span>, raster <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_color_viridis_c</a></span><span class="op">(</span>option <span class="op">=</span> <span class="st">"G"</span>, direction <span class="op">=</span> <span class="op">-</span><span class="fl">1</span><span class="op">)</span> <span class="co"># &amp;</span></span></code></pre></div>
 <p><img src="plot_dimplot_files/figure-html/adt-panel-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span>  <span class="co"># clean_umap</span></span></code></pre></div>
 <hr>
 </div>
