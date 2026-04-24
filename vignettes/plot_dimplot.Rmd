@@ -258,13 +258,12 @@ p_shm <- plot_dimplot(obj, data_source = data_desc,
                       clrs_specific = named_clrs$mu_freq_bins,
                       meta_col = "mu_freq_bins",
                       plot_label = FALSE, legend_label = "SHM Bins",
-                      order = TRUE, reduc = "rna.umap")
+                      order = TRUE)
 p_cdr3 <- plot_dimplot(obj, data_source = data_desc,
                        assay = "CDR3 Length", reduc = "rna.umap",
                        clrs_specific = named_clrs$cdr3,
                        meta_col = "cdr3_aa_length",
-                       plot_label = FALSE, legend_label = "CDR3 Length",
-                       reduc = "rna.umap")
+                       plot_label = FALSE, legend_label = "CDR3 Length")
 
 (p_iso + p_shm + p_cdr3) + plot_layout(nrow = 1)
 ```
