@@ -113,6 +113,7 @@ order as `levels(seurat_clusters)`.
 
 ```{r annotate}
 # TODO: annotate on a cell level instead to simulate automated annotation
+
 n_clusters <- nlevels(obj$seurat_clusters)
 
 # one cell type label per cluster
@@ -235,7 +236,7 @@ obj_wnn <- run_wnn(obj, embeddings = bcr_embeddings,
                    embedding_type = "Simulated",
                    pc_gex = 10, pc_bcr = 10, k_param = 20, cluster = TRUE,
                    cluster_res = list("GEX" = 0.5, "BCR" = 0.5, "WNN" = 0.5),
-                   show_output = FALSE)
+                   verbose = FALSE)
 
 names(obj_wnn@reductions)
 ```

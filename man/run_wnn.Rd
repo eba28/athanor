@@ -14,7 +14,7 @@ run_wnn(
   cluster = FALSE,
   cluster_res = list(GEX = 1, BCR = 1, WNN = 1),
   modality_weights = NULL,
-  show_output = FALSE
+  verbose = FALSE
 )
 }
 \arguments{
@@ -34,7 +34,7 @@ run_wnn(
 
 \item{modality_weights}{Named vector of modality weights. If NULL, Seurat will calculate automatically.}
 
-\item{show_output}{Whether or not to show verbose output from Seurat functions.}
+\item{verbose}{Whether or not to show output from Seurat functions.}
 
 \item{k}{The number of neighbors to use for each modality.}
 }

@@ -10,7 +10,9 @@ concatenate_gex_bcr(
   cols_to_include,
   var_features = FALSE,
   normalize = TRUE,
+  num_pcs = 50,
   num_dims = 20,
+  k_param = 20,
   filter_genes,
   ensembl_version = NULL
 )
@@ -29,7 +31,11 @@ assay. If FALSE, concatenate BCR features onto existing variable features.}
 \item{normalize}{If TRUE, normalize the combined assay using
 LogNormalize. If FALSE, skip normalization.}
 
-\item{num_dims}{number of dimensions to use for PCA and neighbor finding.}
+\item{num_pcs}{Number of principal components to compute.}
+
+\item{num_dims}{Number of PCA dimensions to use for neighbor finding and UMAP.}
+
+\item{k_param}{Number of nearest neighbors.}
 
 \item{filter_genes}{If specified, filter out genes from this category (e.g. "IG" and/or "TR")}
 

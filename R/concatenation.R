@@ -25,7 +25,9 @@
 #'   assay. If FALSE, concatenate BCR features onto existing variable features.
 #' @param normalize If TRUE, normalize the combined assay using
 #'   LogNormalize. If FALSE, skip normalization.
-#' @param num_dims number of dimensions to use for PCA and neighbor finding.
+#' @param num_pcs Number of principal components to compute.
+#' @param num_dims Number of PCA dimensions to use for neighbor finding and UMAP.
+#' @param k_param Number of nearest neighbors.
 #' @param filter_genes If specified, filter out genes from this category (e.g. "IG" and/or "TR")
 #' @param ensembl_version If filtering genes, specify the Ensembl version to use for gene annotations (e.g. "GRCh38.104"). If NULL, uses the default version in [get_airr_genes()].
 #'
@@ -38,8 +40,9 @@
 #' @export
 concatenate_gex_bcr <- function(seurat_obj, pca_stage = c("Before", "After"),
                                 cols_to_include, var_features = FALSE,
-                                normalize = TRUE, num_dims = 20,
-                                filter_genes, ensembl_version = NULL) {
+                                normalize = TRUE, num_pcs = 50, num_dims = 20,
+                                k_param = 20, filter_genes,
+                                ensembl_version = NULL) {
   # TODO: include k as a parameter?
   pca_stage <- match.arg(pca_stage)
   # TODO: double check the formatting of filter genes
@@ -69,6 +72,8 @@ concatenate_gex_bcr <- function(seurat_obj, pca_stage = c("Before", "After"),
                                                     layer = seurat_layer),
                                        bcr_features))
     DefaultAssay(seurat_obj) <- "RNA_BCR"
+
+    # TODO: use seurat_pipeline()
 
     # make sure that the BCR data are included as variable features
     # TODO: try other selection methods (not just vst)
@@ -119,7 +124,7 @@ concatenate_gex_bcr <- function(seurat_obj, pca_stage = c("Before", "After"),
 
     # TODO: don't scale twice??
     seurat_obj <- ScaleData(object = seurat_obj, verbose = FALSE)
-    seurat_obj <- RunPCA(object = seurat_obj, npcs = 30,
+    seurat_obj <- RunPCA(object = seurat_obj, npcs = num_pcs,
                          reduction.name = "rna_bcr.pca",
                          reduction.key = "rnabcrpca_")
   } else {
@@ -165,17 +170,15 @@ concatenate_gex_bcr <- function(seurat_obj, pca_stage = c("Before", "After"),
   }
 
   seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "rna_bcr.pca",
-                              k.param = num_dims, dims = 1:num_dims,
+                              k.param = k_param, dims = 1:num_dims,
                               verbose = FALSE, graph.name = "RNA_BCR_nn")
   seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "rna_bcr.pca",
-                              k.param = num_dims, dims = 1:num_dims,
+                              k.param = k_param, dims = 1:num_dims,
                               return.neighbor = TRUE,
                               verbose = FALSE, graph.name = "RNA_BCR.nn")
-  seurat_obj <- RunUMAP(object = seurat_obj, # n.neighbors = num_dims,
-                        nn.name = "RNA_BCR.nn",
-                        reduction = "rna_bcr.pca", # dims = 1:num_dims,
-                        reduction.name = "rna_bcr.umap") # , verbose = FALSE
-  ## TODO: address ...Commencing smooth kNN distance calibration using 1 thread with target n_neighbors = 30
+  seurat_obj <- RunUMAP(object = seurat_obj, nn.name = "RNA_BCR.nn",
+                        n.neighbors = k_param, reduction.name = "rna_bcr.umap",
+                        reduction.key = "rnabcrUMAP_")
 
   return(seurat_obj)
 }

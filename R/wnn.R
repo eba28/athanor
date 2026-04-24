@@ -23,14 +23,14 @@
 #' @param cluster Whether or not to perform clustering.
 #' @param cluster_res Named list of clustering resolutions for GEX, BCR, and WNN.
 #' @param modality_weights Named vector of modality weights. If NULL, Seurat will calculate automatically.
-#' @param show_output Whether or not to show verbose output from Seurat functions.
+#' @param verbose Whether or not to show output from Seurat functions.
 #'
 #' @returns A Seurat object with WNN run.
 #' @export
 run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                     pc_bcr = 20, k_param = 20, cluster = FALSE,
                     cluster_res = list("GEX" = 1, "BCR" = 1, "WNN" = 1),
-                    modality_weights = NULL, show_output = FALSE) {
+                    modality_weights = NULL, verbose = FALSE) {
   # input validation
   if (!inherits(seurat_obj, "Seurat")) {
     stop("seurat_obj must be a Seurat object.")
@@ -93,7 +93,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
   # TODO: filter out genes
   DefaultAssay(seurat_obj) <- "RNA"
   seurat_obj <- seurat_pipeline(seurat_obj, num_pcs = pc_gex, num_dims = pc_gex,
-                                k_param = k_param, verbose = show_output)
+                                k_param = k_param, verbose = verbose)
 
   # find multimodal neighbors, then do clustering and make a UMAP
   seurat_obj <-
@@ -109,11 +109,11 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                               str_c(c("RNA", "BCR"), ".weight"),
                             return.intermediate = TRUE,
                             modality.weight = modality_weights,
-                            verbose = show_output)
-  seurat_obj <- RunUMAP(object = seurat_obj, # dims = 1:pc_gex,
-                        n.neighbors = k_param, nn.name = "w.nn",
+                            verbose = verbose)
+  seurat_obj <- RunUMAP(object = seurat_obj, nn.name = "w.nn",
+                        n.neighbors = k_param,
                         reduction.name = "wnn.umap", reduction.key = "wnnUMAP_",
-                        verbose = show_output)
+                        verbose = verbose)
 
   # use the "main" k for clustering and the Louvain algorithm
   if (cluster) {
@@ -121,18 +121,18 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
     seurat_obj <- FindClusters(object = seurat_obj,
                                graph.name = "BCR_snn",
                                resolution = cluster_res[["BCR"]],
-                               algorithm = 1, verbose = show_output)
+                               algorithm = 1, verbose = verbose)
     # cluster the GEX assay
     # TODO: do this in seurat_pipeline??
     seurat_obj <- FindClusters(object = seurat_obj,
                                graph.name = "RNA_snn",
                                resolution = cluster_res[["GEX"]],
-                               algorithm = 1, verbose = show_output)
+                               algorithm = 1, verbose = verbose)
     # cluster the WNN assay
     seurat_obj <- FindClusters(object = seurat_obj,
                                graph.name = "w_snn",
                                resolution = cluster_res[["WNN"]],
-                               algorithm = 1, verbose = show_output)
+                               algorithm = 1, verbose = verbose)
 
     # set the cluster identities and fix the order (RNA and BCR are fine)
     meta_res_wnn <- paste0("w_snn_res.", cluster_res[["WNN"]])

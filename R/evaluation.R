@@ -351,7 +351,7 @@ calc_neighbor_matches <- function(seurat_obj, nn_name,
                                   previous_matches, path_save) {
   # TODO: improve the assay that is returned
   # TODO: don't require category and category details
-  # TODO: return the mean
+  # TODO: return the mean as an option
 
   if (!rlang::is_missing(path_save)) {
     if (!dir.exists(path_save)) dir.create(path_save, recursive = TRUE)
@@ -490,6 +490,7 @@ calc_neighbor_matches <- function(seurat_obj, nn_name,
       arrange(Meta_Col)
   }
 
+  # TODO: make sure it is always a character (could be double)
   category <- seurat_obj@misc$category
   category_details <- seurat_obj@misc$category_details
 
@@ -513,6 +514,7 @@ calc_neighbor_matches <- function(seurat_obj, nn_name,
   neighbor_matches <- neighbor_matches %>%
     mutate(Meta_Col = ifelse(Assay == "ADT", toupper(Meta_Col), Meta_Col))
 
+  # TODO: add the graphs too, or calculate on all graphs
   cli::cli_inform("Scores calculated on {k} neighbors for \\
 {str_replace_all(seurat_obj@misc$category, '_', ' ')} \\
 {str_replace_all(seurat_obj@misc$category_details, '_', ' ')}.")
