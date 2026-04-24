@@ -153,6 +153,7 @@ gex_add_airr <- function(seurat_obj, airr_type = "BCR",
                                  ">1% Unswitched", ">1% Switched")))
 
     # let's add a few more approaches to cell typing
+    # TODO: decapitalize these?
     seurat_obj@meta.data <-
       seurat_obj[[]] %>%
       mutate(annotated_clusters_bcr =

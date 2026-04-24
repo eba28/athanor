@@ -91,6 +91,14 @@ bcr_embeddings_pipeline <- function(embeddings, embedding_type,
                                new_cols = airr_cols)
   }
 
+  max_pcs <- nrow(embeddings) - 1
+  if (num_pcs >= nrow(embeddings)) {
+    warning("num_pcs (", num_pcs, ") >= embedding dimensions (", nrow(embeddings),
+            "); reducing to ", max_pcs, " to avoid SVD convergence failure.")
+    num_pcs <- max_pcs
+    num_dims <- min(num_dims, max_pcs)
+  }
+
   seurat_obj <- Seurat::RunPCA(object = seurat_obj, npcs = num_pcs,
                                reduction.name = "bpca", reduction.key = "bpca_",
                                verbose = verbose)

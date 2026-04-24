@@ -149,7 +149,7 @@ named_clrs$annotated_clusters <-
     "Plasma cells" = "#cc095d", "Transitional B cells" = "#22e6e6")
 
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
-             assay = "GEX", reduc = "rna.umap", 
+             assay = "GEX", reduc = "rna.umap",
              clrs_specific = named_clrs$annotated_clusters,
              meta_col = "annotated_clusters",
              annotated = TRUE, plot_label = FALSE)

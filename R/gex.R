@@ -26,6 +26,8 @@ add_annotations <- function(seurat_obj, annotations_df,
                             relabel = TRUE, relocate = TRUE, alphabetize = TRUE,
                             clusters_col = "seurat_clusters",
                             annotations_col = "annotated_clusters") {
+   # TODO: annotated on a cell level?
+
    # prepare the annotation information
    annotations <- annotations_df[[cell_types_col]] # you only need the cell type information
    names(annotations) <- levels(seurat_obj[[clusters_col]] %>% pull())

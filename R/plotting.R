@@ -549,6 +549,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                                 comparisons = c("annotated_clusters_simpler",
                                                 "v_call_family", "light_chains",
                                                 "isotype", "mu_freq")) {
+  # TODO: plot the comparisons in the order that they were given
+
   # validate inputs
   # if (!reduction %in% c("rna.umap", "adt.umap", "bcr.umap", "wnn.umap")) {
   #   stop("reduction must be one of: 'rna.umap', 'adt.umap', 'bcr.umap', 'wnn.umap'")
