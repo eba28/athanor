@@ -126,7 +126,7 @@ cell surface protein counts) since its presence is expected by
 <span></span>
 <span><span class="co"># TODO: put the memory and naive B cells into one cluster</span></span>
 <span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_gex_splatter.html">sim_gex_splatter</a></span><span class="op">(</span>num_genes <span class="op">=</span> <span class="va">num_genes</span>, num_cells <span class="op">=</span> <span class="va">num_cells</span>,</span>
-<span>                        splatter_groups <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">0.5</span>, <span class="fl">0.3</span><span class="op">)</span>,</span>
+<span>                        splatter_groups <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>, <span class="fl">0.5</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
 <span>                        splatter_method <span class="op">=</span> <span class="st">"groups"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># add a small ADT assay</span></span>
@@ -173,26 +173,31 @@ cluster-to-cell-type assignments onto the Seurat object. The data frame
 must have one row per cluster in the same order as
 <code>levels(seurat_clusters)</code>.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">n_clusters</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nlevels.html" class="external-link">nlevels</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">seurat_clusters</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># TODO: annotate on a cell level instead to simulate automated annotation</span></span>
+<span></span>
+<span><span class="va">n_clusters</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nlevels.html" class="external-link">nlevels</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">seurat_clusters</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># one cell type label per cluster</span></span>
-<span><span class="va">cell_types</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Memory B cells"</span>, <span class="st">"Naive B cells"</span>, <span class="st">"Plasma cells"</span>, <span class="st">"Transitional B cells"</span><span class="op">)</span>,</span>
-<span>  size <span class="op">=</span> <span class="va">n_clusters</span>, replace <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="op">)</span></span>
+<span><span class="co"># cell_types &lt;- sample(c("Memory B cells", "Naive B cells", "Plasma cells",</span></span>
+<span><span class="co">#                        "Transitional B cells"), size = n_clusters,</span></span>
+<span><span class="co">#                      replace = TRUE, prob = c(0.4, 0.4, 0.1, 0.1))</span></span>
+<span></span>
+<span><span class="co"># we chose to have 3 clusters during simulation, so let's define them directly</span></span>
+<span><span class="va">cell_types</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Memory B cells"</span>, <span class="st">"Naive B cells"</span>, <span class="st">"Plasma cells"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">annotations_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>CellType <span class="op">=</span> <span class="va">cell_types</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_annotations.html">add_annotations</a></span><span class="op">(</span><span class="va">obj</span>, annotations_df <span class="op">=</span> <span class="va">annotations_df</span>,</span>
-<span>                       cell_types_col <span class="op">=</span> <span class="st">"CellType"</span>, clusters_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>,</span>
+<span><span class="va">obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_annotations.html">add_annotations</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, annotations_df <span class="op">=</span> <span class="va">annotations_df</span>,</span>
+<span>                       cell_types_col <span class="op">=</span> <span class="st">"CellType"</span>,</span>
+<span>                       clusters_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>,</span>
 <span>                       annotations_col <span class="op">=</span> <span class="st">"annotated_clusters"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">annotated_clusters</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Memory B cells </span></span>
-<span><span class="co">#&gt;           2000</span></span></code></pre></div>
+<span><span class="co">#&gt; Memory B cells  Naive B cells   Plasma cells </span></span>
+<span><span class="co">#&gt;           1023            762            215</span></span></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>, use_hues <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>             assay <span class="op">=</span> <span class="st">"GEX"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
 <span>             meta_col <span class="op">=</span> <span class="st">"annotated_clusters"</span>, annotated <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>             plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"Cell Type"</span><span class="op">)</span></span></code></pre></div>
@@ -234,11 +239,11 @@ self-contained.</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">mu_freq</span>, <span class="va">cdr3_aa_length</span>, <span class="va">isotype</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     mu_freq       cdr3_aa_length isotype  </span></span>
-<span><span class="co">#&gt;  Min.   :0.0000   Short :672     IgA:305  </span></span>
-<span><span class="co">#&gt;  1st Qu.:0.0770   Medium:669     IgD:264  </span></span>
-<span><span class="co">#&gt;  Median :0.1555   Long  :659     IgG:708  </span></span>
-<span><span class="co">#&gt;  Mean   :0.1516                  IgM:723  </span></span>
-<span><span class="co">#&gt;  3rd Qu.:0.2263                           </span></span>
+<span><span class="co">#&gt;  Min.   :0.0000   Short :675     IgA:305  </span></span>
+<span><span class="co">#&gt;  1st Qu.:0.0770   Medium:667     IgD:264  </span></span>
+<span><span class="co">#&gt;  Median :0.1550   Long  :658     IgG:709  </span></span>
+<span><span class="co">#&gt;  Mean   :0.1514                  IgM:722  </span></span>
+<span><span class="co">#&gt;  3rd Qu.:0.2260                           </span></span>
 <span><span class="co">#&gt;  Max.   :0.3000</span></span></code></pre></div>
 <hr>
 </div>
@@ -268,7 +273,7 @@ and one-hot encodes categoricals.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">obj_cat</span><span class="op">@</span><span class="va">reductions</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "rpca"         "rna.umap"     "rna_bcr.pca"  "rna_bcr.umap"</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj_cat</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj_cat</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>, use_hues <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>             assay <span class="op">=</span> <span class="st">"Concatenated GEX &amp; BCR"</span>, reduc <span class="op">=</span> <span class="st">"rna_bcr.umap"</span>,</span>
 <span>             meta_col <span class="op">=</span> <span class="st">"annotated_clusters"</span>, annotated <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>             plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"Cell Type"</span><span class="op">)</span></span></code></pre></div>
@@ -305,7 +310,7 @@ names match <code>cell_id</code>
 <span>                   embedding_type <span class="op">=</span> <span class="st">"Simulated"</span>,</span>
 <span>                   pc_gex <span class="op">=</span> <span class="fl">10</span>, pc_bcr <span class="op">=</span> <span class="fl">10</span>, k_param <span class="op">=</span> <span class="fl">20</span>, cluster <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                   cluster_res <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"GEX"</span> <span class="op">=</span> <span class="fl">0.5</span>, <span class="st">"BCR"</span> <span class="op">=</span> <span class="fl">0.5</span>, <span class="st">"WNN"</span> <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span>
-<span>                   show_output <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span>                   verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">obj_wnn</span><span class="op">@</span><span class="va">reductions</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "bpca"     "bcr.umap" "rpca"     "rna.umap" "wnn.umap"</span></span></code></pre></div>
@@ -314,12 +319,15 @@ names match <code>cell_id</code>
 </h3>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p_gex</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj_wnn</span>, assay <span class="op">=</span> <span class="st">"GEX"</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<span>                      use_hues <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                      meta_col <span class="op">=</span> <span class="st">"annotated_clusters"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
 <span>                      plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"Cell Type"</span><span class="op">)</span></span>
 <span><span class="va">p_bcr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj_wnn</span>, assay <span class="op">=</span> <span class="st">"BCR"</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<span>                      use_hues <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                      meta_col <span class="op">=</span> <span class="st">"annotated_clusters"</span>, reduc <span class="op">=</span> <span class="st">"bcr.umap"</span>,</span>
 <span>                      plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"Cell Type"</span><span class="op">)</span></span>
 <span><span class="va">p_wnn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj_wnn</span>, assay <span class="op">=</span> <span class="st">"WNN"</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
+<span>                      use_hues <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                      meta_col <span class="op">=</span> <span class="st">"annotated_clusters"</span>, reduc <span class="op">=</span> <span class="st">"wnn.umap"</span>,</span>
 <span>                      plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"Cell Type"</span><span class="op">)</span></span>
 <span></span>

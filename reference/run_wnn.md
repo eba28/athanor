@@ -21,7 +21,7 @@ run_wnn(
   cluster = FALSE,
   cluster_res = list(GEX = 1, BCR = 1, WNN = 1),
   modality_weights = NULL,
-  show_output = FALSE
+  verbose = FALSE
 )
 ```
 
@@ -60,9 +60,9 @@ run_wnn(
   Named vector of modality weights. If NULL, Seurat will calculate
   automatically.
 
-- show_output:
+- verbose:
 
-  Whether or not to show verbose output from Seurat functions.
+  Whether or not to show output from Seurat functions.
 
 - k:
 

@@ -13,7 +13,9 @@ concatenate_gex_bcr(
   cols_to_include,
   var_features = FALSE,
   normalize = TRUE,
+  num_pcs = 50,
   num_dims = 20,
+  k_param = 20,
   filter_genes,
   ensembl_version = NULL
 )
@@ -45,9 +47,17 @@ concatenate_gex_bcr(
   If TRUE, normalize the combined assay using LogNormalize. If FALSE,
   skip normalization.
 
+- num_pcs:
+
+  Number of principal components to compute.
+
 - num_dims:
 
-  number of dimensions to use for PCA and neighbor finding.
+  Number of PCA dimensions to use for neighbor finding and UMAP.
+
+- k_param:
+
+  Number of nearest neighbors.
 
 - filter_genes:
 

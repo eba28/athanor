@@ -55,7 +55,7 @@ data_desc <- "Simulated"
 
 # TODO: put the memory and naive B cells into one cluster
 obj <- sim_gex_splatter(num_genes = num_genes, num_cells = num_cells,
-                        splatter_groups = c(0.2, 0.5, 0.3),
+                        splatter_groups = c(0.4, 0.5, 0.1),
                         splatter_method = "groups")
 
 # add a small ADT assay
@@ -107,28 +107,33 @@ object. The data frame must have one row per cluster in the same order
 as `levels(seurat_clusters)`.
 
 ``` r
+# TODO: annotate on a cell level instead to simulate automated annotation
+
 n_clusters <- nlevels(obj$seurat_clusters)
 
 # one cell type label per cluster
-cell_types <- sample(
-  c("Memory B cells", "Naive B cells", "Plasma cells", "Transitional B cells"),
-  size = n_clusters, replace = TRUE
-)
+# cell_types <- sample(c("Memory B cells", "Naive B cells", "Plasma cells",
+#                        "Transitional B cells"), size = n_clusters,
+#                      replace = TRUE, prob = c(0.4, 0.4, 0.1, 0.1))
+
+# we chose to have 3 clusters during simulation, so let's define them directly
+cell_types <- c("Memory B cells", "Naive B cells", "Plasma cells")
 
 annotations_df <- data.frame(CellType = cell_types)
 
-obj <- add_annotations(obj, annotations_df = annotations_df,
-                       cell_types_col = "CellType", clusters_col = "seurat_clusters",
+obj <- add_annotations(seurat_obj = obj, annotations_df = annotations_df,
+                       cell_types_col = "CellType",
+                       clusters_col = "seurat_clusters",
                        annotations_col = "annotated_clusters")
 
 table(obj$annotated_clusters)
 #> 
-#> Memory B cells 
-#>           2000
+#> Memory B cells  Naive B cells   Plasma cells 
+#>           1023            762            215
 ```
 
 ``` r
-plot_dimplot(obj, data_source = data_desc,
+plot_dimplot(obj, data_source = data_desc, use_hues = TRUE,
              assay = "GEX", reduc = "rna.umap",
              meta_col = "annotated_clusters", annotated = TRUE,
              plot_label = FALSE, legend_label = "Cell Type")
@@ -164,11 +169,11 @@ obj[[]] %>%
   select(mu_freq, cdr3_aa_length, isotype) %>%
   summary()
 #>     mu_freq       cdr3_aa_length isotype  
-#>  Min.   :0.0000   Short :672     IgA:305  
-#>  1st Qu.:0.0770   Medium:669     IgD:264  
-#>  Median :0.1555   Long  :659     IgG:708  
-#>  Mean   :0.1516                  IgM:723  
-#>  3rd Qu.:0.2263                           
+#>  Min.   :0.0000   Short :675     IgA:305  
+#>  1st Qu.:0.0770   Medium:667     IgD:264  
+#>  Median :0.1550   Long  :658     IgG:709  
+#>  Mean   :0.1514                  IgM:722  
+#>  3rd Qu.:0.2260                           
 #>  Max.   :0.3000
 ```
 
@@ -204,7 +209,7 @@ names(obj_cat@reductions)
 ```
 
 ``` r
-plot_dimplot(obj_cat, data_source = data_desc,
+plot_dimplot(obj_cat, data_source = data_desc, use_hues = TRUE,
              assay = "Concatenated GEX & BCR", reduc = "rna_bcr.umap",
              meta_col = "annotated_clusters", annotated = TRUE,
              plot_label = FALSE, legend_label = "Cell Type")
@@ -244,7 +249,7 @@ obj_wnn <- run_wnn(obj, embeddings = bcr_embeddings,
                    embedding_type = "Simulated",
                    pc_gex = 10, pc_bcr = 10, k_param = 20, cluster = TRUE,
                    cluster_res = list("GEX" = 0.5, "BCR" = 0.5, "WNN" = 0.5),
-                   show_output = FALSE)
+                   verbose = FALSE)
 
 names(obj_wnn@reductions)
 #> [1] "bpca"     "bcr.umap" "rpca"     "rna.umap" "wnn.umap"
@@ -254,12 +259,15 @@ names(obj_wnn@reductions)
 
 ``` r
 p_gex <- plot_dimplot(obj_wnn, assay = "GEX", data_source = data_desc,
+                      use_hues = TRUE,
                       meta_col = "annotated_clusters", reduc = "rna.umap",
                       plot_label = FALSE, legend_label = "Cell Type")
 p_bcr <- plot_dimplot(obj_wnn, assay = "BCR", data_source = data_desc,
+                      use_hues = TRUE,
                       meta_col = "annotated_clusters", reduc = "bcr.umap",
                       plot_label = FALSE, legend_label = "Cell Type")
 p_wnn <- plot_dimplot(obj_wnn, assay = "WNN", data_source = data_desc,
+                      use_hues = TRUE,
                       meta_col = "annotated_clusters", reduc = "wnn.umap",
                       plot_label = FALSE, legend_label = "Cell Type")
 

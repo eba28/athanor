@@ -60,7 +60,9 @@ Seurat pipeline on the combined data.</p>
 <span>  <span class="va">cols_to_include</span>,</span>
 <span>  var_features <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  normalize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  num_pcs <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  num_dims <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>  k_param <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  <span class="va">filter_genes</span>,</span>
 <span>  ensembl_version <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -93,8 +95,16 @@ assay. If FALSE, concatenate BCR features onto existing variable features.</p></
 LogNormalize. If FALSE, skip normalization.</p></dd>
 
 
+<dt id="arg-num-pcs">num_pcs<a class="anchor" aria-label="anchor" href="#arg-num-pcs"></a></dt>
+<dd><p>Number of principal components to compute.</p></dd>
+
+
 <dt id="arg-num-dims">num_dims<a class="anchor" aria-label="anchor" href="#arg-num-dims"></a></dt>
-<dd><p>number of dimensions to use for PCA and neighbor finding.</p></dd>
+<dd><p>Number of PCA dimensions to use for neighbor finding and UMAP.</p></dd>
+
+
+<dt id="arg-k-param">k_param<a class="anchor" aria-label="anchor" href="#arg-k-param"></a></dt>
+<dd><p>Number of nearest neighbors.</p></dd>
 
 
 <dt id="arg-filter-genes">filter_genes<a class="anchor" aria-label="anchor" href="#arg-filter-genes"></a></dt>
