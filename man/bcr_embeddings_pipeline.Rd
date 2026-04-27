@@ -7,11 +7,11 @@
 bcr_embeddings_pipeline(
   embeddings,
   embedding_type,
+  combined_airr = NULL,
+  new_cols = NULL,
   num_pcs = 50,
   num_dims = 20,
   k_param = 20,
-  combined_airr = NULL,
-  airr_cols = NULL,
   verbose = TRUE
 )
 }
@@ -20,28 +20,28 @@ bcr_embeddings_pipeline(
 
 \item{embedding_type}{Character label for the embedding method (stored in \code{Misc}).}
 
+\item{combined_airr}{Optional data frame passed to \code{gex_add_airr()} to add
+AIRR metadata columns. If NULL, the step is skipped.}
+
+\item{new_cols}{Character vector of columns to add from \code{combined_airr}.
+Only used when \code{combined_airr} is provided.}
+
 \item{num_pcs}{Number of principal components to compute.}
 
 \item{num_dims}{Number of PCA dimensions to use for neighbor finding and UMAP.}
 
 \item{k_param}{Number of nearest neighbors.}
 
-\item{combined_airr}{Optional data frame passed to \code{gex_add_airr()} to add
-AIRR metadata columns. If NULL, the step is skipped.}
-
-\item{airr_cols}{Character vector of columns to add from \code{combined_airr}.
-Only used when \code{combined_airr} is provided.}
-
 \item{verbose}{Logical indicating whether to print progress messages.}
 }
 \value{
-A Seurat object with BCR assay, PCA (\code{bpca}), neighbor graphs
-(\code{BCR_nn}, \code{BCR_snn}, \code{BCR.nn}), and UMAP (\code{bcr.umap}).
+A Seurat object with a BCR assay, a new PCA (\code{bpca}), new neighbor graphs
+(\code{BCR_nn}, \code{BCR_snn}, \code{BCR.nn}), and a new UMAP (\code{bcr.umap}).
 }
 \description{
 Creates and processes a BCR-only Seurat object from a matrix of pre-computed
-embeddings (e.g. ESM2, immune2vec). Produces \code{bpca}, \code{BCR.nn}, \code{BCR_nn},
-\code{BCR_snn}, and \code{bcr.umap} reductions/graphs.
+embeddings (e.g. AntiBERTa2, AntiBERTy, BALM-paired, ESM2, immune2vec, etc.).
+Produces \code{bpca}, \code{BCR.nn}, \code{BCR_nn}, \code{BCR_snn}, and \code{bcr.umap} reductions/graphs.
 }
 \details{
 Embeddings are used as-is for \code{scale.data} (no \code{ScaleData} call) since they

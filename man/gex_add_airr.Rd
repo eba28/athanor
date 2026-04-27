@@ -9,7 +9,7 @@ gex_add_airr(
   airr_type = "BCR",
   combined_airr,
   new_cols,
-  overview = TRUE
+  verbose = TRUE
 )
 }
 \arguments{
@@ -21,7 +21,7 @@ gex_add_airr(
 
 \item{new_cols}{Vector of column names to select from the AIRR data.}
 
-\item{overview}{Whether to print integration summary information.}
+\item{verbose}{Whether to print integration summary information.}
 }
 \value{
 The Seurat object with AIRR columns added to the metadata, including

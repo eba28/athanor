@@ -17,13 +17,13 @@
 #' @param airr_type Type of immune receptor data. Currently supports "BCR".
 #' @param combined_airr BCR AIRR formatted data frame with heavy and light chains.
 #' @param new_cols Vector of column names to select from the AIRR data.
-#' @param overview Whether to print integration summary information.
+#' @param verbose Whether to print integration summary information.
 #'
 #' @returns The Seurat object with AIRR columns added to the metadata, including
 #'   Has_BCR, isotype information, mutation frequencies, and pairing status.
 #' @export
 gex_add_airr <- function(seurat_obj, airr_type = "BCR",
-                         combined_airr, new_cols, overview = TRUE) {
+                         combined_airr, new_cols, verbose = TRUE) {
   # TODO: add back a more detailed printout of the light chains e.g.
   # There are 118563 heavy chain BCRs being integrated in, of which 111039 have one paired light chain, 6243 have multiple paired light chains, and 1281 have no paired light chains.
 
@@ -175,8 +175,8 @@ gex_add_airr <- function(seurat_obj, airr_type = "BCR",
   # make sure that the levels are okay
   seurat_obj@meta.data <- seurat_obj@meta.data %>% droplevels()
 
-  # print an overview of the integration
-  if (overview) {
+  # print an verbose of the integration
+  if (verbose) {
     count_gex_airr <- nrow(filter(combined_airr_select, get(airr_col)))
     count_paired <- nrow(filter(combined_airr_select, get(paired_col) == "TRUE"))
     count_filtered <- nrow(filter(combined_airr_select_obj, get(airr_col)))

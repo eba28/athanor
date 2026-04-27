@@ -41,8 +41,8 @@ add_family_info <- function(combined_airr) {
 #'
 #' @description
 #' Creates and processes a BCR-only Seurat object from a matrix of pre-computed
-#' embeddings (e.g. ESM2, immune2vec). Produces `bpca`, `BCR.nn`, `BCR_nn`,
-#' `BCR_snn`, and `bcr.umap` reductions/graphs.
+#' embeddings (e.g. AntiBERTa2, AntiBERTy, BALM-paired, ESM2, immune2vec, etc.).
+#' Produces `bpca`, `BCR.nn`, `BCR_nn`, `BCR_snn`, and `bcr.umap` reductions/graphs.
 #'
 #' @details
 #' Embeddings are used as-is for `scale.data` (no `ScaleData` call) since they
@@ -51,30 +51,32 @@ add_family_info <- function(combined_airr) {
 #'
 #' @param embeddings Matrix of BCR embeddings (features x cells).
 #' @param embedding_type Character label for the embedding method (stored in `Misc`).
+#' @param combined_airr Optional data frame passed to `gex_add_airr()` to add
+#'   AIRR metadata columns. If NULL, the step is skipped.
+#' @param new_cols Character vector of columns to add from `combined_airr`.
+#'   Only used when `combined_airr` is provided.
 #' @param num_pcs Number of principal components to compute.
 #' @param num_dims Number of PCA dimensions to use for neighbor finding and UMAP.
 #' @param k_param Number of nearest neighbors.
-#' @param combined_airr Optional data frame passed to `gex_add_airr()` to add
-#'   AIRR metadata columns. If NULL, the step is skipped.
-#' @param airr_cols Character vector of columns to add from `combined_airr`.
-#'   Only used when `combined_airr` is provided.
 #' @param verbose Logical indicating whether to print progress messages.
 #'
-#' @returns A Seurat object with BCR assay, PCA (`bpca`), neighbor graphs
-#'   (`BCR_nn`, `BCR_snn`, `BCR.nn`), and UMAP (`bcr.umap`).
+#' @returns A Seurat object with a BCR assay, a new PCA (`bpca`), new neighbor graphs
+#'   (`BCR_nn`, `BCR_snn`, `BCR.nn`), and a new UMAP (`bcr.umap`).
 #' @export
 bcr_embeddings_pipeline <- function(embeddings, embedding_type,
+                                    combined_airr = NULL, new_cols = NULL,
                                     num_pcs = 50, num_dims = 20, k_param = 20,
-                                    combined_airr = NULL, airr_cols = NULL,
                                     verbose = TRUE) {
   # if embeddings are not already given as a sparse numeric matrix, convert them
   if (!is(embeddings, "dgCMatrix")) {
     embeddings <- as(embeddings, "dgCMatrix")
+    cli::cli_inform("v" = "Converted embeddings to sparse matrix format.")
   }
 
   # set up an empty Seurat object
   seurat_obj <- Seurat::CreateSeuratObject(counts = embeddings, assay = "BCR")
   seurat_obj$cell_id <- Seurat::Cells(seurat_obj)
+  # DefaultAssay(seurat_obj) <- "BCR" # not needed since it is the only assay
   Seurat::VariableFeatures(seurat_obj) <- rownames(seurat_obj[["BCR"]])
 
   # embeddings are already normalized and scaled so those steps can be skipped
@@ -84,24 +86,37 @@ bcr_embeddings_pipeline <- function(embeddings, embedding_type,
                                                  layer = "counts"))
   seurat_obj <-
     Seurat::SetAssayData(seurat_obj, layer = "scale.data",
-                         new.data = as.matrix(embeddings))
+                         new.data = as.matrix(embeddings)) # required format
 
+  # add BCR info to the object's metadata
+  # the number of heavy chains should match how many sequences ran through
+  # (except for immune2vec)
   if (!is.null(combined_airr)) {
     seurat_obj <- gex_add_airr(seurat_obj, combined_airr = combined_airr,
-                               new_cols = airr_cols)
+                               new_cols = new_cols, verbose = verbose)
   }
 
-  max_pcs <- nrow(embeddings) - 1
-  if (num_pcs >= nrow(embeddings)) {
-    warning("num_pcs (", num_pcs, ") >= embedding dimensions (", nrow(embeddings),
+  max_dim <- min(nrow(embeddings), ncol(embeddings))
+  max_pcs <- max_dim - 1
+  if (num_pcs >= max_dim) {
+    warning("num_pcs (", num_pcs, ") >= embedding dimensions (", max_dim,
             "); reducing to ", max_pcs, " to avoid SVD convergence failure.")
     num_pcs <- max_pcs
     num_dims <- min(num_dims, max_pcs)
   }
 
+  # irlba throws a warning to "use a standard svd instead" when requesting more
+  # than 50% of all singular value, so let's use exact SVD if that happens
+  # (which is also faster when the embedding dimension is small)
+  use_approx <- num_pcs < max_dim / 2
   seurat_obj <- Seurat::RunPCA(object = seurat_obj, npcs = num_pcs,
                                reduction.name = "bpca", reduction.key = "bpca_",
-                               verbose = verbose)
+                               approx = use_approx, verbose = verbose)
+  cli::cli_inform("v" = "Computed PCA with {num_pcs} dimensions using {ifelse(use_approx, 'approximate', 'exact')} SVD.")
+
+  # visual check for how many PCs to keep (aka num_dims)
+  # ElbowPlot(seurat_obj, reduction = "bpca", ndims = num_pcs)
+
   seurat_obj <- Seurat::FindNeighbors(object = seurat_obj, reduction = "bpca",
                                       dims = 1:num_dims, k.param = k_param,
                                       return.neighbor = TRUE,
@@ -112,14 +127,24 @@ bcr_embeddings_pipeline <- function(embeddings, embedding_type,
                                       graph.name =
                                         str_c("BCR_", c("", "s"), "nn"),
                                       verbose = verbose)
+
+  # TODO: check if it's better to give dims or use the nn slot already made
   seurat_obj <- Seurat::RunUMAP(object = seurat_obj, reduction = "bpca",
                                 n.neighbors = k_param, nn.name = "BCR.nn",
                                 reduction.name = "bcr.umap",
                                 reduction.key = "bcrUMAP_",
                                 verbose = verbose)
 
+  # add useful information to the Miscellaneous slot
   Seurat::Misc(seurat_obj, slot = "embeddings_dims") <- nrow(embeddings)
   Seurat::Misc(seurat_obj, slot = "embedding_type") <- embedding_type
+
+  # print an overview of what was done
+  if (verbose) {
+    cli::cli_inform(c("v" = "Created BCR assay with {nrow(embeddings)} features and {ncol(embeddings)} cells."))
+    cli::cli_inform(c("v" = "Computed PCA with {num_pcs} dimensions, using {num_dims} for neighbor finding and UMAP."))
+    cli::cli_inform(c("v" = "Found neighbors with k = {k_param}."))
+  }
 
   seurat_obj
 }

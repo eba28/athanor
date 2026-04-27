@@ -368,8 +368,16 @@ seurat_pipeline <- function(seurat_obj, nfeatures_RNA, perc_mt,
                                              ensembl_version = ensembl_version)
    }
 
+   # irlba throws a warning to "use a standard svd instead" when requesting more
+   # than 50% of all singular value, so let's use exact SVD if that happens
+   # (which is also faster when the embedding dimension is small)
+   scale_data <- Seurat::GetAssayData(seurat_obj, layer = "scale.data")
+   max_dim <- min(nrow(scale_data), ncol(scale_data))
+   use_approx <- num_pcs < max_dim / 2
    seurat_obj <- RunPCA(seurat_obj, npcs = num_pcs, verbose = verbose,
-                        reduction.name = "rpca", reduction.key = "rpca_")
+                        reduction.name = "rpca", reduction.key = "rpca_",
+                        approx = use_approx)
+   cli::cli_inform("v" = "Computed PCA with {num_pcs} dimensions using {ifelse(use_approx, 'approximate', 'exact')} SVD.")
 
    # SNN graph for clustering + neighbor object for evaluation
    seurat_obj <- FindNeighbors(seurat_obj, reduction = "rpca", dims = 1:num_dims,

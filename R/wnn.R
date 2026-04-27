@@ -66,11 +66,11 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
   bcr_obj <- bcr_embeddings_pipeline(
     embeddings[, intersect(colnames(embeddings), seurat_obj$cell_id)],
     embedding_type = embedding_type,
-    num_pcs = pc_bcr, num_dims = pc_bcr, k_param = k_param)
+    num_pcs = pc_bcr, num_dims = pc_bcr, k_param = k_param, verbose = verbose)
 
   # add BCR assay; Seurat v5 does not propagate nCount/nFeature automatically
   suppressWarnings(seurat_obj[["BCR"]] <- bcr_obj[["BCR"]])
-  seurat_obj$nCount_BCR   <- bcr_obj[[]][Cells(seurat_obj), "nCount_BCR"]
+  seurat_obj$nCount_BCR <- bcr_obj[[]][Cells(seurat_obj), "nCount_BCR"]
   seurat_obj$nFeature_BCR <- bcr_obj[[]][Cells(seurat_obj), "nFeature_BCR"]
   if ("nFeature_ADT" %in% names(seurat_obj[[]])) {
     seurat_obj@meta.data <-
@@ -78,6 +78,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
       relocate(nCount_BCR, nFeature_BCR, .after = nFeature_ADT)
   }
 
+  # TODO: move this to be earlier so that we don't go through the bit with the BCR assay if we don't need to
   if (ncol(seurat_obj@assays$RNA) != ncol(seurat_obj@assays$BCR)) {
     stop("The number of cells in the RNA and BCR assays do not match.")
   }
@@ -97,23 +98,24 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
 
   # find multimodal neighbors, then do clustering and make a UMAP
   seurat_obj <-
-    FindMultiModalNeighbors(object = seurat_obj,
-                            reduction.list = list("rpca", "bpca"),
-                            dims.list = list(1:pc_gex, 1:pc_bcr),
-                            k.nn = k_param,
-                            # match the RNA and BCR style
-                            knn.graph.name = "w_nn",
-                            snn.graph.name = "w_snn",
-                            weighted.nn.name = "w.nn",
-                            modality.weight.name =
-                              str_c(c("RNA", "BCR"), ".weight"),
-                            return.intermediate = TRUE,
-                            modality.weight = modality_weights,
-                            verbose = verbose)
-  seurat_obj <- RunUMAP(object = seurat_obj, nn.name = "w.nn",
-                        n.neighbors = k_param,
-                        reduction.name = "wnn.umap", reduction.key = "wnnUMAP_",
-                        verbose = verbose)
+    Seurat::FindMultiModalNeighbors(object = seurat_obj,
+                                    reduction.list = list("rpca", "bpca"),
+                                    dims.list = list(1:pc_gex, 1:pc_bcr),
+                                    k.nn = k_param,
+                                    # match the RNA and BCR style
+                                    knn.graph.name = "w_nn",
+                                    snn.graph.name = "w_snn",
+                                    weighted.nn.name = "w.nn",
+                                    modality.weight.name =
+                                      str_c(c("RNA", "BCR"), ".weight"),
+                                    return.intermediate = TRUE,
+                                    modality.weight = modality_weights,
+                                    verbose = verbose)
+  seurat_obj <- Seurat::RunUMAP(object = seurat_obj, nn.name = "w.nn",
+                                n.neighbors = k_param,
+                                reduction.name = "wnn.umap",
+                                reduction.key = "wnnUMAP_",
+                                verbose = verbose)
 
   # use the "main" k for clustering and the Louvain algorithm
   if (cluster) {
