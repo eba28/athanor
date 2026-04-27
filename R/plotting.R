@@ -274,7 +274,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 
   # make the title and legend labels nicer if not provided
   # e.g. "annotated_clusters" -> "Annotated Clusters"
-  meta_col <- str_to_title(str_replace_all(meta_col, "_", " "))
+  meta_col <- stringr::str_to_title(stringr::str_replace_all(meta_col, "_", " "))
 
   # fill in missing arguments if needed
   if (data_source == "") data_source <- NULL # don't show the subtitle
@@ -282,7 +282,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
   # if you want to use default ggplot2 or generated iwanthue colors
   if (rlang::is_missing(clrs_specific)) {
     if (use_hues) clrs_specific <- hues::iwanthue(nlevels(seurat_obj))
-    else clrs_specific <- hue_pal()(nlevels(seurat_obj))
+    else clrs_specific <- scales::hue_pal()(nlevels(seurat_obj))
 
     # the idents will have to be a factor
     clrs_specific <- setNames(clrs_specific, levels(Idents(seurat_obj)))
