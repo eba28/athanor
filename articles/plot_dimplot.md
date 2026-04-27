@@ -99,7 +99,7 @@ The simplest call colors cells by `seurat_clusters` (the default
 ``` r
 # could also just use umap
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
-             assay = "GEX", reduc = "rna.umap")
+             title = "GEX", reduc = "rna.umap")
 ```
 
 ![](plot_dimplot_files/figure-html/gex-clusters-1.png)
@@ -108,7 +108,7 @@ To suppress labels and the legend:
 
 ``` r
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
-             assay = "GEX", reduc = "rna.umap",
+             title = "GEX", reduc = "rna.umap",
              plot_label = FALSE, include_legend = FALSE)
 ```
 
@@ -116,8 +116,7 @@ plot_dimplot(seurat_obj = obj, data_source = data_desc,
 
 ### Cell type annotations
 
-Set `annotated = TRUE` to switch the legend title to “Cell Type” and
-sort levels alphabetically.
+Sort the cell type levels alphabetically.
 
 ``` r
 named_clrs$annotated_clusters <-
@@ -125,24 +124,23 @@ named_clrs$annotated_clusters <-
     "Plasma cells" = "#cc095d", "Transitional B cells" = "#22e6e6")
 
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
-             assay = "GEX", reduc = "rna.umap", 
              clrs_specific = named_clrs$annotated_clusters,
-             meta_col = "annotated_clusters",
-             annotated = TRUE, plot_label = FALSE)
+             title = "GEX", reduc = "rna.umap",
+             meta_col = "annotated_clusters", plot_label = FALSE)
 ```
 
 ![](plot_dimplot_files/figure-html/gex-annotations-1.png)
 
 ### Highlighting specific populations
 
-Pass a character vector to `specific_clusters` to draw a subset of cells
-on top of a grey background.
+Pass a character vector to `highlight` to draw a subset of cells on top
+of a grey background.
 
 ``` r
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
-             assay = "GEX", reduc = "rna.umap",
-             specific_clusters = c("Naive B cells", "Plasma cells"),
-             meta_col = "annotated_clusters")
+             title = "GEX", reduc = "rna.umap",
+             meta_col = "annotated_clusters",
+             highlight = c("Naive B cells", "Plasma cells"))
 ```
 
 ![](plot_dimplot_files/figure-html/gex-highlight-1.png)
@@ -165,8 +163,9 @@ like any other metadata column.
 named_clrs$cdr3 <- c(Short = "#482778", Medium = "#20938C", Long = "#C9E020")
 
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
-             assay = "CDR3 Length", reduc = "rna.umap",
-             clrs_specific = named_clrs$cdr3, meta_col = "cdr3_aa_length",
+             clrs_specific = named_clrs$cdr3,
+             title = "CDR3 Length", reduc = "rna.umap",
+             meta_col = "cdr3_aa_length",
              plot_label = FALSE, legend_label = "CDR3 Length")
 ```
 
@@ -180,8 +179,9 @@ named_clrs$isotype <- c("IgA" = "#377EB8", "IgD" = "#FF7F00", "IgE" = "#E41A1C",
                         "IgG" = "#4DAF4A", "IgM" = "#984EA3")
 
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
-             assay = "Isotype", reduc = "rna.umap",
-             clrs_specific = named_clrs$isotype, meta_col = "isotype",
+             clrs_specific = named_clrs$isotype,
+             title = "Isotype", reduc = "rna.umap",
+             meta_col = "isotype",
              plot_label = FALSE, legend_label = "Isotype")
 ```
 
@@ -201,9 +201,10 @@ named_clrs$mu_freq_bins <- c("0%" = "#F0F921", "0% to 1%" = "#F89441",
 
 # be careful with the order
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
-             assay = "SHM Frequency", reduc = "rna.umap",
+             title = "SHM Frequency", reduc = "rna.umap",
              clrs_specific = named_clrs$mu_freq_bins, meta_col = "mu_freq_bins",
-             plot_label = FALSE, legend_label = "SHM Bins", order = TRUE)
+             plot_label = FALSE, legend_label = "SHM Bins", sort_idents = FALSE,
+             order = TRUE)
 ```
 
 ![](plot_dimplot_files/figure-html/bcr-shm-1.png)
@@ -216,7 +217,7 @@ named_clrs$v_call_family <-
              "#bc9149"), nm = stringr::str_c("IGHV", 1:7))
 
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
-             assay = "V Gene Family",
+             title = "V Gene Family",
              clrs_specific = named_clrs$v_call_family,
              meta_col = "v_call_family", plot_label = FALSE,
              legend_label = "V Gene Family", reduc = "rna.umap")
@@ -228,18 +229,18 @@ plot_dimplot(seurat_obj = obj, data_source = data_desc,
 
 ``` r
 p_iso <- plot_dimplot(obj, data_source = data_desc,
-                      assay = "Isotype", reduc = "rna.umap",
+                      title = "Isotype", reduc = "rna.umap",
                       clrs_specific = named_clrs$isotype,
                       meta_col = "isotype",
                       plot_label = FALSE, legend_label = "Isotype")
 p_shm <- plot_dimplot(obj, data_source = data_desc,
-                      assay = "SHM", reduc = "rna.umap",
+                      title = "SHM", reduc = "rna.umap",
                       clrs_specific = named_clrs$mu_freq_bins,
                       meta_col = "mu_freq_bins",
                       plot_label = FALSE, legend_label = "SHM Bins",
                       order = TRUE)
 p_cdr3 <- plot_dimplot(obj, data_source = data_desc,
-                       assay = "CDR3 Length", reduc = "rna.umap",
+                       title = "CDR3 Length", reduc = "rna.umap",
                        clrs_specific = named_clrs$cdr3,
                        meta_col = "cdr3_aa_length",
                        plot_label = FALSE, legend_label = "CDR3 Length")
@@ -303,15 +304,14 @@ FeaturePlot(obj, features = paste0("adt_", rownames(obj@assays$ADT@data)),
 
 ## Summary of key parameters
 
-| Argument            | Purpose                                                                 |
-|---------------------|-------------------------------------------------------------------------|
-| `meta_col`          | Column in `@meta.data` to color by (default: `seurat_clusters`)         |
-| `assay`             | Plot title (use for the data modality name)                             |
-| `data_source`       | Plot subtitle (use for dataset / sample name)                           |
-| `clrs_specific`     | Named color vector; auto-generated if omitted                           |
-| `annotated`         | `TRUE` → legend title becomes “Cell Type”, levels sorted alphabetically |
-| `specific_clusters` | Highlight a subset of levels over a grey background                     |
-| `order`             | Draw cells with non-NA values on top                                    |
-| `plot_label`        | Toggle cluster labels                                                   |
-| `reduc`             | Reduction to plot (default: `"umap"`)                                   |
-| `details`           | Optional extra subtitle line                                            |
+| Argument        | Purpose                                                         |
+|-----------------|-----------------------------------------------------------------|
+| `meta_col`      | Column in `@meta.data` to color by (default: `seurat_clusters`) |
+| `title`         | Plot title (use for the data modality name)                     |
+| `data_source`   | Plot subtitle (use for dataset / sample name)                   |
+| `clrs_specific` | Named color vector; auto-generated if omitted                   |
+| `highlight`     | Highlight a subset of levels over a grey background             |
+| `order`         | Draw cells with non-NA values on top                            |
+| `plot_label`    | Toggle cluster labels                                           |
+| `reduc`         | Reduction to plot (default: `"umap"`)                           |
+| `details`       | Optional extra subtitle line                                    |

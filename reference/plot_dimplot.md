@@ -13,17 +13,17 @@ plot_dimplot(
   clrs_specific,
   use_hues = FALSE,
   pt_size = 0.2,
-  assay,
+  title,
   reduc = "umap",
+  meta_col = "annotated_clusters",
+  highlight,
   plot_label = TRUE,
-  label_box = TRUE,
   label_size = 3,
-  annotated = FALSE,
-  specific_clusters,
-  meta_col = "seurat_clusters",
+  label_box = TRUE,
   include_legend = TRUE,
   legend_label,
-  factor_idents = TRUE,
+  sort_idents = TRUE,
+  idents_char = TRUE,
   order = FALSE,
   details,
   ...
@@ -53,41 +53,36 @@ plot_dimplot(
 
   The point size.
 
-- assay:
+- title:
 
-  The data type e.g. ADT, GEX, BCR, WNN... Will be used for the plot
-  title.
+  The plot title.
 
 - reduc:
 
   The reduction to use for plotting e.g. "bpca" or wnn.umap".
 
+- meta_col:
+
+  Which column in the object metadata to color by. When combined with
+  `highlight`, highlights those values as an overlay instead of coloring
+  all cells.
+
+- highlight:
+
+  Can overlay clusters of interest e.g. B cell or by \#. Overrides the
+  annotated option.
+
 - plot_label:
 
   Add labels to the plot (or not).
-
-- label_box:
-
-  Whether or not to give the labels a background.
 
 - label_size:
 
   The size of the plot labels.
 
-- annotated:
+- label_box:
 
-  If the cell types have been identified.
-
-- specific_clusters:
-
-  Can overlay clusters of interest e.g. B cell or by \#. Overrides the
-  annotated option.
-
-- meta_col:
-
-  Which column in the object metadata to color by. When combined with
-  `specific_clusters`, highlights those values as an overlay instead of
-  coloring all cells.
+  Whether or not to give the labels a background.
 
 - include_legend:
 
@@ -97,10 +92,15 @@ plot_dimplot(
 
   The label for the legend.
 
-- factor_idents:
+- sort_idents:
 
-  Whether or not to factorize the idents (for proper ordering of the
-  colors). This can mess up the order you want, so be careful.
+  Whether or not to sort the idents (for proper ordering of the colors).
+  This can mess up the order you want, so be careful.
+
+- idents_char:
+
+  If sorting idents, whether to sort them as characters or numerically
+  (e.g. cluster 10 should be after cluster 9, not before).
 
 - order:
 

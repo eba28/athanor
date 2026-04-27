@@ -93,7 +93,7 @@ levels(obj$seurat_clusters)
 ```
 
 ``` r
-plot_dimplot(obj, assay = "GEX", data_source = data_desc,
+plot_dimplot(obj, title = "GEX", data_source = data_desc,
              meta_col = "seurat_clusters", reduc = "rna.umap")
 ```
 
@@ -134,8 +134,8 @@ table(obj$annotated_clusters)
 
 ``` r
 plot_dimplot(obj, data_source = data_desc, use_hues = TRUE,
-             assay = "GEX", reduc = "rna.umap",
-             meta_col = "annotated_clusters", annotated = TRUE,
+             title = "GEX", reduc = "rna.umap",
+             meta_col = "annotated_clusters",
              plot_label = FALSE, legend_label = "Cell Type")
 ```
 
@@ -210,8 +210,8 @@ names(obj_cat@reductions)
 
 ``` r
 plot_dimplot(obj_cat, data_source = data_desc, use_hues = TRUE,
-             assay = "Concatenated GEX & BCR", reduc = "rna_bcr.umap",
-             meta_col = "annotated_clusters", annotated = TRUE,
+             title = "Concatenated GEX & BCR", reduc = "rna_bcr.umap",
+             meta_col = "annotated_clusters",
              plot_label = FALSE, legend_label = "Cell Type")
 ```
 
@@ -258,15 +258,15 @@ names(obj_wnn@reductions)
 ### Visualization
 
 ``` r
-p_gex <- plot_dimplot(obj_wnn, assay = "GEX", data_source = data_desc,
+p_gex <- plot_dimplot(obj_wnn, title = "GEX", data_source = data_desc,
                       use_hues = TRUE,
                       meta_col = "annotated_clusters", reduc = "rna.umap",
                       plot_label = FALSE, legend_label = "Cell Type")
-p_bcr <- plot_dimplot(obj_wnn, assay = "BCR", data_source = data_desc,
+p_bcr <- plot_dimplot(obj_wnn, title = "BCR", data_source = data_desc,
                       use_hues = TRUE,
                       meta_col = "annotated_clusters", reduc = "bcr.umap",
                       plot_label = FALSE, legend_label = "Cell Type")
-p_wnn <- plot_dimplot(obj_wnn, assay = "WNN", data_source = data_desc,
+p_wnn <- plot_dimplot(obj_wnn, title = "WNN", data_source = data_desc,
                       use_hues = TRUE,
                       meta_col = "annotated_clusters", reduc = "wnn.umap",
                       plot_label = FALSE, legend_label = "Cell Type")
