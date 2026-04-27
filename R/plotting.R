@@ -254,17 +254,27 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
     cli::cli_abort("{meta_col} is not a valid metadata column name. Please select one of: {names(seurat_obj[[]])}.")
   }
 
-  # set identities in case they aren't already set (needed for group.by)
-  Idents(seurat_obj) <- factor(meta_col) # use factor for plotting
 
-  # alphabetize (and factorize) just in case
+  # set identities in case they aren't already set
+  Idents(seurat_obj) <- meta_col # instead of using group.by in DimPlot
+  # factors help with plotting
   # be careful, sometimes this can mess up the order you want
   if (sort_idents) {
     sort_fn <- if (idents_char) sort else function(x) str_sort(x, numeric = TRUE)
 
+    unique_idents <- as.character(unique(Idents(seurat_obj)))
     Idents(seurat_obj) <- factor(Idents(seurat_obj),
-                                 levels = sort_fn(unique(seurat_obj[[meta_col]])))
+                                 levels = sort_fn(unique_idents))
+  } else {
+    # if it's already a factor, leave the levels as is
+    if (!is.factor(Idents(seurat_obj))) {
+      Idents(seurat_obj) <- factor(Idents(seurat_obj))
+    }
   }
+
+  # make the title and legend labels nicer if not provided
+  # e.g. "annotated_clusters" -> "Annotated Clusters"
+  meta_col <- str_to_title(str_replace_all(meta_col, "_", " "))
 
   # fill in missing arguments if needed
   if (data_source == "") data_source <- NULL # don't show the subtitle
@@ -304,7 +314,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 
   # start assembling the plot
   p <- do.call(DimPlot, c(base_args, extra_args)) +
-         labs(title = title, subtitle = data_source, color = legend_label)
+    labs(title = title, subtitle = data_source, color = legend_label)
 
   # custom subtitle if provided (otherwise the data source is the subtitle)
   if (!rlang::is_missing(details)) {
@@ -686,8 +696,9 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        clrs_specific = named_colors$mu_freq_bins,
                        title = paste(assay_name, "SHM Frequencies (Binned)"),
                        reduc = reduction,
-                       plot_label = FALSE, meta_col = "mu_freq_bins",
-                       legend_label = "Bins", details = details)
+                       meta_col = "mu_freq_bins", plot_label = FALSE,
+                       legend_label = "Bins", sort_idents = FALSE,
+                       order = TRUE, details = details)
       }
 
       # CDR3 amino acid length
@@ -699,7 +710,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        title = paste(assay_name, "CDR3 Length"),
                        reduc = reduction,
                        plot_label = FALSE, meta_col = "cdr3_aa_length",
-                       legend_label = "CDR3 Length", details = details)
+                       legend_label = "CDR3 Length", idents_char = FALSE,
+                       details = details)
       }
 
       if ("weight_assay" %in% comparisons) {

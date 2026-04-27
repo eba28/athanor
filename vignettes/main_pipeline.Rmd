@@ -101,7 +101,7 @@ levels(obj$seurat_clusters)
 ```{r gex-umap}
 #| fig.dim = c(8, 6)
 
-plot_dimplot(obj, title ="GEX", data_source = data_desc,
+plot_dimplot(obj, title = "GEX", data_source = data_desc,
              meta_col = "seurat_clusters", reduc = "rna.umap")
 ```
 
@@ -138,7 +138,7 @@ table(obj$annotated_clusters)
 #| fig.dim = c(8, 6)
 
 plot_dimplot(obj, data_source = data_desc, use_hues = TRUE,
-             title ="GEX", reduc = "rna.umap",
+             title = "GEX", reduc = "rna.umap",
              meta_col = "annotated_clusters",
              plot_label = FALSE, legend_label = "Cell Type")
 ```
@@ -200,7 +200,7 @@ names(obj_cat@reductions)
 #| fig.dim = c(8, 6)
 
 plot_dimplot(obj_cat, data_source = data_desc, use_hues = TRUE,
-             title ="Concatenated GEX & BCR", reduc = "rna_bcr.umap",
+             title = "Concatenated GEX & BCR", reduc = "rna_bcr.umap",
              meta_col = "annotated_clusters",
              plot_label = FALSE, legend_label = "Cell Type")
 ```
