@@ -233,28 +233,28 @@ test_that("plot_pcts drop_zeroes removes rows with Percent == 0", {
 
 # plot_dimplot ####
 test_that("plot_dimplot returns a ggplot object", {
-  result <- plot_dimplot(seurat_obj = seurat_obj, assay = "RNA",
+  result <- plot_dimplot(seurat_obj = seurat_obj, title ="RNA",
                          reduc = "umap")
 
   expect_s3_class(result, "gg")
 })
 
 test_that("plot_dimplot sets the plot title to assay", {
-  result <- plot_dimplot(seurat_obj = seurat_obj, assay = "GEX",
+  result <- plot_dimplot(seurat_obj = seurat_obj, title ="GEX",
                          reduc = "umap")
 
   expect_equal(result$labels$title, "GEX")
 })
 
 test_that("plot_dimplot sets subtitle to data_source", {
-  result <- plot_dimplot(seurat_obj = seurat_obj, assay = "RNA",
+  result <- plot_dimplot(seurat_obj = seurat_obj, title ="RNA",
                          data_source = "TestData", reduc = "umap")
 
   expect_equal(result$labels$subtitle, "TestData")
 })
 
 test_that("plot_dimplot details overrides the subtitle", {
-  result <- plot_dimplot(seurat_obj = seurat_obj, assay = "RNA",
+  result <- plot_dimplot(seurat_obj = seurat_obj, title ="RNA",
                          data_source = "TestData",
                          details = "Custom subtitle", reduc = "umap")
 
@@ -262,7 +262,7 @@ test_that("plot_dimplot details overrides the subtitle", {
 })
 
 test_that("plot_dimplot respects include_legend = FALSE", {
-  result <- plot_dimplot(seurat_obj = seurat_obj, assay = "RNA",
+  result <- plot_dimplot(seurat_obj = seurat_obj, title ="RNA",
                          include_legend = FALSE, reduc = "umap")
 
   # NoLegend() sets legend.position to "none"
@@ -272,22 +272,22 @@ test_that("plot_dimplot respects include_legend = FALSE", {
 test_that("plot_dimplot highlights specific clusters via meta_col", {
   first_cluster <- as.character(levels(seurat_obj$seurat_clusters)[1])
   clrs <- setNames("red", first_cluster)
-  result <- plot_dimplot(seurat_obj = seurat_obj, assay = "RNA",
+  result <- plot_dimplot(seurat_obj = seurat_obj, title ="RNA",
                          reduc = "umap",
                          meta_col = "seurat_clusters",
-                         specific_clusters = first_cluster,
+                         highlight = first_cluster,
                          clrs_specific = clrs)
 
   expect_s3_class(result, "gg")
 })
 
-test_that("plot_dimplot applies legend_label with specific_clusters", {
+test_that("plot_dimplot applies legend_label with highlight", {
   first_cluster <- as.character(levels(seurat_obj$seurat_clusters)[1])
   clrs <- setNames("red", first_cluster)
-  result <- plot_dimplot(seurat_obj = seurat_obj, assay = "RNA",
+  result <- plot_dimplot(seurat_obj = seurat_obj, title ="RNA",
                          reduc = "umap",
                          meta_col = "seurat_clusters",
-                         specific_clusters = first_cluster,
+                         highlight = first_cluster,
                          clrs_specific = clrs,
                          legend_label = "Data Type")
 

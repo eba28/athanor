@@ -10,17 +10,17 @@ plot_dimplot(
   clrs_specific,
   use_hues = FALSE,
   pt_size = 0.2,
-  assay,
+  title,
   reduc = "umap",
+  meta_col = "annotated_clusters",
+  highlight,
   plot_label = TRUE,
-  label_box = TRUE,
   label_size = 3,
-  annotated = FALSE,
-  specific_clusters,
-  meta_col = "seurat_clusters",
+  label_box = TRUE,
   include_legend = TRUE,
   legend_label,
-  factor_idents = TRUE,
+  sort_idents = TRUE,
+  idents_char = TRUE,
   order = FALSE,
   details,
   ...
@@ -37,27 +37,27 @@ plot_dimplot(
 
 \item{pt_size}{The point size.}
 
-\item{assay}{The data type e.g. ADT, GEX, BCR, WNN... Will be used for the plot title.}
+\item{title}{The plot title.}
 
 \item{reduc}{The reduction to use for plotting e.g. "bpca" or wnn.umap".}
 
-\item{plot_label}{Add labels to the plot (or not).}
+\item{meta_col}{Which column in the object metadata to color by. When combined with \code{highlight}, highlights those values as an overlay instead of coloring all cells.}
 
-\item{label_box}{Whether or not to give the labels a background.}
+\item{highlight}{Can overlay clusters of interest e.g. B cell or by #. Overrides the annotated option.}
+
+\item{plot_label}{Add labels to the plot (or not).}
 
 \item{label_size}{The size of the plot labels.}
 
-\item{annotated}{If the cell types have been identified.}
-
-\item{specific_clusters}{Can overlay clusters of interest e.g. B cell or by #. Overrides the annotated option.}
-
-\item{meta_col}{Which column in the object metadata to color by. When combined with \code{specific_clusters}, highlights those values as an overlay instead of coloring all cells.}
+\item{label_box}{Whether or not to give the labels a background.}
 
 \item{include_legend}{Include the legend or not.}
 
 \item{legend_label}{The label for the legend.}
 
-\item{factor_idents}{Whether or not to factorize the idents (for proper ordering of the colors). This can mess up the order you want, so be careful.}
+\item{sort_idents}{Whether or not to sort the idents (for proper ordering of the colors). This can mess up the order you want, so be careful.}
+
+\item{idents_char}{If sorting idents, whether to sort them as characters or numerically (e.g. cluster 10 should be after cluster 9, not before).}
 
 \item{order}{Plot cells on top or not.}
 
