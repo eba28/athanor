@@ -253,6 +253,9 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
   if (!meta_col %in% names(seurat_obj[[]])) {
     cli::cli_abort("{meta_col} is not a valid metadata column name. Please select one of: {names(seurat_obj[[]])}.")
   }
+  if (!reduc %in% names(seurat_obj@reductions)) {
+    cli::cli_abort(c("Reduction '{reduc}' not found in the provided Seurat object. Please make sure it is present and try again. Available reductions: {names(seurat_obj@reductions)}"))
+  }
 
 
   # set identities in case they aren't already set
@@ -352,7 +355,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 #' The doublets will be plotted "on top" for the first UMAP.
 #'
 #' @param seurat_obj The Seurat object.
-#' @param tissue_type Blood, Skin.
+#' @param data_source The source of the data (e.g., "Blood", "Skin").
 #' @param clrs_specific The specific color palette (should be named).
 #' @param use_hues Use the `iwanthue` hues instead of the default ggplot colors. Doesn't let you set any other settings.
 #' @param group_col The column to group by.
@@ -363,7 +366,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 #'
 #' @returns A grid of four plots with UMAPs in the left column and bar plots in the right column.
 #' @export
-plot_doublets <- function(seurat_obj, tissue_type, clrs_specific,
+plot_doublets <- function(seurat_obj, data_source, clrs_specific,
                           use_hues = FALSE, group_col = "seurat_clusters",
                           group_label = NULL, doublet_col = "scDblFinder.class",
                           doublet_package = "scDblFinder", details = NULL) {
@@ -402,7 +405,7 @@ plot_doublets <- function(seurat_obj, tissue_type, clrs_specific,
   Idents(seurat_obj) <- group_col
 
   # UMAP colored by doublets/singlets
-  p1 <- plot_dimplot(seurat_obj = seurat_obj, title = tissue_type,
+  p1 <- plot_dimplot(seurat_obj = seurat_obj, title = data_source,
                      clrs_specific = named_colors$doublet, highlight = "doublet",
                      meta_col = doublet_col,
                      plot_label = FALSE, order = TRUE,
@@ -418,7 +421,7 @@ plot_doublets <- function(seurat_obj, tissue_type, clrs_specific,
              color = "black", linewidth = 0.2) +
     geom_text(aes(label = Freq), position = position_dodge(width = 0.9),
               vjust = -1, size = 3) +
-    labs(title = paste(tissue_type, "Doublets by", cluster_legend),
+    labs(title = paste(data_source, "Doublets by", cluster_legend),
          subtitle = details, x = cluster_legend,
          y = "Count", fill = doublet_package) +
     scale_fill_manual(values = named_colors$doublet) +
@@ -430,22 +433,20 @@ plot_doublets <- function(seurat_obj, tissue_type, clrs_specific,
     # rotate x-axis labels for annotation plots
     p2 <- p2 + labels_rotate_x
 
-    p3 <- plot_dimplot(seurat_obj = seurat_obj, title = tissue_type,
+    p3 <- plot_dimplot(seurat_obj = seurat_obj, title = data_source,
                        clrs_specific = clrs_specific,
-                       meta_col = group_col,
-                       include_legend = FALSE)
+                       meta_col = group_col, include_legend = FALSE)
   } else {
-    p3 <- plot_dimplot(seurat_obj = seurat_obj, title = tissue_type,
+    p3 <- plot_dimplot(seurat_obj = seurat_obj, title = data_source,
                        clrs_specific = clrs_specific,
-                       meta_col = group_col,
-                       include_legend = FALSE)
+                       meta_col = group_col, include_legend = FALSE)
   }
 
   # bar plot of doublets with percentage counts
   p4 <- plot_pcts(pcts = calc_pcts(data = seurat_obj[[]],
                                    meta_group_by = group_col,
                                    focus_group = doublet_col),
-                  tissue_type = tissue_type, plot_type = "All",
+                  data_source = data_source, plot_type = "All",
                   plot_value = "Doublets",
                   x_axis = group_col, x_axis_label = cluster_legend,
                   fill_type = doublet_col, fill_label = doublet_package,
@@ -586,6 +587,10 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
   plots_overview <- list()
   for (type in names(seurat_objs)) {
     seurat_obj <- seurat_objs[[type]]
+
+    if (!reduction %in% names(seurat_obj@reductions)) {
+      cli::cli_abort("Reduction {reduction} not found in Seurat object {type}. Please make sure it is present and try again.")
+    }
 
     # don't require using the embeddings approach
     if (!"embedding_type" %in% names(seurat_obj@misc) |

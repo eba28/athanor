@@ -6,7 +6,7 @@
 \usage{
 plot_doublets(
   seurat_obj,
-  tissue_type,
+  data_source,
   clrs_specific,
   use_hues = FALSE,
   group_col = "seurat_clusters",
@@ -19,7 +19,7 @@ plot_doublets(
 \arguments{
 \item{seurat_obj}{The Seurat object.}
 
-\item{tissue_type}{Blood, Skin.}
+\item{data_source}{The source of the data (e.g., "Blood", "Skin").}
 
 \item{clrs_specific}{The specific color palette (should be named).}
 

@@ -135,7 +135,7 @@ concatenate_gex_bcr <- function(seurat_obj, pca_stage = c("Before", "After"),
                          reduction.name = "rna_bcr.pca",
                          reduction.key = "rnabcrpca_",
                          approx = use_approx)
-    cli::cli_inform("v" = "Computed PCA with {num_pcs} dimensions using {ifelse(use_approx, 'approximate', 'exact')} SVD.")
+    cli::cli_inform(c("v" = "Computed PCA with {num_pcs} dimensions using {ifelse(use_approx, 'approximate', 'exact')} SVD."))
   } else {
     # check that the necessary PCAs exist
     if (!"rpca" %in% names(seurat_obj@reductions)) {
