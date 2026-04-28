@@ -7,7 +7,8 @@
 get_airr_genes(
   genome = "hsapiens",
   ensembl_version = NULL,
-  category = c("IG", "TR")
+  category = c("IG", "TR"),
+  cache_file = NULL
 )
 }
 \arguments{
@@ -16,6 +17,9 @@ get_airr_genes(
 \item{ensembl_version}{The Ensembl version to use for gene annotation (e.g. "114").}
 
 \item{category}{The category of genes to retrieve: "IG" for immunoglobulin genes, "TR" for T cell receptor genes, or both.}
+
+\item{cache_file}{Optional path to an RDS file. If the file exists, its contents are returned directly without
+querying Ensembl. After a successful Ensembl query the result is saved to this path for future offline use.}
 }
 \value{
 A character vector of IG and/or TR gene names to be filtered out from the most variable features.

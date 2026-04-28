@@ -15,6 +15,7 @@ seurat_pipeline(
   cluster_res = NULL,
   filter_genes,
   ensembl_version = NULL,
+  cache_file = NULL,
   verbose = TRUE
 )
 }
@@ -38,6 +39,8 @@ seurat_pipeline(
 \item{filter_genes}{If specified, filter out genes from this category (e.g. "IG" and/or "TR").}
 
 \item{ensembl_version}{Ensembl version for gene annotations (e.g. "GRCh38.104"). If NULL, uses the default in \code{get_airr_genes()}.}
+
+\item{cache_file}{Passed to \code{\link[=get_airr_genes]{get_airr_genes()}}. Path to a cached RDS result to use instead of querying Ensembl.}
 
 \item{verbose}{Print out Seurat's progress messages.}
 }

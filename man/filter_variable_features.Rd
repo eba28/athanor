@@ -8,7 +8,8 @@ filter_variable_features(
   seurat_obj,
   filter_genes,
   ensembl_version = NULL,
-  bcr_features = NULL
+  bcr_features = NULL,
+  cache_file = NULL
 )
 }
 \arguments{
@@ -20,6 +21,8 @@ filter_variable_features(
 If NULL, uses the default in \code{get_airr_genes()}.}
 
 \item{bcr_features}{Optional matrix of BCR features (rows = features). If provided, the log message also reports the number of GEX-only features.}
+
+\item{cache_file}{Passed to \code{\link[=get_airr_genes]{get_airr_genes()}}. Path to a cached RDS result to use instead of querying Ensembl.}
 }
 \value{
 The Seurat object with filtered variable features and Ensembl version saved to \code{Misc(seurat_obj, "ensembl_version")}.

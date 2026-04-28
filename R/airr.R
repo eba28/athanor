@@ -48,6 +48,7 @@ add_family_info <- function(combined_airr) {
 #' Embeddings are used as-is for `scale.data` (no `ScaleData` call) since they
 #' are already on a comparable scale. The `data` layer is populated from `counts`
 #' so downstream reads do not fail.
+#' It is possible that some embeddings return identical values across all dimensions for different cells. This can cause `RunUMAP()` to hang on the spectral initialization step as it struggles to find a good low-dimensional representation of the data.
 #'
 #' @param embeddings Matrix of BCR embeddings (features x cells).
 #' @param embedding_type Character label for the embedding method (stored in `Misc`).
@@ -70,33 +71,45 @@ bcr_embeddings_pipeline <- function(embeddings, embedding_type,
   # if embeddings are not already given as a sparse numeric matrix, convert them
   if (!is(embeddings, "dgCMatrix")) {
     embeddings <- as(embeddings, "dgCMatrix")
-    cli::cli_inform("v" = "Converted embeddings to sparse matrix format.")
+    cli::cli_inform(c("v" = "Converted embeddings to sparse matrix format."))
   }
 
-  # set up an empty Seurat object
-  seurat_obj <- Seurat::CreateSeuratObject(counts = embeddings, assay = "BCR")
-  seurat_obj$cell_id <- Seurat::Cells(seurat_obj)
-  # DefaultAssay(seurat_obj) <- "BCR" # not needed since it is the only assay
-  Seurat::VariableFeatures(seurat_obj) <- rownames(seurat_obj[["BCR"]])
+  # detect duplicate embeddings (e.g. from clonal expansion) and build a
+  # canonical mapping so PCA and UMAP run only on unique embeddings
+  cli::cli_inform(c("i" = "Scanning {ncol(embeddings)} cells for identical embeddings: this may take a moment for large datasets."))
+  emb_keys <- vapply(seq_len(ncol(embeddings)), function(j) {
+    start <- embeddings@p[j] + 1L
+    end <- embeddings@p[j + 1L]
+    if (start > end) return("")
+    paste(embeddings@i[start:end],
+          embeddings@x[start:end], sep = "=", collapse = ",")
+  }, character(1))
+  # canonical_idx[i] = index in embeddings of the first occurrence of cell i's embedding
+  canonical_idx <- match(emb_keys, emb_keys)
+  unique_mask <- canonical_idx == seq_len(ncol(embeddings))
+  n_dups <- sum(!unique_mask)
 
-  # embeddings are already normalized and scaled so those steps can be skipped
-  seurat_obj <-
-    Seurat::SetAssayData(seurat_obj, layer = "data",
-                         new.data = GetAssayData(seurat_obj, assay = "BCR",
-                                                 layer = "counts"))
-  seurat_obj <-
-    Seurat::SetAssayData(seurat_obj, layer = "scale.data",
-                         new.data = as.matrix(embeddings)) # required format
-
-  # add BCR info to the object's metadata
-  # the number of heavy chains should match how many sequences ran through
-  # (except for immune2vec)
-  if (!is.null(combined_airr)) {
-    seurat_obj <- gex_add_airr(seurat_obj, combined_airr = combined_airr,
-                               new_cols = new_cols, verbose = verbose)
+  if (n_dups > 0) {
+    cli::cli_inform(c("!" = "{n_dups} cell{?s} have identical embeddings out of {ncol(embeddings)} total cells."))
+    cli::cli_inform(c("v" = "Running PCA and UMAP on {sum(unique_mask)} unique embeddings; duplicates will receive copied coordinates."))
   }
 
-  max_dim <- min(nrow(embeddings), ncol(embeddings))
+  emb_unique <- embeddings[, unique_mask, drop = FALSE]
+  # for each cell, its position (row) in the unique Seurat object
+  unique_positions <- integer(ncol(embeddings))
+  unique_positions[which(unique_mask)] <- seq_len(sum(unique_mask))
+  unique_row_idx <- unique_positions[canonical_idx]
+
+  # run PCA and UMAP on unique embeddings only
+  seurat_unique <- Seurat::CreateSeuratObject(counts = emb_unique, assay = "BCR")
+  Seurat::VariableFeatures(seurat_unique) <- rownames(seurat_unique[["BCR"]])
+  seurat_unique <- Seurat::SetAssayData(seurat_unique, layer = "data",
+                                        new.data = Seurat::GetAssayData(seurat_unique, assay = "BCR",
+                                                                         layer = "counts"))
+  seurat_unique <- Seurat::SetAssayData(seurat_unique, layer = "scale.data",
+                                        new.data = as.matrix(emb_unique))
+
+  max_dim <- min(nrow(emb_unique), ncol(emb_unique))
   max_pcs <- max_dim - 1
   if (num_pcs >= max_dim) {
     warning("num_pcs (", num_pcs, ") >= embedding dimensions (", max_dim,
@@ -106,17 +119,46 @@ bcr_embeddings_pipeline <- function(embeddings, embedding_type,
   }
 
   # irlba throws a warning to "use a standard svd instead" when requesting more
-  # than 50% of all singular value, so let's use exact SVD if that happens
-  # (which is also faster when the embedding dimension is small)
+  # than 50% of all singular values, so use exact SVD in that case
   use_approx <- num_pcs < max_dim / 2
-  seurat_obj <- Seurat::RunPCA(object = seurat_obj, npcs = num_pcs,
-                               reduction.name = "bpca", reduction.key = "bpca_",
-                               approx = use_approx, verbose = verbose)
-  cli::cli_inform("v" = "Computed PCA with {num_pcs} dimensions using {ifelse(use_approx, 'approximate', 'exact')} SVD.")
+  seurat_unique <- Seurat::RunPCA(object = seurat_unique, npcs = num_pcs,
+                                   reduction.name = "bpca", reduction.key = "bpca_",
+                                   approx = use_approx, verbose = verbose)
+  cli::cli_inform(c("v" = "Computed PCA with {num_pcs} dimensions using {ifelse(use_approx, 'approximate', 'exact')} SVD."))
 
-  # visual check for how many PCs to keep (aka num_dims)
-  # ElbowPlot(seurat_obj, reduction = "bpca", ndims = num_pcs)
+  seurat_unique <- Seurat::FindNeighbors(object = seurat_unique, reduction = "bpca",
+                                         dims = 1:num_dims, k.param = k_param,
+                                         return.neighbor = TRUE,
+                                         graph.name = "BCR.nn", verbose = verbose)
 
+  seurat_unique <- Seurat::RunUMAP(object = seurat_unique, reduction = "bpca",
+                                   n.neighbors = k_param, nn.name = "BCR.nn",
+                                   reduction.name = "bcr.umap",
+                                   reduction.key = "bcrUMAP_",
+                                   verbose = verbose)
+
+  # build full Seurat object with all cells and inject expanded reductions
+  seurat_obj <- Seurat::CreateSeuratObject(counts = embeddings, assay = "BCR")
+  seurat_obj$cell_id <- Seurat::Cells(seurat_obj)
+  Seurat::VariableFeatures(seurat_obj) <- rownames(seurat_obj[["BCR"]])
+  seurat_obj <-
+    Seurat::SetAssayData(seurat_obj, layer = "data",
+                         new.data = Seurat::GetAssayData(seurat_obj, assay = "BCR",
+                                                         layer = "counts"))
+  seurat_obj <-
+    Seurat::SetAssayData(seurat_obj, layer = "scale.data",
+                         new.data = as.matrix(embeddings))
+
+  # expand PCA: duplicate cells get the same coordinates as their canonical cell
+  pca_emb <- Seurat::Embeddings(seurat_unique, "bpca")[unique_row_idx, , drop = FALSE]
+  rownames(pca_emb) <- colnames(embeddings)
+  seurat_obj[["bpca"]] <-
+    Seurat::CreateDimReducObject(embeddings = pca_emb,
+                                 loadings = Seurat::Loadings(seurat_unique, "bpca"),
+                                 stdev = seurat_unique[["bpca"]]@stdev,
+                                 key = "bpca_", assay = "BCR")
+
+  # FindNeighbors on full object: identical cells form natural cliques
   seurat_obj <- Seurat::FindNeighbors(object = seurat_obj, reduction = "bpca",
                                       dims = 1:num_dims, k.param = k_param,
                                       return.neighbor = TRUE,
@@ -124,18 +166,26 @@ bcr_embeddings_pipeline <- function(embeddings, embedding_type,
   seurat_obj <- Seurat::FindNeighbors(object = seurat_obj, reduction = "bpca",
                                       dims = 1:num_dims, k.param = k_param,
                                       compute.SNN = TRUE,
-                                      graph.name =
-                                        str_c("BCR_", c("", "s"), "nn"),
+                                      graph.name = str_c("BCR_", c("", "s"), "nn"),
                                       verbose = verbose)
 
-  # TODO: check if it's better to give dims or use the nn slot already made
-  seurat_obj <- Seurat::RunUMAP(object = seurat_obj, reduction = "bpca",
-                                n.neighbors = k_param, nn.name = "BCR.nn",
-                                reduction.name = "bcr.umap",
-                                reduction.key = "bcrUMAP_",
-                                verbose = verbose)
+  # expand UMAP: same logic as PCA above
+  umap_emb <- Seurat::Embeddings(seurat_unique, "bcr.umap")[unique_row_idx, , drop = FALSE]
+  rownames(umap_emb) <- colnames(embeddings)
+  seurat_obj[["bcr.umap"]] <-
+    Seurat::CreateDimReducObject(embeddings = umap_emb,
+                                 key = "bcrUMAP_", assay = "BCR")
+
+  # add BCR info to metadata
+  # the number of heavy chains should match how many sequences ran through
+  # (except for immune2vec)
+  if (!is.null(combined_airr)) {
+    seurat_obj <- gex_add_airr(seurat_obj, combined_airr = combined_airr,
+                               new_cols = new_cols, verbose = verbose)
+  }
 
   # add useful information to the Miscellaneous slot
+  Seurat::Misc(seurat_obj, slot = "num_dups") <- n_dups
   Seurat::Misc(seurat_obj, slot = "embeddings_dims") <- nrow(embeddings)
   Seurat::Misc(seurat_obj, slot = "embedding_type") <- embedding_type
 

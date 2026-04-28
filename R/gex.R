@@ -154,14 +154,16 @@ cell_type_clusters <- function(seurat_obj, clusters_col = "seurat_clusters",
 #' @param ensembl_version Ensembl version for gene annotations (e.g. "v114").
 #'   If NULL, uses the default in `get_airr_genes()`.
 #' @param bcr_features Optional matrix of BCR features (rows = features). If provided, the log message also reports the number of GEX-only features.
+#' @param cache_file Passed to [get_airr_genes()]. Path to a cached RDS result to use instead of querying Ensembl.
 #'
 #' @returns The Seurat object with filtered variable features and Ensembl version saved to `Misc(seurat_obj, "ensembl_version")`.
 #' @export
 filter_variable_features <- function(seurat_obj, filter_genes,
                                      ensembl_version = NULL,
-                                     bcr_features = NULL) {
+                                     bcr_features = NULL, cache_file = NULL) {
    airr_genes <- get_airr_genes(category = filter_genes,
-                                ensembl_version = ensembl_version)
+                                ensembl_version = ensembl_version,
+                                cache_file = cache_file)
 
    remove_feats <- VariableFeatures(seurat_obj) %in% airr_genes$remove_genes
    VariableFeatures(seurat_obj) <- VariableFeatures(seurat_obj)[!remove_feats]
@@ -171,11 +173,11 @@ filter_variable_features <- function(seurat_obj, filter_genes,
    if (!is.null(bcr_features)) {
       n_gex <- length(setdiff(VariableFeatures(seurat_obj),
                               str_replace_all(rownames(bcr_features), "_", "-")))
-      cli::cli_inform("After removing {str_c(filter_genes, collapse = '/')} genes: \\
-{n_remaining} variable features ({n_gex} GEX-only).")
+      cli::cli_inform(c("i" = "After removing {str_c(filter_genes, collapse = '/')} genes: \\
+{n_remaining} variable features ({n_gex} GEX-only)."))
    } else {
-      cli::cli_inform("After removing {str_c(filter_genes, collapse = '/')} genes: \\
-{n_remaining} variable features.")
+      cli::cli_inform(c("i" = "After removing {str_c(filter_genes, collapse = '/')} genes: \\
+{n_remaining} variable features."))
    }
 
    seurat_obj
@@ -235,34 +237,46 @@ find_k_clusters <- function(seurat_obj, graph_name = "RNA_snn", desired_k) {
 #' @param genome The genome to use for gene annotation (e.g. "hsapiens" or "mmusculus").
 #' @param ensembl_version The Ensembl version to use for gene annotation (e.g. "114").
 #' @param category The category of genes to retrieve: "IG" for immunoglobulin genes, "TR" for T cell receptor genes, or both.
+#' @param cache_file Optional path to an RDS file. If the file exists, its contents are returned directly without
+#'   querying Ensembl. After a successful Ensembl query the result is saved to this path for future offline use.
 #'
 #' @returns A character vector of IG and/or TR gene names to be filtered out from the most variable features.
 #' @export
 get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
-                           category = c("IG", "TR")) {
-   # TODO: have the ability to use a local file, especially if Ensembl's website is down
-
-   # if the Ensembl version isn't specified, use the current version
-   if (is.null(ensembl_version)) {
-      ensembl_version <-
-         biomaRt::listEnsemblArchives() %>%
-         dplyr::filter(current_release == "*") %>%
-         dplyr::pull(name)
-
-      # just the number
-      ensembl_version <- stringr::str_split(ensembl_version, " ")[[1]][2]
+                           category = c("IG", "TR"), cache_file = NULL) {
+   if (!is.null(cache_file) && file.exists(cache_file)) {
+      cli::cli_inform(c("i" = "Cache file found: {cache_file}. Loading AIRR gene list from cache."))
+      return(readRDS(cache_file))
    }
 
-   # search Ensembl's datasets
-   ensembl <- biomaRt::useEnsembl(biomart = "ensembl")
+   # if the Ensembl version isn't specified, use the current version
+   current_version <-
+      biomaRt::listEnsemblArchives() %>%
+      dplyr::filter(current_release == "*") %>%
+      dplyr::pull(name)
+   # just the number
+   current_version <- stringr::str_split(current_version, " ")[[1]][2]
+   if (is.null(ensembl_version)) {
+      ensembl_version <- current_version
+      cli::cli_inform(c("i" = "Using the current Ensembl version: v{ensembl_version}."))
+   }
 
-   # use listEnsembl() for biomart options (we'll always use genes)
-   # you could set `mirror` but you'd have to remove the version arg
+   # `version` routes to a versioned archive (e.g. e114.ensembl.org) instead of
+   # www.ensembl.org, so the two can have different availability
+   ensembl <- biomaRt::useEnsembl(biomart = "genes")
    dataset <- biomaRt::searchDatasets(mart = ensembl, pattern = genome)$dataset
-   ensembl <- biomaRt::useEnsembl(biomart = "genes", dataset = dataset,
-                                  version = ensembl_version)
-   # could also just do:
-   # ensembl <- useMart(biomart = "ensembl", dataset = dataset)
+   ensembl <- tryCatch(
+      biomaRt::useEnsembl(biomart = "genes", dataset = dataset,
+                          version = ensembl_version),
+      error = function(e) {
+         cli::cli_warn(c(
+            "Ensembl archive v{ensembl_version} is unreachable; falling back to the current live release (v{current_version}).",
+            "i" = "Use {.arg cache_file} to avoid this in future runs."
+         ))
+         ensembl_version <<- current_version
+         biomaRt::useEnsembl(biomart = "genes", dataset = dataset)
+      }
+   )
 
    # filter for the features of interest
    filters <- biomaRt::listFilters(ensembl)
@@ -295,8 +309,17 @@ get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
    remove_genes <- remove_genes[remove_genes != ""] # remove empty strings
    remove_genes <- unique(remove_genes)
 
-   # in case you don't specify the version
-   return(list(ensembl_version = ensembl_version, remove_genes = remove_genes))
+   result <- list(ensembl_version = ensembl_version, remove_genes = remove_genes)
+   cli::cli_inform(c("v" = "Retrieved {length(remove_genes)} AIRR genes from Ensembl v{ensembl_version}."))
+
+   if (!is.null(cache_file)) {
+      saveRDS(result, cache_file)
+      cli::cli_inform(c("v" = "Saved AIRR gene list to cache file: {cache_file}"))
+   } else {
+      cli::cli_inform(c("i" = "No cache file specified. To avoid querying Ensembl in future runs, provide a path to save the results using {.arg cache_file}."))
+   }
+
+   return(result)
 }
 
 
@@ -322,6 +345,7 @@ get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
 #' @param cluster_res Clustering resolution(s). If NULL, clustering is skipped.
 #' @param filter_genes If specified, filter out genes from this category (e.g. "IG" and/or "TR").
 #' @param ensembl_version Ensembl version for gene annotations (e.g. "GRCh38.104"). If NULL, uses the default in `get_airr_genes()`.
+#' @param cache_file Passed to [get_airr_genes()]. Path to a cached RDS result to use instead of querying Ensembl.
 #' @param verbose Print out Seurat's progress messages.
 #'
 #' @returns A processed Seurat object with PCA (`rpca`), neighbor graphs (`RNA_nn`,
@@ -331,7 +355,7 @@ seurat_pipeline <- function(seurat_obj, nfeatures_RNA, perc_mt,
                             num_features = 2000, num_pcs = 50, num_dims = 30,
                             k_param = 20, cluster_res = NULL,
                             filter_genes, ensembl_version = NULL,
-                            verbose = TRUE) {
+                            cache_file = NULL, verbose = TRUE) {
    # TODO: allow the reductions to be called pca and umap instead
 
    # TODO: keep the default values for nfeatures_RNA (200) and perc_mt (15), but allow the user to override them if they want to do filtering
@@ -365,7 +389,8 @@ seurat_pipeline <- function(seurat_obj, nfeatures_RNA, perc_mt,
    # TODO: check the object for the species
    if (!rlang::is_missing(filter_genes)) {
       seurat_obj <- filter_variable_features(seurat_obj, filter_genes,
-                                             ensembl_version = ensembl_version)
+                                             ensembl_version = ensembl_version,
+                                             cache_file = cache_file)
    }
 
    # irlba throws a warning to "use a standard svd instead" when requesting more
@@ -377,8 +402,9 @@ seurat_pipeline <- function(seurat_obj, nfeatures_RNA, perc_mt,
    seurat_obj <- RunPCA(seurat_obj, npcs = num_pcs, verbose = verbose,
                         reduction.name = "rpca", reduction.key = "rpca_",
                         approx = use_approx)
-   cli::cli_inform("v" = "Computed PCA with {num_pcs} dimensions using {ifelse(use_approx, 'approximate', 'exact')} SVD.")
+   cli::cli_inform(c("v" = "Computed PCA with {num_pcs} dimensions using {ifelse(use_approx, 'approximate', 'exact')} SVD."))
 
+   # TODO: pull this into a function for all of the times it has to be redone post subsetting?
    # SNN graph for clustering + neighbor object for evaluation
    seurat_obj <- FindNeighbors(seurat_obj, reduction = "rpca", dims = 1:num_dims,
                                k.param = k_param,
