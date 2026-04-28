@@ -18,6 +18,7 @@ seurat_pipeline(
   cluster_res = NULL,
   filter_genes,
   ensembl_version = NULL,
+  cache_file = NULL,
   verbose = TRUE
 )
 ```
@@ -67,6 +68,12 @@ seurat_pipeline(
   Ensembl version for gene annotations (e.g. "GRCh38.104"). If NULL,
   uses the default in
   [`get_airr_genes()`](https://eba28.github.io/athanor/reference/get_airr_genes.md).
+
+- cache_file:
+
+  Passed to
+  [`get_airr_genes()`](https://eba28.github.io/athanor/reference/get_airr_genes.md).
+  Path to a cached RDS result to use instead of querying Ensembl.
 
 - verbose:
 

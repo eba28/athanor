@@ -12,7 +12,7 @@ gex_add_airr(
   airr_type = "BCR",
   combined_airr,
   new_cols,
-  overview = TRUE
+  verbose = TRUE
 )
 ```
 
@@ -34,7 +34,7 @@ gex_add_airr(
 
   Vector of column names to select from the AIRR data.
 
-- overview:
+- verbose:
 
   Whether to print integration summary information.
 

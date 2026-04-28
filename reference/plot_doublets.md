@@ -11,7 +11,7 @@ doublets across clusters or annotations.
 ``` r
 plot_doublets(
   seurat_obj,
-  tissue_type,
+  data_source,
   clrs_specific,
   use_hues = FALSE,
   group_col = "seurat_clusters",
@@ -28,9 +28,9 @@ plot_doublets(
 
   The Seurat object.
 
-- tissue_type:
+- data_source:
 
-  Blood, Skin.
+  The source of the data (e.g., "Blood", "Skin").
 
 - clrs_specific:
 

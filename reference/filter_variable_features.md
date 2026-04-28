@@ -11,7 +11,8 @@ filter_variable_features(
   seurat_obj,
   filter_genes,
   ensembl_version = NULL,
-  bcr_features = NULL
+  bcr_features = NULL,
+  cache_file = NULL
 )
 ```
 
@@ -35,6 +36,12 @@ filter_variable_features(
 
   Optional matrix of BCR features (rows = features). If provided, the
   log message also reports the number of GEX-only features.
+
+- cache_file:
+
+  Passed to
+  [`get_airr_genes()`](https://eba28.github.io/athanor/reference/get_airr_genes.md).
+  Path to a cached RDS result to use instead of querying Ensembl.
 
 ## Value
 

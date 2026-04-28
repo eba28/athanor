@@ -65,6 +65,7 @@ from variable features, and clusters.</p>
 <span>  cluster_res <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">filter_genes</span>,</span>
 <span>  ensembl_version <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  cache_file <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -111,6 +112,10 @@ from variable features, and clusters.</p>
 
 <dt id="arg-ensembl-version">ensembl_version<a class="anchor" aria-label="anchor" href="#arg-ensembl-version"></a></dt>
 <dd><p>Ensembl version for gene annotations (e.g. "GRCh38.104"). If NULL, uses the default in <code><a href="get_airr_genes.html">get_airr_genes()</a></code>.</p></dd>
+
+
+<dt id="arg-cache-file">cache_file<a class="anchor" aria-label="anchor" href="#arg-cache-file"></a></dt>
+<dd><p>Passed to <code><a href="get_airr_genes.html">get_airr_genes()</a></code>. Path to a cached RDS result to use instead of querying Ensembl.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>

@@ -53,7 +53,7 @@ The left column contains UMAP plots colored by doublet/singlet status and by clu
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_doublets</span><span class="op">(</span></span>
 <span>  <span class="va">seurat_obj</span>,</span>
-<span>  <span class="va">tissue_type</span>,</span>
+<span>  <span class="va">data_source</span>,</span>
 <span>  <span class="va">clrs_specific</span>,</span>
 <span>  use_hues <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  group_col <span class="op">=</span> <span class="st">"seurat_clusters"</span>,</span>
@@ -72,8 +72,8 @@ The left column contains UMAP plots colored by doublet/singlet status and by clu
 <dd><p>The Seurat object.</p></dd>
 
 
-<dt id="arg-tissue-type">tissue_type<a class="anchor" aria-label="anchor" href="#arg-tissue-type"></a></dt>
-<dd><p>Blood, Skin.</p></dd>
+<dt id="arg-data-source">data_source<a class="anchor" aria-label="anchor" href="#arg-data-source"></a></dt>
+<dd><p>The source of the data (e.g., "Blood", "Skin").</p></dd>
 
 
 <dt id="arg-clrs-specific">clrs_specific<a class="anchor" aria-label="anchor" href="#arg-clrs-specific"></a></dt>

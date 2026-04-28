@@ -10,7 +10,8 @@ a search for genes that begin with "IG" or "TR".
 get_airr_genes(
   genome = "hsapiens",
   ensembl_version = NULL,
-  category = c("IG", "TR")
+  category = c("IG", "TR"),
+  cache_file = NULL
 )
 ```
 
@@ -29,6 +30,12 @@ get_airr_genes(
 
   The category of genes to retrieve: "IG" for immunoglobulin genes, "TR"
   for T cell receptor genes, or both.
+
+- cache_file:
+
+  Optional path to an RDS file. If the file exists, its contents are
+  returned directly without querying Ensembl. After a successful Ensembl
+  query the result is saved to this path for future offline use.
 
 ## Value
 

@@ -55,7 +55,8 @@ Optionally reports how many remaining features are GEX-only when BCR features ar
 <span>  <span class="va">seurat_obj</span>,</span>
 <span>  <span class="va">filter_genes</span>,</span>
 <span>  ensembl_version <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bcr_features <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  bcr_features <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  cache_file <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -78,6 +79,10 @@ If NULL, uses the default in <code><a href="get_airr_genes.html">get_airr_genes(
 
 <dt id="arg-bcr-features">bcr_features<a class="anchor" aria-label="anchor" href="#arg-bcr-features"></a></dt>
 <dd><p>Optional matrix of BCR features (rows = features). If provided, the log message also reports the number of GEX-only features.</p></dd>
+
+
+<dt id="arg-cache-file">cache_file<a class="anchor" aria-label="anchor" href="#arg-cache-file"></a></dt>
+<dd><p>Passed to <code><a href="get_airr_genes.html">get_airr_genes()</a></code>. Path to a cached RDS result to use instead of querying Ensembl.</p></dd>
 
 </dl></div>
     <div class="section level2">
