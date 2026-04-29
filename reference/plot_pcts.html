@@ -53,7 +53,7 @@ labeled and total counts on top.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_pcts</span><span class="op">(</span></span>
 <span>  <span class="va">pcts</span>,</span>
-<span>  <span class="va">tissue_type</span>,</span>
+<span>  <span class="va">data_source</span>,</span>
 <span>  <span class="va">clrs_specific</span>,</span>
 <span>  plot_type <span class="op">=</span> <span class="st">"All"</span>,</span>
 <span>  plot_value <span class="op">=</span> <span class="st">"Cell Type"</span>,</span>
@@ -80,12 +80,12 @@ labeled and total counts on top.</p>
 <dd><p>The output of <code><a href="calc_pcts.html">calc_pcts()</a></code>.</p></dd>
 
 
-<dt id="arg-tissue-type">tissue_type<a class="anchor" aria-label="anchor" href="#arg-tissue-type"></a></dt>
-<dd><p>The type of tissue being plotted e.g. Blood or Skin.</p></dd>
+<dt id="arg-data-source">data_source<a class="anchor" aria-label="anchor" href="#arg-data-source"></a></dt>
+<dd><p>Dataset description.</p></dd>
 
 
 <dt id="arg-clrs-specific">clrs_specific<a class="anchor" aria-label="anchor" href="#arg-clrs-specific"></a></dt>
-<dd><p>A specific (must have names) color palette.</p></dd>
+<dd><p>The specific color palette (should be named).</p></dd>
 
 
 <dt id="arg-plot-type">plot_type<a class="anchor" aria-label="anchor" href="#arg-plot-type"></a></dt>
@@ -141,7 +141,7 @@ labeled and total counts on top.</p>
 
 
 <dt id="arg-details">details<a class="anchor" aria-label="anchor" href="#arg-details"></a></dt>
-<dd><p>The optional subtitle.</p></dd>
+<dd><p>An optional custom subtitle.</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -14,7 +14,8 @@ plot_doublets(
   data_source,
   clrs_specific,
   use_hues = FALSE,
-  group_col = "seurat_clusters",
+  reduc = "rna.umap",
+  meta_col = "seurat_clusters",
   group_label = NULL,
   doublet_col = "scDblFinder.class",
   doublet_package = "scDblFinder",
@@ -30,7 +31,7 @@ plot_doublets(
 
 - data_source:
 
-  The source of the data (e.g., "Blood", "Skin").
+  Dataset description.
 
 - clrs_specific:
 
@@ -41,14 +42,18 @@ plot_doublets(
   Use the `iwanthue` hues instead of the default ggplot colors. Doesn't
   let you set any other settings.
 
-- group_col:
+- reduc:
+
+  The reduction to use for plotting e.g. "bpca" or wnn.umap".
+
+- meta_col:
 
   The column to group by.
 
 - group_label:
 
   The label for the grouping variable to use in the plot titles and axis
-  labels. If NULL, it will be determined based on the group_col name.
+  labels. If NULL, it will be determined based on the meta_col name.
 
 - doublet_col:
 
@@ -60,7 +65,7 @@ plot_doublets(
 
 - details:
 
-  The optional subtitle.
+  An optional custom subtitle.
 
 ## Value
 

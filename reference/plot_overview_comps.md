@@ -20,7 +20,8 @@ plot_overview_comps(
   reduction = "wnn.umap",
   use_adt = FALSE,
   comparisons = c("annotated_clusters_simpler", "v_call_family", "light_chains",
-    "isotype", "mu_freq")
+    "isotype", "mu_freq"),
+  ...
 )
 ```
 

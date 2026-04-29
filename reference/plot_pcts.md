@@ -9,7 +9,7 @@ with percentages labeled and total counts on top.
 ``` r
 plot_pcts(
   pcts,
-  tissue_type,
+  data_source,
   clrs_specific,
   plot_type = "All",
   plot_value = "Cell Type",
@@ -35,13 +35,13 @@ plot_pcts(
   The output of
   [`calc_pcts()`](https://eba28.github.io/athanor/reference/calc_pcts.md).
 
-- tissue_type:
+- data_source:
 
-  The type of tissue being plotted e.g. Blood or Skin.
+  Dataset description.
 
 - clrs_specific:
 
-  A specific (must have names) color palette.
+  The specific color palette (should be named).
 
 - plot_type:
 
@@ -98,7 +98,7 @@ plot_pcts(
 
 - details:
 
-  The optional subtitle.
+  An optional custom subtitle.
 
 ## Value
 

@@ -10,11 +10,11 @@ clusters in a post-WNN Seurat object. It should be run after
 ``` r
 plot_mws(
   seurat_obj,
-  details = "",
   second_assay = "BCR",
   clrs_specific = named_colors$mu_freq_bins,
   split_by = "mu_freq_bins",
-  y_axis_label = "SHM Frequency Bins"
+  y_axis_label = "SHM Frequency Bins",
+  details = ""
 )
 ```
 
@@ -24,17 +24,13 @@ plot_mws(
 
   The post-WNN Seurat object.
 
-- details:
-
-  Details to add to the plot title.
-
 - second_assay:
 
   List of other assays run through WNN in order.
 
 - clrs_specific:
 
-  A specific (must have names) color palette.
+  The specific color palette (should be named).
 
 - split_by:
 
@@ -43,6 +39,10 @@ plot_mws(
 - y_axis_label:
 
   Label for the y-axis.
+
+- details:
+
+  An optional custom subtitle.
 
 ## Value
 

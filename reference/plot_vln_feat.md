@@ -14,10 +14,13 @@ visibility.
 ``` r
 plot_vln_feat(
   seurat_obj,
+  clrs_specific,
   feature,
-  assay = "RNA",
-  group_col = NULL,
-  rotate = FALSE
+  title = "RNA",
+  reduc = "umap",
+  meta_col = NULL,
+  rotate = FALSE,
+  ...
 )
 ```
 
@@ -27,15 +30,23 @@ plot_vln_feat(
 
   The Seurat object with GEX data.
 
+- clrs_specific:
+
+  The specific color palette (should be named).
+
 - feature:
 
   The feature of interest.
 
-- assay:
+- title:
 
-  The assay to search for the feature in.
+  The title for the plots.
 
-- group_col:
+- reduc:
+
+  The reduction to use for plotting e.g. "bpca" or wnn.umap".
+
+- meta_col:
 
   What to group by (uses the Idents by default).
 

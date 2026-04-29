@@ -14,7 +14,7 @@ plot_dimplot(
   use_hues = FALSE,
   pt_size = 0.2,
   title,
-  reduc = "umap",
+  reduc = "rna.umap",
   meta_col = "annotated_clusters",
   highlight,
   plot_label = TRUE,
@@ -38,11 +38,11 @@ plot_dimplot(
 
 - data_source:
 
-  The dataset of origin.
+  Dataset description.
 
 - clrs_specific:
 
-  Specific colors for plotting (make sure it has names).
+  The specific color palette (should be named).
 
 - use_hues:
 
@@ -108,7 +108,7 @@ plot_dimplot(
 
 - details:
 
-  A custom subtitle.
+  An optional custom subtitle.
 
 - ...:
 
