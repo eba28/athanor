@@ -6,7 +6,7 @@
 \usage{
 plot_pcts(
   pcts,
-  tissue_type,
+  data_source,
   clrs_specific,
   plot_type = "All",
   plot_value = "Cell Type",
@@ -27,9 +27,9 @@ plot_pcts(
 \arguments{
 \item{pcts}{The output of \code{calc_pcts()}.}
 
-\item{tissue_type}{The type of tissue being plotted e.g. Blood or Skin.}
+\item{data_source}{Dataset description.}
 
-\item{clrs_specific}{A specific (must have names) color palette.}
+\item{clrs_specific}{The specific color palette (should be named).}
 
 \item{plot_type}{One of \code{All}, \code{Binary}.}
 
@@ -57,7 +57,7 @@ plot_pcts(
 
 \item{total_order}{Rearrange x axis in descending order by totals instead of alphabetically.}
 
-\item{details}{The optional subtitle.}
+\item{details}{An optional custom subtitle.}
 }
 \value{
 A stacked ggplot bar plot

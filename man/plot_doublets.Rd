@@ -20,7 +20,7 @@ plot_doublets(
 \arguments{
 \item{seurat_obj}{The Seurat object.}
 
-\item{data_source}{The source of the data (e.g., "Blood", "Skin").}
+\item{data_source}{Dataset description.}
 
 \item{clrs_specific}{The specific color palette (should be named).}
 
@@ -36,7 +36,7 @@ plot_doublets(
 
 \item{doublet_package}{The doublet method being used.}
 
-\item{details}{The optional subtitle.}
+\item{details}{An optional custom subtitle.}
 }
 \value{
 A grid of four plots with UMAPs in the left column and bar plots in the right column.

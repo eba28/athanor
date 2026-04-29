@@ -221,8 +221,8 @@ plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
 #' This function generates a UMAP plot from a Seurat object using `DimPlot` with various customizable options for coloring, labeling, and grouping the data.
 #'
 #' @param seurat_obj The Seurat object.
-#' @param data_source The dataset of origin.
-#' @param clrs_specific Specific colors for plotting (make sure it has names).
+#' @param data_source Dataset description.
+#' @param clrs_specific The specific color palette (should be named).
 #' @param use_hues Use the iwanthue hues instead of the default ggplot colors. Doesn't let you set any other settings.
 #' @param pt_size The point size.
 #' @param title The plot title.
@@ -237,7 +237,7 @@ plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
 #' @param sort_idents Whether or not to sort the idents (for proper ordering of the colors). This can mess up the order you want, so be careful.
 #' @param idents_char If sorting idents, whether to sort them as characters or numerically (e.g. cluster 10 should be after cluster 9, not before).
 #' @param order Plot cells on top or not.
-#' @param details A custom subtitle.
+#' @param details An optional custom subtitle.
 #' @param ... Any other Seurat parameters.
 #'
 #' @returns A Seurat plot of the specified reduction.
@@ -355,7 +355,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 #' The doublets will be plotted "on top" for the first UMAP.
 #'
 #' @param seurat_obj The Seurat object.
-#' @param data_source The source of the data (e.g., "Blood", "Skin").
+#' @param data_source Dataset description.
 #' @param clrs_specific The specific color palette (should be named).
 #' @param use_hues Use the `iwanthue` hues instead of the default ggplot colors. Doesn't let you set any other settings.
 #' @param reduc The reduction to use for plotting e.g. "bpca" or wnn.umap".
@@ -363,7 +363,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 #' @param group_label The label for the grouping variable to use in the plot titles and axis labels. If NULL, it will be determined based on the meta_col name.
 #' @param doublet_col The column containing the doublets information
 #' @param doublet_package The doublet method being used.
-#' @param details The optional subtitle.
+#' @param details An optional custom subtitle.
 #'
 #' @returns A grid of four plots with UMAPs in the left column and bar plots in the right column.
 #' @export
@@ -472,18 +472,18 @@ plot_doublets <- function(seurat_obj, data_source, clrs_specific,
 #' Assumes "annotated_clusters" is a column.
 #'
 #' @param seurat_obj The post-WNN Seurat object.
-#' @param details Details to add to the plot title.
 #' @param second_assay List of other assays run through WNN in order.
-#' @param clrs_specific A specific (must have names) color palette.
+#' @param clrs_specific The specific color palette (should be named).
 #' @param split_by A meta.data column to split the box plots up by.
 #' @param y_axis_label Label for the y-axis.
+#' @param details An optional custom subtitle.
 #'
 #' @returns A ggplot with the distribution of weights
 #' @export
-plot_mws <- function(seurat_obj, details = "", second_assay = "BCR",
+plot_mws <- function(seurat_obj, second_assay = "BCR",
                      clrs_specific = named_colors$mu_freq_bins,
                      split_by = "mu_freq_bins",
-                     y_axis_label = "SHM Frequency Bins") {
+                     y_axis_label = "SHM Frequency Bins", details = "") {
   main_assay <- ifelse(length(second_assay) > 1, second_assay[-1], second_assay)
 
   weight <- grep(paste0("^", main_assay, ".*\\.weight.*$"),
@@ -505,23 +505,25 @@ plot_mws <- function(seurat_obj, details = "", second_assay = "BCR",
   p <- ggplot(seurat_obj[[]],
               aes(x = !!sym(weight), y = !!sym(split_by),
                   fill = !!sym(split_by))) +
-    geom_boxplot(outlier.size = 0.5) +
-    geom_jitter(size = 0.2) +
-    labs(title = paste(details, "Weights by Cell Type"),
-         subtitle = subtitle, x = "Weights", y = y_axis_label) +
-    scale_fill_manual(values = clrs_specific) +
-    facet_wrap(vars(annotated_clusters), scales = "fixed") +
-    theme_bw + labels_standard + theme(legend.position = "none")
+         geom_boxplot(outlier.size = 0.5) +
+         geom_jitter(size = 0.2) +
+         labs(title = paste(details, "Weights by Cell Type"),
+              subtitle = subtitle, x = "Weights", y = y_axis_label) +
+         scale_fill_manual(values = clrs_specific) +
+         facet_wrap(vars(annotated_clusters), scales = "fixed") +
+         theme_bw + labels_standard + theme(legend.position = "none")
 
   if (n_assay == 2) {
-    p <- p +
+    p <-
+      p +
       geom_vline(xintercept = 0.50, linetype = "dashed") +
       scale_x_continuous(breaks = seq(0, 1, by = 0.25),
-                         labels = c("0 [GEX]", "0.25", "0.50", "0.75",
-                                    paste0("1 [", second_assay, "]")),
-                         limits = c(0, 1))
+                        labels = c("0 [GEX]", "0.25", "0.50", "0.75",
+                                   paste0("1 [", second_assay, "]")),
+                        limits = c(0, 1))
   } else if (n_assay == 3) {
-    p <- p +
+    p <-
+      p +
       geom_vline(xintercept = 1/3, linetype = "dashed") +
       geom_vline(xintercept = 2/3, linetype = "dashed") +
       scale_x_continuous(breaks = seq(0, 1, by = 0.1),
@@ -566,8 +568,11 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                                 reduction = "wnn.umap", use_adt = FALSE,
                                 comparisons = c("annotated_clusters_simpler",
                                                 "v_call_family", "light_chains",
-                                                "isotype", "mu_freq")) {
+                                                "isotype", "mu_freq"), ...) {
   # TODO: plot the comparisons in the order that they were given
+
+  possible_comps <- c("annotated_clusters", "annotated_clusters_simpler",
+                     "v_call_family", "light_chains", "isotype", "mu_freq")
 
   # validate inputs
   # if (!reduction %in% c("rna.umap", "adt.umap", "bcr.umap", "wnn.umap")) {
@@ -634,7 +639,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        title = assay_name, reduc = reduction,
                        meta_col = "annotated_clusters",
                        plot_label = FALSE,
-                       legend_label = "Cell Type", details = details)
+                       legend_label = "Cell Type", details = details, ...)
       }
 
       if ("annotated_clusters_simpler" %in% comparisons) {
@@ -645,7 +650,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        title = assay_name, reduc = reduction,
                        plot_label = FALSE,
                        meta_col = "annotated_clusters_simpler",
-                       legend_label = "Cell Type", details = details)
+                       legend_label = "Cell Type", details = details, ...)
       }
 
       # V call families
@@ -657,7 +662,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        title = paste(assay_name, "V Call Families"),
                        reduc = reduction,
                        plot_label = FALSE, meta_col = "v_call_family",
-                       legend_label = "V Call Family", details = details)
+                       legend_label = "V Call Family", details = details, ...)
       }
 
       # light chain types
@@ -669,7 +674,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        title = paste(assay_name, "Light Chain Types"),
                        reduc = reduction,
                        plot_label = FALSE, meta_col = "locus_light",
-                       legend_label = "Light Chain Type", details = details)
+                       legend_label = "Light Chain Type", details = details, ...)
       }
 
       # isotypes
@@ -681,7 +686,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        title = paste(assay_name, "Isotypes"),
                        reduc = reduction,
                        plot_label = FALSE, meta_col = "isotype",
-                       legend_label = "Isotype", details = details)
+                       legend_label = "Isotype", details = details, ...)
       }
 
       # subisotypes
@@ -693,7 +698,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        title = paste(assay_name, "Subisotypes"),
                        reduc = reduction,
                        plot_label = FALSE, meta_col = "c_call",
-                       legend_label = "Subisotype", details = details)
+                       legend_label = "Subisotype", details = details, ...)
       }
 
       # SHM frequencies
@@ -706,7 +711,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        reduc = reduction,
                        meta_col = "mu_freq_bins", plot_label = FALSE,
                        legend_label = "Bins", sort_idents = FALSE,
-                       order = TRUE, details = details)
+                       order = TRUE, details = details, ...)
       }
 
       # CDR3 amino acid length
@@ -719,7 +724,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        reduc = reduction,
                        plot_label = FALSE, meta_col = "cdr3_aa_length",
                        legend_label = "CDR3 Length", idents_char = FALSE,
-                       details = details)
+                       details = details, ...)
       }
 
       if ("weight_assay" %in% comparisons) {
@@ -730,7 +735,22 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        title = paste(assay_name, "Modality Weights"),
                        reduc = reduction,
                        plot_label = FALSE, meta_col = "weight_assay",
-                       legend_label = "Chosen Assay", details = details)
+                       legend_label = "Chosen Assay", details = details, ...)
+      }
+
+      # catch other possible comparisons
+      if (!all(comparisons %in% possible_comps)) {
+        other_comps <- comparisons[!comparisons %in% possible_comps]
+        cli::cli_alert("The following comparisons were not recognized and will be plotted if they are valid metadata columns: {other_comps}")
+
+        for (comp in other_comps) {
+          plots_overview[[paste0(comp, "_", type)]] <-
+            plot_dimplot(seurat_obj = seurat_obj,
+                         data_source = "", use_hues = TRUE, pt_size = pt_size,
+                         title = paste(assay_name, comp), reduc = reduction,
+                         meta_col = comp, plot_label = FALSE,
+                         details = details, ...)
+        }
       }
     }
   }
@@ -766,8 +786,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
 #' This assumes that you want to show the counts for binary plots.
 #'
 #' @param pcts The output of `calc_pcts()`.
-#' @param tissue_type The type of tissue being plotted e.g. Blood or Skin.
-#' @param clrs_specific A specific (must have names) color palette.
+#' @param data_source Dataset description.
+#' @param clrs_specific The specific color palette (should be named).
 #' @param plot_type One of `All`, `Binary`.
 #' @param plot_value What is being plotted.
 #' @param x_axis What to put along the x axis.
@@ -781,11 +801,11 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
 #' @param drop_zeroes Remove percentages of zeroes.
 #' @param reverse_order Change the fill order for a stacked plot.
 #' @param total_order Rearrange x axis in descending order by totals instead of alphabetically.
-#' @param details The optional subtitle.
+#' @param details An optional custom subtitle.
 #'
 #' @returns A stacked ggplot bar plot
 #' @export
-plot_pcts <- function(pcts, tissue_type, clrs_specific,
+plot_pcts <- function(pcts, data_source, clrs_specific,
                       plot_type = "All", plot_value = "Cell Type",
                       x_axis = "sample_id", x_axis_label = "Sample",
                       fill_type = "annotated_clusters", fill_label = fill_type,
@@ -838,7 +858,7 @@ plot_pcts <- function(pcts, tissue_type, clrs_specific,
   p <- ggplot(data = pcts,
               aes(x = !!sym(x_axis), y = Percent, fill = !!sym(fill_type))) +
     geom_bar(stat = "identity", color = "black", linewidth = 0.2) +
-    labs(title = paste(tissue_type, "Percent of",
+    labs(title = paste(data_source, "Percent of",
                        plot_value, "per", x_axis_label),
          subtitle = details,
          x = x_axis_label, y = paste(plot_value, "Percentage"),
@@ -913,7 +933,7 @@ plot_pcts <- function(pcts, tissue_type, clrs_specific,
 #' Will put the highest expressing cells on top for the latter.
 #'
 #' @param seurat_obj The Seurat object with GEX data.
-#' @param clrs_specific Specific colors for plotting (make sure it has names).
+#' @param clrs_specific The specific color palette (should be named).
 #' @param feature The feature of interest.
 #' @param title The title for the plots.
 #' @param reduc The reduction to use for plotting e.g. "bpca" or wnn.umap".

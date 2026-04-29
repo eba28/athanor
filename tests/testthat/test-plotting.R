@@ -173,14 +173,14 @@ test_that("plot_pcts returns a ggplot object", {
   pcts <- calc_pcts(data, meta_group_by = "sample_id",
                     focus_group = "Cell_Type")
 
-  result <- plot_pcts(pcts, tissue_type = "Blood",
+  result <- plot_pcts(pcts, data_source = "Blood",
                       fill_type = "Cell_Type",
                       x_axis = "sample_id")
 
   expect_s3_class(result, "gg")
 })
 
-test_that("plot_pcts title includes tissue_type and plot_value", {
+test_that("plot_pcts title includes data_source and plot_value", {
   data <- data.frame(
     sample_id = rep(c("S1", "S2"), each = 3),
     Cell_Type = rep(c("B", "T", "NK"), times = 2)
@@ -188,7 +188,7 @@ test_that("plot_pcts title includes tissue_type and plot_value", {
   pcts <- calc_pcts(data, meta_group_by = "sample_id",
                     focus_group = "Cell_Type")
 
-  result <- plot_pcts(pcts, tissue_type = "Blood",
+  result <- plot_pcts(pcts, data_source = "Blood",
                       plot_value = "Cell Type",
                       fill_type = "Cell_Type",
                       x_axis = "sample_id")
@@ -206,7 +206,7 @@ test_that("plot_pcts errors for invalid plot_type", {
                     focus_group = "Cell_Type")
 
   expect_error(
-    plot_pcts(pcts, tissue_type = "Blood", fill_type = "Cell_Type",
+    plot_pcts(pcts, data_source = "Blood", fill_type = "Cell_Type",
               x_axis = "sample_id", plot_type = "Invalid")
   )
 })
@@ -220,10 +220,10 @@ test_that("plot_pcts drop_zeroes removes rows with Percent == 0", {
   pcts <- calc_pcts(data, meta_group_by = "sample_id",
                     focus_group = "Cell_Type")
 
-  result_drop <- plot_pcts(pcts, tissue_type = "Blood",
+  result_drop <- plot_pcts(pcts, data_source = "Blood",
                            fill_type = "Cell_Type", x_axis = "sample_id",
                            drop_zeroes = TRUE)
-  result_keep <- plot_pcts(pcts, tissue_type = "Blood",
+  result_keep <- plot_pcts(pcts, data_source = "Blood",
                            fill_type = "Cell_Type", x_axis = "sample_id",
                            drop_zeroes = FALSE)
 

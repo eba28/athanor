@@ -18,7 +18,7 @@ plot_vln_feat(
 \arguments{
 \item{seurat_obj}{The Seurat object with GEX data.}
 
-\item{clrs_specific}{Specific colors for plotting (make sure it has names).}
+\item{clrs_specific}{The specific color palette (should be named).}
 
 \item{feature}{The feature of interest.}
 

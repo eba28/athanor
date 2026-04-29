@@ -29,9 +29,9 @@ plot_dimplot(
 \arguments{
 \item{seurat_obj}{The Seurat object.}
 
-\item{data_source}{The dataset of origin.}
+\item{data_source}{Dataset description.}
 
-\item{clrs_specific}{Specific colors for plotting (make sure it has names).}
+\item{clrs_specific}{The specific color palette (should be named).}
 
 \item{use_hues}{Use the iwanthue hues instead of the default ggplot colors. Doesn't let you set any other settings.}
 
@@ -61,7 +61,7 @@ plot_dimplot(
 
 \item{order}{Plot cells on top or not.}
 
-\item{details}{A custom subtitle.}
+\item{details}{An optional custom subtitle.}
 
 \item{...}{Any other Seurat parameters.}
 }

@@ -6,25 +6,25 @@
 \usage{
 plot_mws(
   seurat_obj,
-  details = "",
   second_assay = "BCR",
   clrs_specific = named_colors$mu_freq_bins,
   split_by = "mu_freq_bins",
-  y_axis_label = "SHM Frequency Bins"
+  y_axis_label = "SHM Frequency Bins",
+  details = ""
 )
 }
 \arguments{
 \item{seurat_obj}{The post-WNN Seurat object.}
 
-\item{details}{Details to add to the plot title.}
-
 \item{second_assay}{List of other assays run through WNN in order.}
 
-\item{clrs_specific}{A specific (must have names) color palette.}
+\item{clrs_specific}{The specific color palette (should be named).}
 
 \item{split_by}{A meta.data column to split the box plots up by.}
 
 \item{y_axis_label}{Label for the y-axis.}
+
+\item{details}{An optional custom subtitle.}
 }
 \value{
 A ggplot with the distribution of weights

@@ -68,6 +68,9 @@ bcr_embeddings_pipeline <- function(embeddings, embedding_type,
                                     combined_airr = NULL, new_cols = NULL,
                                     num_pcs = 50, num_dims = 20, k_param = 20,
                                     verbose = TRUE) {
+  # TODO: add option to skip the scan for duplicates since it can be
+  # time-consuming for large datasets, and it might not be a problem for some embedding methods and/or datasets
+
   # if embeddings are not already given as a sparse numeric matrix, convert them
   if (!is(embeddings, "dgCMatrix")) {
     embeddings <- as(embeddings, "dgCMatrix")
