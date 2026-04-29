@@ -256,7 +256,28 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
                               base_assay, k = 20, n_quantile = 10,
                               method = c("quantile", "percentile_diff"),
                               return_counts = FALSE) {
+  # TODO: update this to match the style and output of adt_correlation
   method <- match.arg(method)
+
+  if (any(!(features_adt %in% rownames(seurat_obj@assays[[adt_assay]])))) {
+    available_features <- rownames(seurat_obj@assays[[adt_assay]])
+    unavailable_features <- setdiff(features_adt, available_features)
+
+    # only use features that are present in the object
+    features_adt <- intersect(features_adt, available_features)
+
+    # just for formatting
+    available_features <- paste(sort(available_features), collapse = ", ")
+    unavailable_features <- paste(sort(unavailable_features), collapse = ", ")
+
+    # pass the pre-formatted strings to cli_inform
+    cli::cli_inform(c(
+      "i" = "Available features: {available_features}",
+      "i" = "Unavailable features: {unavailable_features}",
+      "v" = "Proceeding with: {features_adt}\n"
+    ))
+    # TODO: make having a print-out optional?
+  }
 
   if (rlang::is_missing(base_assay)) base_assay <- DefaultAssay(seurat_obj)
   nn_idx <- resolve_neighbors(seurat_obj, base_assay)

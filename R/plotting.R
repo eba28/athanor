@@ -243,10 +243,10 @@ plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
 #' @returns A Seurat plot of the specified reduction.
 #' @export
 plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
-                         use_hues = FALSE, pt_size = 0.2, title, reduc = "umap",
-                         meta_col = "annotated_clusters", highlight,
-                         plot_label = TRUE, label_size = 3, label_box = TRUE,
-                         include_legend = TRUE, legend_label,
+                         use_hues = FALSE, pt_size = 0.2, title,
+                         reduc = "rna.umap", meta_col = "annotated_clusters",
+                         highlight, plot_label = TRUE, label_size = 3,
+                         label_box = TRUE, include_legend = TRUE, legend_label,
                          sort_idents = TRUE, idents_char = TRUE, order = FALSE,
                          details, ...) {
   # check parameters
@@ -358,8 +358,9 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 #' @param data_source The source of the data (e.g., "Blood", "Skin").
 #' @param clrs_specific The specific color palette (should be named).
 #' @param use_hues Use the `iwanthue` hues instead of the default ggplot colors. Doesn't let you set any other settings.
-#' @param group_col The column to group by.
-#' @param group_label The label for the grouping variable to use in the plot titles and axis labels. If NULL, it will be determined based on the group_col name.
+#' @param reduc The reduction to use for plotting e.g. "bpca" or wnn.umap".
+#' @param meta_col The column to group by.
+#' @param group_label The label for the grouping variable to use in the plot titles and axis labels. If NULL, it will be determined based on the meta_col name.
 #' @param doublet_col The column containing the doublets information
 #' @param doublet_package The doublet method being used.
 #' @param details The optional subtitle.
@@ -367,14 +368,15 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 #' @returns A grid of four plots with UMAPs in the left column and bar plots in the right column.
 #' @export
 plot_doublets <- function(seurat_obj, data_source, clrs_specific,
-                          use_hues = FALSE, group_col = "seurat_clusters",
+                          use_hues = FALSE, reduc = "rna.umap",
+                          meta_col = "seurat_clusters",
                           group_label = NULL, doublet_col = "scDblFinder.class",
                           doublet_package = "scDblFinder", details = NULL) {
   # TODO: get rid of this function?
 
   # if you want to use default ggplot2 or generated iwanthue colors
   if (rlang::is_missing(clrs_specific)) {
-    n_colors <- n_distinct(seurat_obj[[group_col]])
+    n_colors <- n_distinct(seurat_obj[[meta_col]])
 
     if (use_hues) clrs_specific <- hues::iwanthue(n_colors)
     else clrs_specific <- hue_pal()(n_colors)
@@ -382,31 +384,32 @@ plot_doublets <- function(seurat_obj, data_source, clrs_specific,
 
   # determine the legend label
   if (is.null(group_label)) {
-    if (grepl("annotated", group_col)) {
+    if (grepl("annotated", meta_col)) {
       cluster_legend <- "Cell Type"
       # subclustered only
-      if (group_col == "annotated_subclusters") {
+      if (meta_col == "annotated_subclusters") {
         cluster_legend <- paste("Subclustered", cluster_legend)
       }
-    } else if (grepl("cluster", group_col)) {
+    } else if (grepl("cluster", meta_col)) {
       cluster_legend <- "Cluster"
       # subclustered only
-      if (group_col == "seurat_subclusters") {
+      if (meta_col == "seurat_subclusters") {
         cluster_legend <- "Subcluster"
       }
     } else {
-      cluster_legend <- group_col
+      cluster_legend <- meta_col
     }
   } else {
     cluster_legend <- group_label
   }
 
   # set identities
-  Idents(seurat_obj) <- group_col
+  Idents(seurat_obj) <- meta_col
 
   # UMAP colored by doublets/singlets
   p1 <- plot_dimplot(seurat_obj = seurat_obj, title = data_source,
-                     clrs_specific = named_colors$doublet, highlight = "doublet",
+                     clrs_specific = named_colors$doublet,
+                     reduc = reduc, highlight = "doublet",
                      meta_col = doublet_col,
                      plot_label = FALSE, order = TRUE,
                      include_legend = FALSE) +
@@ -414,8 +417,8 @@ plot_doublets <- function(seurat_obj, data_source, clrs_specific,
 
   # bar plot of doublets with raw counts
   p2 <- data.frame(table(seurat_obj[[]] %>%
-                           select(all_of(group_col), all_of(doublet_col)))) %>%
-    ggplot(aes(x = !!rlang::sym(group_col), y = Freq,
+                           select(all_of(meta_col), all_of(doublet_col)))) %>%
+    ggplot(aes(x = !!rlang::sym(meta_col), y = Freq,
                fill = !!rlang::sym(doublet_col))) +
     geom_bar(stat = "identity", position = "dodge",
              color = "black", linewidth = 0.2) +
@@ -429,26 +432,26 @@ plot_doublets <- function(seurat_obj, data_source, clrs_specific,
 
   # UMAP colored by clusters/annotations
   # TODO: add an option to not plot the labels
-  if (grepl("annotated", group_col)) {
+  if (grepl("annotated", meta_col)) {
     # rotate x-axis labels for annotation plots
     p2 <- p2 + labels_rotate_x
 
     p3 <- plot_dimplot(seurat_obj = seurat_obj, title = data_source,
-                       clrs_specific = clrs_specific,
-                       meta_col = group_col, include_legend = FALSE)
+                       clrs_specific = clrs_specific, reduc = reduc,
+                       meta_col = meta_col, include_legend = FALSE)
   } else {
     p3 <- plot_dimplot(seurat_obj = seurat_obj, title = data_source,
-                       clrs_specific = clrs_specific,
-                       meta_col = group_col, include_legend = FALSE)
+                       clrs_specific = clrs_specific, reduc = reduc,
+                       meta_col = meta_col, include_legend = FALSE)
   }
 
   # bar plot of doublets with percentage counts
   p4 <- plot_pcts(pcts = calc_pcts(data = seurat_obj[[]],
-                                   meta_group_by = group_col,
+                                   meta_group_by = meta_col,
                                    focus_group = doublet_col),
                   data_source = data_source, plot_type = "All",
                   plot_value = "Doublets",
-                  x_axis = group_col, x_axis_label = cluster_legend,
+                  x_axis = meta_col, x_axis_label = cluster_legend,
                   fill_type = doublet_col, fill_label = doublet_package,
                   clrs_specific = named_colors$doublet, details = details)
 
@@ -910,38 +913,40 @@ plot_pcts <- function(pcts, tissue_type, clrs_specific,
 #' Will put the highest expressing cells on top for the latter.
 #'
 #' @param seurat_obj The Seurat object with GEX data.
+#' @param clrs_specific Specific colors for plotting (make sure it has names).
 #' @param feature The feature of interest.
-#' @param assay The assay to search for the feature in.
-#' @param group_col What to group by (uses the Idents by default).
+#' @param title The title for the plots.
+#' @param reduc The reduction to use for plotting e.g. "bpca" or wnn.umap".
+#' @param meta_col What to group by (uses the Idents by default).
 #' @param rotate Rotate the labels or not.
 #'
 #' @returns Two patchworked Seurat plots.
 #' @export
-plot_vln_feat <- function(seurat_obj, feature, assay = "RNA", group_col = NULL,
-                          rotate = FALSE) {
-  # TODO: add clrs_specific as a parameter
+plot_vln_feat <- function(seurat_obj, clrs_specific, feature, title = "RNA",
+                          reduc = "umap", meta_col = NULL, rotate = FALSE, ...) {
   # TODO: pass additional parameters, make labelling optional (be careful with additional)
   # TODO: check if setting the assay is even necessary
   # TODO: deal with how clean_umap messing up the heights
   # TODO: give an option for how to sort the violin plot (or not)
-  # TODO: add a parameter for reduction
+  # TODO: include the assay to search for the feature in
 
   # set the assay and idents
-  if (!is.null(group_col)) Idents(seurat_obj) <- group_col
-  DefaultAssay(seurat_obj) <- assay
+  if (!is.null(meta_col)) Idents(seurat_obj) <- meta_col
+  # DefaultAssay(seurat_obj) <- assay
 
-  p1 <- VlnPlot(object = seurat_obj, features = feature, pt.size = 0.1,
-                raster = FALSE) +
-    NoLegend()
+  p1 <- VlnPlot(object = seurat_obj, features = feature, cols = clrs_specific,
+                pt.size = 0.1, raster = FALSE) +
+          NoLegend()
 
   if (rotate) p1 <- p1 + labels_standard_vln
   else p1 <- p1 + labels_standard_vln_rotate
 
   p2 <- FeaturePlot(object = seurat_obj, features = feature, pt.size = 0.1,
-                    order = TRUE, min.cutoff = 0, label = TRUE, label.size = 3,
-                    raster = FALSE) +
-    scale_color_viridis_c(option = "G", direction = -1) +
-    labels_standard + clean_umap
+                    order = TRUE, min.cutoff = 0, reduction = reduc,
+                    raster = FALSE, ...) +
+          scale_color_viridis_c(option = "G", direction = -1) +
+          labels_standard + # clean_umap
+          theme(axis.ticks = element_blank(), axis.text = element_blank())
 
   (p1 | p2) & plot_layout(nrow = 1, widths = c(2, 1))
 }

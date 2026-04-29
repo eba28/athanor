@@ -11,7 +11,7 @@ plot_dimplot(
   use_hues = FALSE,
   pt_size = 0.2,
   title,
-  reduc = "umap",
+  reduc = "rna.umap",
   meta_col = "annotated_clusters",
   highlight,
   plot_label = TRUE,

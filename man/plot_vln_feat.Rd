@@ -6,20 +6,27 @@
 \usage{
 plot_vln_feat(
   seurat_obj,
+  clrs_specific,
   feature,
-  assay = "RNA",
-  group_col = NULL,
-  rotate = FALSE
+  title = "RNA",
+  reduc = "umap",
+  meta_col = NULL,
+  rotate = FALSE,
+  ...
 )
 }
 \arguments{
 \item{seurat_obj}{The Seurat object with GEX data.}
 
+\item{clrs_specific}{Specific colors for plotting (make sure it has names).}
+
 \item{feature}{The feature of interest.}
 
-\item{assay}{The assay to search for the feature in.}
+\item{title}{The title for the plots.}
 
-\item{group_col}{What to group by (uses the Idents by default).}
+\item{reduc}{The reduction to use for plotting e.g. "bpca" or wnn.umap".}
+
+\item{meta_col}{What to group by (uses the Idents by default).}
 
 \item{rotate}{Rotate the labels or not.}
 }

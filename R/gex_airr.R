@@ -168,10 +168,10 @@ gex_add_airr <- function(seurat_obj, airr_type = "BCR",
              # assumes that the plasma cells don't need re-assigning
       seurat_obj@meta.data <-
         seurat_obj[[]] %>%
-        annotated_clusters_gex_bcr =
-          ifelse(annotated_clusters_simpler == "Naive B cells" &
-                   (mu_freq > 0.01 | isotype %in% c("IgA", "IgE", "IgG")),
-                 "Memory B cells", annotated_clusters_simpler)
+        mutate(annotated_clusters_gex_bcr =
+                 ifelse(annotated_clusters_simpler == "Naive B cells" &
+                          (mu_freq > 0.01 | isotype %in% c("IgA", "IgE", "IgG")),
+                        "Memory B cells", annotated_clusters_simpler))
     }
   }
 
