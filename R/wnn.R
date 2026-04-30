@@ -151,8 +151,8 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                        .default = "Tie"))
 
   # add run info
-  Misc(seurat_obj, slot = "embeddings_dims") <- nrow(seurat_obj@assays[["BCR"]])
   Misc(seurat_obj, slot = "embedding_type") <- embedding_type
+  Misc(seurat_obj, slot = "embedding_dims") <- nrow(seurat_obj@assays[["BCR"]])
 
   return(seurat_obj)
 }

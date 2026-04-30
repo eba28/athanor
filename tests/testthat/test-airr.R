@@ -127,7 +127,7 @@ test_that("bcr_embeddings_pipeline produces expected reductions and graphs", {
 
 test_that("bcr_embeddings_pipeline stores Misc slots correctly", {
   expect_equal(Seurat::Misc(bcr_obj, slot = "embedding_type"), "Simulated")
-  expect_equal(Seurat::Misc(bcr_obj, slot = "embeddings_dims"), nrow(embeddings))
+  expect_equal(Seurat::Misc(bcr_obj, slot = "embedding_dims"), nrow(embeddings))
 })
 
 test_that("bcr_embeddings_pipeline sets cell_id to Cells()", {

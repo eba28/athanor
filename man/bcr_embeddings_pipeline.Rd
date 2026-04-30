@@ -47,5 +47,7 @@ Produces \code{bpca}, \code{BCR.nn}, \code{BCR_nn}, \code{BCR_snn}, and \code{bc
 Embeddings are used as-is for \code{scale.data} (no \code{ScaleData} call) since they
 are already on a comparable scale. The \code{data} layer is populated from \code{counts}
 so downstream reads do not fail.
-It is possible that some embeddings return identical values across all dimensions for different cells. This can cause \code{RunUMAP()} to hang on the spectral initialization step as it struggles to find a good low-dimensional representation of the data.
+If many cells share identical embeddings (e.g. from clonal expansion),
+\code{RunUMAP()} may hang on spectral initialization. Use
+\code{bcr_embeddings_pipeline_dedup()} to handle this automatically.
 }

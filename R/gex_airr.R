@@ -204,3 +204,190 @@ had no matching GEX cell IDs and were excluded.",
   # return the updated Seurat object
   seurat_obj
 }
+
+
+#' Merge a GEX Seurat object with a BCR Seurat object
+#'
+#' @description
+#' Combines a gene expression (GEX) Seurat object and a BCR Seurat object by
+#' matching on shared `cell_id` values. Handles the common case where the two
+#' objects have different cell counts (e.g. not every GEX cell has a BCR sequence).
+#'
+#' @details
+#' Cell matching is done via `cell_id` metadata, not raw Seurat barcodes.
+#' If GEX barcodes differ from `cell_id` (e.g. they carry a sample prefix),
+#' BCR cell names are renamed via [Seurat::RenameCells()] to match before the
+#' assay is transferred.
+#'
+#' With `join = "inner"` (default), both objects are subset to their shared
+#' cells; the result is suitable for WNN or concatenation workflows.
+#'
+#' With `join = "left"`, all GEX cells are retained. Cells without BCR data
+#' receive a zero-filled embedding row in the BCR assay and `Has_BCR = FALSE`.
+#' Zero embeddings are meaningless and downstream analyses should filter on
+#' `Has_BCR` before using the BCR assay.
+#'
+#' BCR metadata columns not already present in `gex_obj` are transferred via
+#' [Seurat::AddMetaData()], with `NA` (or `FALSE` for `Has_BCR`) filled in for
+#' non-BCR cells.
+#'
+#' @param gex_obj A Seurat object containing GEX (RNA) data with a `cell_id`
+#'   metadata column.
+#' @param bcr_obj A Seurat object containing a BCR assay with a `cell_id`
+#'   metadata column (typically produced by [bcr_embeddings_pipeline()]).
+#' @param join How to handle cells not shared between the two objects.
+#'   `"inner"` (default) keeps only shared cells; `"left"` keeps all GEX cells
+#'   and zero-fills the BCR assay for unmatched cells.
+#' @param transfer_reductions Whether to copy BCR reductions (`bpca`,
+#'   `bcr.umap`) and graphs (`BCR.nn`, `BCR_nn`, `BCR_snn`) from `bcr_obj`
+#'   into the merged object. Only available when `join = "inner"`.
+#' @param verbose Whether to print a summary of the merge.
+#'
+#' @returns A Seurat object with both RNA and BCR assays and BCR metadata columns.
+#' @export
+merge_gex_bcr <- function(gex_obj, bcr_obj, join = c("inner", "left"),
+                           transfer_reductions = TRUE, verbose = TRUE) {
+  join <- match.arg(join)
+
+  if (!inherits(gex_obj, "Seurat")) stop("gex_obj must be a Seurat object.")
+  if (!inherits(bcr_obj, "Seurat")) stop("bcr_obj must be a Seurat object.")
+  if (!"cell_id" %in% colnames(gex_obj[[]])) {
+    stop("gex_obj must have a cell_id metadata column.")
+  }
+  if (!"cell_id" %in% colnames(bcr_obj[[]])) {
+    stop("bcr_obj must have a cell_id metadata column.")
+  }
+  if (!"BCR" %in% names(bcr_obj@assays)) {
+    stop("bcr_obj must contain a BCR assay.")
+  }
+
+  shared_cell_ids <- intersect(gex_obj$cell_id, bcr_obj$cell_id)
+  if (length(shared_cell_ids) == 0) {
+    stop("No shared cell IDs found. Check cell_id formatting in both objects.")
+  }
+
+  n_gex <- ncol(gex_obj)
+  n_bcr <- ncol(bcr_obj)
+
+  # subset BCR object to shared cells
+  bcr_shared_barcodes <- Cells(bcr_obj)[bcr_obj$cell_id %in% shared_cell_ids]
+  bcr_obj_sub <- subset(bcr_obj, cells = bcr_shared_barcodes)
+
+  # remap BCR cell names to GEX barcodes if they differ from cell_id
+  gex_cellid_to_barcode <- setNames(rownames(gex_obj[[]]), gex_obj$cell_id)
+  gex_barcodes_for_bcr <- unname(gex_cellid_to_barcode[bcr_obj_sub$cell_id])
+  if (!identical(Cells(bcr_obj_sub), gex_barcodes_for_bcr)) {
+    bcr_obj_sub <- RenameCells(bcr_obj_sub, new.names = gex_barcodes_for_bcr)
+  }
+
+  if (join == "inner") {
+    gex_obj <- subset(gex_obj, cells = gex_barcodes_for_bcr)
+    suppressWarnings(gex_obj[["BCR"]] <- bcr_obj_sub[["BCR"]])
+  } else {
+    # left join: build a full BCR count matrix, zero-filling non-BCR cells
+    bcr_feature_names <- rownames(bcr_obj_sub[["BCR"]])
+    n_features <- length(bcr_feature_names)
+    all_gex_barcodes <- Cells(gex_obj)
+    non_bcr_barcodes <- setdiff(all_gex_barcodes, gex_barcodes_for_bcr)
+
+    bcr_counts_shared <- GetAssayData(bcr_obj_sub, assay = "BCR", layer = "counts")
+
+    zero_mat <- Matrix::sparseMatrix(
+      i = integer(0), j = integer(0),
+      dims = c(n_features, length(non_bcr_barcodes)),
+      dimnames = list(bcr_feature_names, non_bcr_barcodes)
+    )
+
+    # reorder shared cells to match gex_obj order, then append non-BCR cells
+    bcr_counts_full <- cbind(
+      bcr_counts_shared[, intersect(all_gex_barcodes, colnames(bcr_counts_shared)),
+                        drop = FALSE],
+      zero_mat
+    )[, all_gex_barcodes, drop = FALSE]
+
+    suppressWarnings(gex_obj[["BCR"]] <- CreateAssayObject(counts = bcr_counts_full))
+
+    if (transfer_reductions && length(non_bcr_barcodes) > 0) {
+      cli::cli_warn(c(
+        "!" = "transfer_reductions is not supported for join = \"left\" when \\
+GEX cells without BCR data are present.",
+        "i" = "Reductions computed on BCR-only cells cannot be applied to \\
+{length(non_bcr_barcodes)} non-BCR cells."
+      ))
+      transfer_reductions <- FALSE
+    }
+  }
+
+  # transfer nCount_BCR and nFeature_BCR, aligned to gex_obj cells
+  bcr_counts_meta <-
+    bcr_obj_sub[[]] %>%
+    select(cell_id, nCount_BCR, nFeature_BCR)
+
+  gex_counts_meta <- left_join(gex_obj[["cell_id"]], bcr_counts_meta, by = "cell_id")
+  gex_obj$nCount_BCR <- gex_counts_meta$nCount_BCR
+  gex_obj$nFeature_BCR <- gex_counts_meta$nFeature_BCR
+
+  # relocate count columns after the last RNA/ADT count column
+  last_count_col <- tail(grep("^nFeature_(RNA|ADT)$", names(gex_obj[[]]),
+                               value = TRUE), 1)
+  if (length(last_count_col) > 0) {
+    gex_obj@meta.data <- gex_obj[[]] %>%
+      relocate(nCount_BCR, nFeature_BCR, .after = all_of(last_count_col))
+  }
+
+  # transfer any BCR metadata columns not already in gex_obj;
+  # always exclude Has_BCR here — we recompute it below from actual BCR presence
+  skip_cols <- c("orig.ident", "nCount_BCR", "nFeature_BCR", "Has_BCR",
+                 names(gex_obj[[]]))
+  bcr_meta_extra <-
+    bcr_obj_sub[[]] %>%
+    select(-any_of(skip_cols))
+
+  if (ncol(bcr_meta_extra) > 0) {
+    gex_meta_extra <- left_join(gex_obj[["cell_id"]], bcr_meta_extra, by = "cell_id")
+    gex_obj <- AddMetaData(gex_obj, metadata = gex_meta_extra)
+  }
+
+  # overwrite Has_BCR to reflect actual BCR assay presence in the merged object,
+  # regardless of whether it existed before (e.g. from a prior gex_add_airr() call)
+  gex_obj$Has_BCR <- Cells(gex_obj) %in% gex_barcodes_for_bcr
+
+  gex_obj@meta.data <- gex_obj@meta.data %>% droplevels()
+
+  # transfer BCR reductions and graphs (inner join only, or left join with no gaps)
+  if (transfer_reductions) {
+    for (rd in c("bpca", "bcr.umap")) {
+      if (rd %in% names(bcr_obj_sub@reductions)) {
+        gex_obj[[rd]] <- bcr_obj_sub[[rd]]
+      }
+    }
+    for (nb in "BCR.nn") {
+      if (nb %in% names(bcr_obj_sub@neighbors)) {
+        gex_obj@neighbors[[nb]] <- bcr_obj_sub@neighbors[[nb]]
+      }
+    }
+    for (gr in c("BCR_nn", "BCR_snn")) {
+      if (gr %in% names(bcr_obj_sub@graphs)) {
+        gex_obj@graphs[[gr]] <- bcr_obj_sub@graphs[[gr]]
+      }
+    }
+  }
+
+  if (verbose) {
+    n_shared <- length(shared_cell_ids)
+    n_gex_only <- n_gex - n_shared
+    n_bcr_only <- n_bcr - n_shared
+    coverage <- label_percent(accuracy = 0.1)(n_shared / n_gex)
+    cli::cli_inform(c(
+      "i" = "{n_shared} shared cells ({coverage} of {n_gex} GEX cells).",
+      if (n_gex_only > 0)
+        "i" = "{n_gex_only} GEX cell{?s} had no BCR match \\
+ and were {if (join == 'inner') 'excluded' else 'retained with zero BCR embeddings'}.",
+      if (n_bcr_only > 0)
+        "i" = "{n_bcr_only} BCR cell{?s} had no GEX match and were excluded.",
+      "v" = "Merged object has {ncol(gex_obj)} cells with both RNA and BCR assays."
+    ))
+  }
+
+  gex_obj
+}
