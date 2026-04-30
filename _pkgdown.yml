@@ -3,8 +3,8 @@ url: https://eba28.github.io/athanor/
 template:
   bootstrap: 5
   # bootswatch: flatly
-  theme: arrow-light # atom-one-light, https://pkgdown.r-lib.org/articles/customise.html#syntax-highlighting
-  theme-dark: arrow-dark # atom-one-dark
+  theme: arrow-light
+  theme-dark: arrow-dark
 
 articles:
 - title: Pipeline
@@ -47,6 +47,7 @@ reference:
 - subtitle: BCR embeddings
 - contents:
   - bcr_embeddings_pipeline
+  - bcr_embeddings_pipeline_dedup
   - convert_embeddings
 - subtitle: BCR features
 - contents:
@@ -60,6 +61,9 @@ reference:
 - subtitle: Metadata
 - contents:
   - gex_add_airr
+- subtitle: Seurat objects
+- contents:
+  - merge_gex_bcr
 - subtitle: Concatenation
 - contents:
   - concatenate_gex_bcr

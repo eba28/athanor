@@ -547,19 +547,14 @@ plot_mws <- function(seurat_obj, second_assay = "BCR",
 #' This function generates multiple UMAP plots from a Seurat object with various customizable options for coloring, labeling, and grouping the data based on different metadata columns, cluster annotations, and specific clusters of interest.
 #' It allows for a comprehensive overview of the data across different embedding types (e.g. RNA, ADT, BCR) and comparisons (e.g. annotated clusters, V call families, isotypes), making it easier to explore and interpret the underlying structure of the data.
 #'
-#' @details
-#' The names of the seurat_objs list correspond with embedding_types.
-#' Assumes that CellTypist is the annotation approach being used.
-#' `data_source` is set to empty to save on space.
-#'
-#' @param seurat_objs List of WNN objects with different embedding types.
+#' @param seurat_objs List of Seurat objects.
 #' @param data_source Dataset description.
 #' @param pt_size The size of the points in the UMAP.
-#' @param second_assay The second assay to use in the title if plotting a WNN reduction.
+#' @param second_assay The second assay to use in the title if plotting a combined reduction. Will usually be "BCR".
 #' @param assay_name The name of the assay to use in the title. By default, it will be set based on the reduction (e.g. "GEX" for "rna.umap", "BCR" for "bcr.umap", and "GEX & BCR" for "wnn.umap").
-#' @param reduction Which reduction to plot ("rna.umap", "bcr.umap", or "wnn.umap").
+#' @param reduction Which reduction to plot (e.g. "rpca", "bcr.umap", "wnn.umap").
 #' @param use_adt Whether or not the comparisons being plotted represent ADT markers.
-#' @param comparisons The labeling of the plots.
+#' @param comparisons Which metadata columns to plot. By default, it will plot "annotated_clusters_simpler", "v_call_family", "light_chains", "isotype", and "mu_freq". The first one is the simplified CellTypist annotations, and the rest are BCR features.
 #'
 #' @return A patchwork object with overview plots in a grid.
 #' @export
@@ -587,8 +582,10 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
   # technically you could just look at the axis titles but people don't often
   # think to do that
   if (rlang::is_missing(assay_name)) {
-    assay_name <- switch(reduction, "rna.umap" = "GEX", "adt.umap" = "ADT",
-                         "bcr.umap" = "BCR",
+    assay_name <- switch(reduction, "rpca" = "GEX", "rna.umap" = "GEX",
+                         "bpca" = "BCR", "bcr.umap" = "BCR",
+                         "adt.umap" = "ADT",
+                         "rna_bcr.umap" = paste("GEX &", second_assay)
                          "wnn.umap" = paste("GEX &", second_assay))
   }
 
@@ -636,9 +633,9 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = data_source, pt_size = pt_size,
                        clrs_specific = seurat_obj@misc$colors_annotated,
-                       title = assay_name, reduc = reduction,
+                       title = paste(assay_name, "Cell Types"),
+                       reduc = reduction, plot_label = FALSE,
                        meta_col = "annotated_clusters",
-                       plot_label = FALSE,
                        legend_label = "Cell Type", details = details, ...)
       }
 
@@ -647,8 +644,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = data_source, pt_size = pt_size,
                        clrs_specific = named_colors$cell_types_celltypist,
-                       title = assay_name, reduc = reduction,
-                       plot_label = FALSE,
+                       title = paste(assay_name, "Cell Types"),
+                       reduc = reduction, plot_label = FALSE,
                        meta_col = "annotated_clusters_simpler",
                        legend_label = "Cell Type", details = details, ...)
       }
@@ -660,8 +657,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        data_source = "", pt_size = pt_size,
                        clrs_specific = named_colors$v_call_family,
                        title = paste(assay_name, "V Call Families"),
-                       reduc = reduction,
-                       plot_label = FALSE, meta_col = "v_call_family",
+                       reduc = reduction, plot_label = FALSE,
+                       meta_col = "v_call_family",
                        legend_label = "V Call Family", details = details, ...)
       }
 
@@ -672,8 +669,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        data_source = "", pt_size = pt_size,
                        clrs_specific = named_colors$light,
                        title = paste(assay_name, "Light Chain Types"),
-                       reduc = reduction,
-                       plot_label = FALSE, meta_col = "locus_light",
+                       reduc = reduction, plot_label = FALSE,
+                       meta_col = "locus_light",
                        legend_label = "Light Chain Type", details = details, ...)
       }
 
@@ -684,8 +681,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        data_source = "", pt_size = pt_size,
                        clrs_specific = named_colors$isotype,
                        title = paste(assay_name, "Isotypes"),
-                       reduc = reduction,
-                       plot_label = FALSE, meta_col = "isotype",
+                       reduc = reduction, plot_label = FALSE,
+                       meta_col = "isotype",
                        legend_label = "Isotype", details = details, ...)
       }
 
@@ -696,8 +693,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        data_source = "", pt_size = pt_size,
                        clrs_specific = named_colors$c_call,
                        title = paste(assay_name, "Subisotypes"),
-                       reduc = reduction,
-                       plot_label = FALSE, meta_col = "c_call",
+                       reduc = reduction, plot_label = FALSE,
+                       meta_col = "c_call",
                        legend_label = "Subisotype", details = details, ...)
       }
 
@@ -721,8 +718,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        data_source = "", pt_size = pt_size,
                        clrs_specific = named_colors$cdr3,
                        title = paste(assay_name, "CDR3 Length"),
-                       reduc = reduction,
-                       plot_label = FALSE, meta_col = "cdr3_aa_length",
+                       reduc = reduction, plot_label = FALSE,
+                       meta_col = "cdr3_aa_length",
                        legend_label = "CDR3 Length", idents_char = FALSE,
                        details = details, ...)
       }
@@ -733,8 +730,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        data_source = "", pt_size = pt_size,
                        clrs_specific = named_colors$weight_assay,
                        title = paste(assay_name, "Modality Weights"),
-                       reduc = reduction,
-                       plot_label = FALSE, meta_col = "weight_assay",
+                       reduc = reduction, plot_label = FALSE,
+                       meta_col = "weight_assay",
                        legend_label = "Chosen Assay", details = details, ...)
       }
 
@@ -744,10 +741,12 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
         cli::cli_alert("The following comparisons were not recognized and will be plotted if they are valid metadata columns: {other_comps}")
 
         for (comp in other_comps) {
+          title <- stringr::str_to_title(stringr::str_replace_all(comp, "_", " "))
+
           plots_overview[[paste0(comp, "_", type)]] <-
             plot_dimplot(seurat_obj = seurat_obj,
                          data_source = "", use_hues = TRUE, pt_size = pt_size,
-                         title = paste(assay_name, comp), reduc = reduction,
+                         title = paste(assay_name, title), reduc = reduction,
                          meta_col = comp, plot_label = FALSE,
                          details = details, ...)
         }
