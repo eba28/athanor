@@ -15,6 +15,7 @@ dimensionality reduction). This vignette shows three common use cases:
 ## Setup
 
 ``` r
+
 library(athanor)
 library(ggplot2)
 library(Matrix)
@@ -27,6 +28,7 @@ set.seed(42)
 ### Initial GEX object
 
 ``` r
+
 # could change these
 num_genes <- 400
 num_cells <- 200
@@ -70,6 +72,7 @@ on real data, BCR-derived columns are available in `obj@meta.data`. Here
 we simulate them for illustration:
 
 ``` r
+
 # TODO: correlate these values with cell types instead of having them be random
 
 # TODO: change these to actual numbers
@@ -97,6 +100,7 @@ The simplest call colors cells by `seurat_clusters` (the default
 `meta_col`). Passing the assay name to `assay` populates the plot title.
 
 ``` r
+
 # could also just use umap
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
              title = "GEX", reduc = "rna.umap")
@@ -107,6 +111,7 @@ plot_dimplot(seurat_obj = obj, data_source = data_desc,
 To suppress labels and the legend:
 
 ``` r
+
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
              title = "GEX", reduc = "rna.umap",
              plot_label = FALSE, include_legend = FALSE)
@@ -119,6 +124,7 @@ plot_dimplot(seurat_obj = obj, data_source = data_desc,
 Sort the cell type levels alphabetically.
 
 ``` r
+
 named_clrs$annotated_clusters <-
   c("Naive B cells" = "#93cc3d", "Memory B cells" = "#2d5f3f",
     "Plasma cells" = "#cc095d", "Transitional B cells" = "#22e6e6")
@@ -137,6 +143,7 @@ Pass a character vector to `highlight` to draw a subset of cells on top
 of a grey background.
 
 ``` r
+
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
              title = "GEX", reduc = "rna.umap",
              meta_col = "annotated_clusters",
@@ -159,6 +166,7 @@ like any other metadata column.
 ### CDR3 length
 
 ``` r
+
 # named_clrs$cdr3 <- setNames(viridis(length(4:41)), nm = 4:41)
 named_clrs$cdr3 <- c(Short = "#482778", Medium = "#20938C", Long = "#C9E020")
 
@@ -174,6 +182,7 @@ plot_dimplot(seurat_obj = obj, data_source = data_desc,
 ### Isotype
 
 ``` r
+
 # uses the colors from the alakazam package
 named_clrs$isotype <- c("IgA" = "#377EB8", "IgD" = "#FF7F00", "IgE" = "#E41A1C",
                         "IgG" = "#4DAF4A", "IgM" = "#984EA3")
@@ -192,6 +201,7 @@ plot_dimplot(seurat_obj = obj, data_source = data_desc,
 You could also use a `FeaturePlot` to see the actual values.
 
 ``` r
+
 # named_clrs$mu_freq_bins <-
 #   viridis_pal(direction = -1, option = "C")(n = 5) %>% str_sub(1, 7)
 # note that the last bin's name is dependent on your dataset
@@ -212,6 +222,7 @@ plot_dimplot(seurat_obj = obj, data_source = data_desc,
 ### V gene family
 
 ``` r
+
 named_clrs$v_call_family <-
   setNames(c("#7690c7", "#8d4bca", "#90b648", "#d16099", "#57865f", "#62396e",
              "#bc9149"), nm = stringr::str_c("IGHV", 1:7))
@@ -228,6 +239,7 @@ plot_dimplot(seurat_obj = obj, data_source = data_desc,
 ### Combining plots with patchwork
 
 ``` r
+
 p_iso <- plot_dimplot(obj, data_source = data_desc,
                       title = "Isotype", reduc = "rna.umap",
                       clrs_specific = named_clrs$isotype,
@@ -270,6 +282,7 @@ prepended to the feature name).
 ### Single marker
 
 ``` r
+
 # use CD19 as an example
 FeaturePlot(obj, features = "adt_CD19",
             reduction = "rna.umap", order = TRUE, raster = FALSE) +
@@ -279,12 +292,14 @@ FeaturePlot(obj, features = "adt_CD19",
 ![](plot_dimplot_files/figure-html/adt-single-1.png)
 
 ``` r
+
   # clean_umap
 ```
 
 ### Multiple markers side by side
 
 ``` r
+
 FeaturePlot(obj, features = paste0("adt_", rownames(obj@assays$ADT@data)),
             reduction = "rna.umap", order = TRUE, ncol = 3, raster = FALSE) &
   ggplot2::scale_color_viridis_c(option = "G", direction = -1) # &
@@ -293,6 +308,7 @@ FeaturePlot(obj, features = paste0("adt_", rownames(obj@assays$ADT@data)),
 ![](plot_dimplot_files/figure-html/adt-panel-1.png)
 
 ``` r
+
   # clean_umap
 ```
 
@@ -304,14 +320,14 @@ FeaturePlot(obj, features = paste0("adt_", rownames(obj@assays$ADT@data)),
 
 ## Summary of key parameters
 
-| Argument        | Purpose                                                         |
-|-----------------|-----------------------------------------------------------------|
-| `meta_col`      | Column in `@meta.data` to color by (default: `seurat_clusters`) |
-| `title`         | Plot title (use for the data modality name)                     |
-| `data_source`   | Plot subtitle (use for dataset / sample name)                   |
-| `clrs_specific` | Named color vector; auto-generated if omitted                   |
-| `highlight`     | Highlight a subset of levels over a grey background             |
-| `order`         | Draw cells with non-NA values on top                            |
-| `plot_label`    | Toggle cluster labels                                           |
-| `reduc`         | Reduction to plot (default: `"umap"`)                           |
-| `details`       | Optional extra subtitle line                                    |
+| Argument | Purpose |
+|----|----|
+| `meta_col` | Column in `@meta.data` to color by (default: `seurat_clusters`) |
+| `title` | Plot title (use for the data modality name) |
+| `data_source` | Plot subtitle (use for dataset / sample name) |
+| `clrs_specific` | Named color vector; auto-generated if omitted |
+| `highlight` | Highlight a subset of levels over a grey background |
+| `order` | Draw cells with non-NA values on top |
+| `plot_label` | Toggle cluster labels |
+| `reduc` | Reduction to plot (default: `"umap"`) |
+| `details` | Optional extra subtitle line |

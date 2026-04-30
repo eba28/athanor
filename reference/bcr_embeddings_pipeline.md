@@ -66,8 +66,8 @@ graphs (`BCR_nn`, `BCR_snn`, `BCR.nn`), and a new UMAP (`bcr.umap`).
 
 Embeddings are used as-is for `scale.data` (no `ScaleData` call) since
 they are already on a comparable scale. The `data` layer is populated
-from `counts` so downstream reads do not fail. It is possible that some
-embeddings return identical values across all dimensions for different
-cells. This can cause `RunUMAP()` to hang on the spectral initialization
-step as it struggles to find a good low-dimensional representation of
-the data.
+from `counts` so downstream reads do not fail. If many cells share
+identical embeddings (e.g. from clonal expansion), `RunUMAP()` may hang
+on spectral initialization. Use
+[`bcr_embeddings_pipeline_dedup()`](https://eba28.github.io/athanor/reference/bcr_embeddings_pipeline_dedup.md)
+to handle this automatically.

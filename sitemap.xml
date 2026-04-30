@@ -14,6 +14,7 @@
 <url><loc>https://eba28.github.io/athanor/reference/athanor-package.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/automated_annotation.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/bcr_embeddings_pipeline.html</loc></url>
+<url><loc>https://eba28.github.io/athanor/reference/bcr_embeddings_pipeline_dedup.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/bin_mu_freq.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/calc_adt_correlation.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/calc_adt_dists.html</loc></url>
@@ -37,6 +38,7 @@
 <url><loc>https://eba28.github.io/athanor/reference/gex_add_airr.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/index.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/map_assay_name.html</loc></url>
+<url><loc>https://eba28.github.io/athanor/reference/merge_gex_bcr.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/pipe.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/plot_color_scale.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/plot_dimplot.html</loc></url>

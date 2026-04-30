@@ -50,6 +50,9 @@ Functions for processing and analyzing adaptive immune receptor data.
 
 - [`bcr_embeddings_pipeline()`](https://eba28.github.io/athanor/reference/bcr_embeddings_pipeline.md)
   : Build a Seurat object from BCR embeddings
+- [`bcr_embeddings_pipeline_dedup()`](https://eba28.github.io/athanor/reference/bcr_embeddings_pipeline_dedup.md)
+  : Build a Seurat object from BCR embeddings, deduplicating identical
+  embeddings first
 - [`convert_embeddings()`](https://eba28.github.io/athanor/reference/convert_embeddings.md)
   : Convert the output of an embedding method to a matrix
 
@@ -78,6 +81,11 @@ data.
 
 - [`gex_add_airr()`](https://eba28.github.io/athanor/reference/gex_add_airr.md)
   : Add AIRR information to a Seurat object
+
+### Seurat objects
+
+- [`merge_gex_bcr()`](https://eba28.github.io/athanor/reference/merge_gex_bcr.md)
+  : Merge a GEX Seurat object with a BCR Seurat object
 
 ### Concatenation
 

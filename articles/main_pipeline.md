@@ -21,6 +21,7 @@ data:
 ## Setup
 
 ``` r
+
 library(athanor)
 library(dplyr)
 library(ggplot2)
@@ -48,6 +49,7 @@ cell surface protein counts) since its presence is expected by
 [`run_wnn()`](https://eba28.github.io/athanor/reference/run_wnn.md).
 
 ``` r
+
 num_cells <- 2000
 num_genes <- 500
 num_proteins <- 6
@@ -81,6 +83,7 @@ genes). A higher `cluster_res` gives more granular clusters, which is
 useful for annotation.
 
 ``` r
+
 obj <- seurat_pipeline(obj, nfeatures_RNA = 0, perc_mt = 100,
                        num_features = num_genes, num_pcs = 15, num_dims = 10,
                        k_param = 20, cluster_res = 0.5, verbose = FALSE)
@@ -93,6 +96,7 @@ levels(obj$seurat_clusters)
 ```
 
 ``` r
+
 plot_dimplot(obj, title = "GEX", data_source = data_desc,
              meta_col = "seurat_clusters", reduc = "rna.umap")
 ```
@@ -107,6 +111,7 @@ object. The data frame must have one row per cluster in the same order
 as `levels(seurat_clusters)`.
 
 ``` r
+
 # TODO: annotate on a cell level instead to simulate automated annotation
 
 n_clusters <- nlevels(obj$seurat_clusters)
@@ -133,6 +138,7 @@ table(obj$annotated_clusters)
 ```
 
 ``` r
+
 plot_dimplot(obj, data_source = data_desc, use_hues = TRUE,
              title = "GEX", reduc = "rna.umap",
              meta_col = "annotated_clusters",
@@ -156,6 +162,7 @@ that the downstream steps are self-contained.
 - `mu_freq` = somatic hypermutation frequency (numeric)
 
 ``` r
+
 obj$cdr3_aa_length <- factor(sample(c("Short", "Medium", "Long"), num_cells,
                                     replace = TRUE),
                              levels = c("Short", "Medium", "Long"),
@@ -195,6 +202,7 @@ normalizes numeric columns, converts ordered factors to ordinal scores,
 and one-hot encodes categoricals.
 
 ``` r
+
 # keep a copy so run_wnn() below starts from the same object
 obj_cat <- concatenate_gex_bcr(obj, pca_stage = "Before",
                                cols_to_include =
@@ -209,6 +217,7 @@ names(obj_cat@reductions)
 ```
 
 ``` r
+
 plot_dimplot(obj_cat, data_source = data_desc, use_hues = TRUE,
              title = "Concatenated GEX & BCR", reduc = "rna_bcr.umap",
              meta_col = "annotated_clusters",
@@ -231,6 +240,7 @@ integrates two modalities via Weighted Nearest Neighbors. It expects:
 Here we simulate an immune2vec-style embedding matrix directly.
 
 ``` r
+
 num_dims_bcr <- 20
 
 bcr_embeddings <-
@@ -245,6 +255,7 @@ all(colnames(bcr_embeddings) == obj$cell_id)
 ```
 
 ``` r
+
 obj_wnn <- run_wnn(obj, embeddings = bcr_embeddings,
                    embedding_type = "Simulated",
                    pc_gex = 10, pc_bcr = 10, k_param = 20, cluster = TRUE,
@@ -258,6 +269,7 @@ names(obj_wnn@reductions)
 ### Visualization
 
 ``` r
+
 p_gex <- plot_dimplot(obj_wnn, title = "GEX", data_source = data_desc,
                       use_hues = TRUE,
                       meta_col = "annotated_clusters", reduc = "rna.umap",
@@ -284,6 +296,7 @@ prints a brief description of the post-WNN object, including assay sizes
 and the number of PCs used per modality.
 
 ``` r
+
 extract_wnn_vars(obj_wnn, gex_pca = "rpca", other_pca = "bpca",
                  other_type = "BCR")
 ```
@@ -296,12 +309,12 @@ extract_wnn_vars(obj_wnn, gex_pca = "rpca", other_pca = "bpca",
 
 ## Summary of the pipeline
 
-| Step             | Function                                                                                    | Key output                            |
-|------------------|---------------------------------------------------------------------------------------------|---------------------------------------|
-| Simulate GEX     | [`sim_gex_manual()`](https://eba28.github.io/athanor/reference/sim_gex_manual.md)           | Seurat object with `cell_id`          |
-| GEX pipeline     | [`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md)         | `rpca`, `rna.umap`, `seurat_clusters` |
-| Annotate         | [`add_annotations()`](https://eba28.github.io/athanor/reference/add_annotations.md)         | `annotated_clusters` in metadata      |
-| Add BCR features | [`gex_add_airr()`](https://eba28.github.io/athanor/reference/gex_add_airr.md) / manual      | BCR columns in metadata               |
-| Concatenation    | [`concatenate_gex_bcr()`](https://eba28.github.io/athanor/reference/concatenate_gex_bcr.md) | `RNA_BCR` assay, `rna_bcr.umap`       |
-| WNN              | [`run_wnn()`](https://eba28.github.io/athanor/reference/run_wnn.md)                         | `bpca`, `bcr.umap`, `wnn.umap`        |
-| Describe object  | [`extract_wnn_vars()`](https://eba28.github.io/athanor/reference/extract_wnn_vars.md)       | printed summary                       |
+| Step | Function | Key output |
+|----|----|----|
+| Simulate GEX | [`sim_gex_manual()`](https://eba28.github.io/athanor/reference/sim_gex_manual.md) | Seurat object with `cell_id` |
+| GEX pipeline | [`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md) | `rpca`, `rna.umap`, `seurat_clusters` |
+| Annotate | [`add_annotations()`](https://eba28.github.io/athanor/reference/add_annotations.md) | `annotated_clusters` in metadata |
+| Add BCR features | [`gex_add_airr()`](https://eba28.github.io/athanor/reference/gex_add_airr.md) / manual | BCR columns in metadata |
+| Concatenation | [`concatenate_gex_bcr()`](https://eba28.github.io/athanor/reference/concatenate_gex_bcr.md) | `RNA_BCR` assay, `rna_bcr.umap` |
+| WNN | [`run_wnn()`](https://eba28.github.io/athanor/reference/run_wnn.md) | `bpca`, `bcr.umap`, `wnn.umap` |
+| Describe object | [`extract_wnn_vars()`](https://eba28.github.io/athanor/reference/extract_wnn_vars.md) | printed summary |
