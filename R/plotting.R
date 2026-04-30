@@ -585,7 +585,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
     assay_name <- switch(reduction, "rpca" = "GEX", "rna.umap" = "GEX",
                          "bpca" = "BCR", "bcr.umap" = "BCR",
                          "adt.umap" = "ADT",
-                         "rna_bcr.umap" = paste("GEX &", second_assay)
+                         "rna_bcr.umap" = paste("GEX &", second_assay),
                          "wnn.umap" = paste("GEX &", second_assay))
   }
 
