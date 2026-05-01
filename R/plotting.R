@@ -428,7 +428,7 @@ plot_doublets <- function(seurat_obj, data_source, clrs_specific,
          subtitle = details, x = cluster_legend,
          y = "Count", fill = doublet_package) +
     scale_fill_manual(values = named_colors$doublet) +
-    theme_bw + labels_standard
+    theme_bw_custom + labels_standard
 
   # UMAP colored by clusters/annotations
   # TODO: add an option to not plot the labels
@@ -483,7 +483,12 @@ plot_doublets <- function(seurat_obj, data_source, clrs_specific,
 plot_mws <- function(seurat_obj, second_assay = "BCR",
                      clrs_specific = named_colors$mu_freq_bins,
                      split_by = "mu_freq_bins",
-                     y_axis_label = "SHM Frequency Bins", details = "") {
+                     y_axis_label = "SHM Frequency Bins", details = NULL) {
+  # parameter check
+  if (!split_by %in% names(seurat_obj[[]])) {
+    cli::cli_abort("{split_by} is not a valid metadata column name. Please select one of: {names(seurat_obj[[]])}.")
+  }
+
   main_assay <- ifelse(length(second_assay) > 1, second_assay[-1], second_assay)
 
   weight <- grep(paste0("^", main_assay, ".*\\.weight.*$"),
@@ -496,11 +501,13 @@ plot_mws <- function(seurat_obj, second_assay = "BCR",
   }
 
   # don't require using the embeddings approach
-  if ("embedding_type" %in% names(seurat_obj@misc)) {
-    subtitle <- embedding_types[[seurat_obj@misc$embedding_type]]
-  } else {
-    subtitle <- NULL
-  }
+  # TODO: add back this code
+  # if ("embedding_type" %in% names(seurat_obj@misc)) {
+  #   subtitle <- embedding_types[[seurat_obj@misc$embedding_type]]
+  # } else {
+  #   subtitle <- NULL
+  # }
+  subtitle <- NULL
 
   p <- ggplot(seurat_obj[[]],
               aes(x = !!sym(weight), y = !!sym(split_by),
@@ -511,7 +518,7 @@ plot_mws <- function(seurat_obj, second_assay = "BCR",
               subtitle = subtitle, x = "Weights", y = y_axis_label) +
          scale_fill_manual(values = clrs_specific) +
          facet_wrap(vars(annotated_clusters), scales = "fixed") +
-         theme_bw + labels_standard + theme(legend.position = "none")
+         theme_bw_custom + labels_standard + theme(legend.position = "none")
 
   if (n_assay == 2) {
     p <-
@@ -902,7 +909,7 @@ plot_pcts <- function(pcts, data_source, clrs_specific,
   }
 
   # add remaining styling
-  p <- p + theme_bw + labels_standard
+  p <- p + theme_bw_custom + labels_standard
 
   # remove horizontal gridlines
   p <- p + theme(panel.grid.major.y = element_blank())

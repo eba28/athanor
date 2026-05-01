@@ -238,10 +238,15 @@ obj_wnn <- run_wnn(obj, embeddings = bcr_embeddings,
                    cluster_res = list("GEX" = 0.5, "BCR" = 0.5, "WNN" = 0.5),
                    verbose = FALSE)
 
+# bin the mutation frequency for plotting
+obj_wnn <- bin_mu_freq(obj_wnn)
+
 names(obj_wnn@reductions)
 ```
 
 ### Visualization
+
+UMAPs:
 
 ```{r wnn-umap}
 #| fig.dim = c(14, 5)
@@ -261,6 +266,22 @@ p_wnn <- plot_dimplot(obj_wnn, title = "WNN", data_source = data_desc,
 
 # use patchwork
 (p_gex + p_bcr + p_wnn) + plot_layout(nrow = 1, guides = "collect")
+```
+
+Modality weights:
+
+```{r wnn-mw-box}
+#| fig.dim = c(14, 5)
+
+# by isotype
+plot_mws(seurat_obj = obj_wnn, second_assay = "BCR",
+         clrs_specific = named_colors$isotype, split_by = "isotype",
+         y_axis_label = "Isotype")
+
+# by SHM frequency
+plot_mws(seurat_obj = obj_wnn, second_assay = "BCR",
+         clrs_specific = named_colors$mu_freq_bins, split_by = "mu_freq_bins",
+         y_axis_label = "SHM Frequency Bins")
 ```
 
 ### Object summary
