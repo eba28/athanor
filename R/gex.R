@@ -427,7 +427,7 @@ seurat_pipeline <- function(seurat_obj, nfeatures_RNA, perc_mt,
    }
 
    seurat_obj <- RunUMAP(seurat_obj, reduction = "rpca",
-                         n.neighbors = k_param, nn.name = "RNA.nn",
+                        nn.name = "RNA.nn", n.neighbors = k_param,
                          reduction.name = "rna.umap", reduction.key = "rnaUMAP_",
                          verbose = verbose)
 

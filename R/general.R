@@ -6,6 +6,7 @@
 #' It can also be used to regenerate these reductions if you have modified the object in a way that requires them to be redone (e.g. filtering out cells or genes).
 #'
 #' @details
+#' If you are providing a reduction based on batch effect integration (e.g. Harmony, RPCA), then you should use the name of that reduction for `pca_name`.
 #'
 #' @param seurat_obj The Seurat object.
 #' @param pca_name Name of the PCA reduction to use for neighbor finding and UMAP. This should be the name of an existing PCA reduction in the Seurat object (e.g. "pca" or "rpca").
@@ -20,6 +21,7 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
                         num_dims = 20, k_param = 20, verbose = TRUE) {
   # TODO: regenerate PCA too?
   # TODO: integrate this into other functions e.g. seurat_pipeline, run_wnn?
+  # TODO: don't use the cli calls if verbose = FALSE
 
   # parameter checks
   if (!pca_name %in% names(seurat_obj@reductions)) {
@@ -36,10 +38,12 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
 
   # if dims and k are not provided, get them from the object
   nn_name <- stringr::str_c(assay, ".nn")
+  # TODO: don't use assay to search for a command because Harmony and other batch effect integration methods will typically use a different assay name for their neighbor finding step
   nn_command <- stringr::str_c("FindNeighbors", assay, pca_name, sep = ".")
+
   if (missing(num_dims) | missing(k_param)) {
     # try to use the existing neighbors slot if possible
-    if (stringr::str_c(assay, ".nn") %in% names(seurat_obj@neighbors)) {
+    if (nn_name %in% names(seurat_obj@neighbors)) {
       nn <- seurat_obj@neighbors[[nn_name]]
 
       if (missing(num_dims)) num_dims <- nn@alg.info$ndim
@@ -74,11 +78,12 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
                               return.neighbor = TRUE, graph.name = nn_name,
                               verbose = verbose)
   # fill in the "reductions" slot
-  assay <- tolower(assay)
-  seurat_obj <- RunUMAP(seurat_obj, reduction = pca_name,
-                        n.neighbors = k_param, nn.name = nn_name,
-                        reduction.name = stringr::str_c(assay, ".umap"),
-                        reduction.key = stringr::str_c(assay, "MAP_"),
+  # the function won't use assay since we are providing the nn graph, but we provide it
+  # so that the command is recorded properly (it will use the default assay otherwise)
+  seurat_obj <- RunUMAP(seurat_obj, reduction = pca_name, assay = assay,
+                        nn.name = nn_name, n.neighbors = k_param,
+                        reduction.name = stringr::str_c(tolower(assay), ".umap"),
+                        reduction.key = stringr::str_c(tolower(assay), "UMAP_"),
                         verbose = verbose)
 
   seurat_obj

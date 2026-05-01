@@ -130,7 +130,7 @@ bcr_embeddings_pipeline <- function(embeddings, embedding_type,
                                         str_c("BCR_", c("", "s"), "nn"),
                                       verbose = verbose)
   seurat_obj <- Seurat::RunUMAP(object = seurat_obj, reduction = "bpca",
-                                n.neighbors = k_param, nn.name = "BCR.nn",
+                                nn.name = "BCR.nn", n.neighbors = k_param,
                                 reduction.name = "bcr.umap",
                                 reduction.key = "bcrUMAP_",
                                 verbose = verbose)

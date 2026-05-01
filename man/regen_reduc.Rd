@@ -34,3 +34,6 @@ Regenerates PCA, neighbor graphs, and UMAP for a Seurat object.
 This is useful if you subset a Seurat object and need to recompute these reductions for the new object.
 It can also be used to regenerate these reductions if you have modified the object in a way that requires them to be redone (e.g. filtering out cells or genes).
 }
+\details{
+If you are providing a reduction based on batch effect integration (e.g. Harmony, RPCA), then you should use the name of that reduction for \code{pca_name}.
+}
