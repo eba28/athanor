@@ -167,7 +167,7 @@ plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
   # TODO: just return the scale if plot is not provided and some more values are given
 
   if (!rlang::is_missing(plot) & !rlang::is_missing(data)) {
-    stop("Please only provide either a plot or the data to be plotted, not both.")
+    cli::cli_abort"Please only provide either a plot or the data to be plotted, not both.")
   }
 
   # use data from the plot if one is provided
@@ -179,7 +179,7 @@ plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
     # using base R instead of rlang so that it doesn't consider the default val
     if (!missing(val_col)) plot_data <- plot_data[[val_col]]
   } else {
-    stop("Please provide either a plot or the data to be plotted.")
+    cli::cli_abort"Please provide either a plot or the data to be plotted.")
   }
 
   # expression ranges
@@ -578,7 +578,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
 
   # validate inputs
   # if (!reduction %in% c("rna.umap", "adt.umap", "bcr.umap", "wnn.umap")) {
-  #   stop("reduction must be one of: 'rna.umap', 'adt.umap', 'bcr.umap', 'wnn.umap'")
+  #   cli::cli_abort"reduction must be one of: 'rna.umap', 'adt.umap', 'bcr.umap', 'wnn.umap'")
   # }
   if (typeof(seurat_objs) == "S4") {
     # make a temp list so the rest of the code works
@@ -857,7 +857,7 @@ plot_pcts <- function(pcts, data_source, clrs_specific,
     # so that TRUE plots on top of FALSE
     pcts[[fill_type]] <- factor(pcts[[fill_type]], levels = c(TRUE, FALSE))
   } else {
-    stop("Please enter a valid plot type.")
+    cli::cli_abort"Please enter a valid plot type.")
   }
 
   # set up the plot

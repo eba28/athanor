@@ -38,7 +38,7 @@ adt_dists_core <- function(adt_mat, nn_idx, distance_metric = "euclidean",
         lsa::cosine(xi_vec, as.numeric(nbrs[j, ]))
       }, numeric(1))
     } else {
-      stop("Please choose a valid distance metric: mean_abs, manhattan, ",
+      cli::cli_abort"Please choose a valid distance metric: mean_abs, manhattan, ",
            "euclidean, cosine.")
     }
 
@@ -73,11 +73,11 @@ get_adt_matrix <- function(seurat_obj, adt_assay = "ADT", layer = "data",
   # TODO: deal with it not always having layers
   # check the arguments
   if (!adt_assay %in% names(seurat_obj@assays)) {
-    stop("Assay '", adt_assay, "' not found in Seurat object. Available assays: ",
+    cli::cli_abort"Assay '", adt_assay, "' not found in Seurat object. Available assays: ",
          paste(names(seurat_obj@assays), collapse = ", "))
   }
   if (!layer %in% names(seurat_obj@assays[[adt_assay]]@data)) {
-    stop("Layer '", layer, "' not found in assay '", adt_assay, "'. Available layers: ",
+    cli::cli_abort"Layer '", layer, "' not found in assay '", adt_assay, "'. Available layers: ",
          paste(names(seurat_obj@assays[[adt_assay]]@data), collapse = ", "))
   }
 
@@ -86,7 +86,7 @@ get_adt_matrix <- function(seurat_obj, adt_assay = "ADT", layer = "data",
   if (!is.null(features_adt)) {
     keep <- intersect(features_adt, rownames(mat))
     if (length(keep) == 0) {
-      stop("None of the requested ADT features are present in assay '",
+      cli::cli_abort"None of the requested ADT features are present in assay '",
            adt_assay, "'.")
     }
     mat <- mat[keep, , drop = FALSE]

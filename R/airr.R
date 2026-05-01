@@ -349,7 +349,7 @@ bin_mu_freq <- function(seurat_obj, num_bins = c(2, 3, 5)) {
 convert_embeddings <- function(embeddings, combined_airr, combined_airr_input) {
   # check just in case
   if (!all(c("cell_id", "cell_id_original") %in% colnames(combined_airr))) {
-    stop("One or both of the required columns (`cell_id`, `cell_id_original`) ",
+    cli::cli_abort"One or both of the required columns (`cell_id`, `cell_id_original`) ",
          "are missing from combined_airr.")
   }
 
@@ -357,7 +357,7 @@ convert_embeddings <- function(embeddings, combined_airr, combined_airr_input) {
   if (!"cell_id" %in% colnames(embeddings)) {
     # just in case
     if (rlang::is_missing(combined_airr_input)) {
-      stop("Please provide the original file used as input for running immune2vec.")
+      cli::cli_abort"Please provide the original file used as input for running immune2vec.")
     }
 
     # we're only interested in the heavy chains
@@ -518,7 +518,7 @@ process_airrflow <- function(dataset_path, version_airrflow) {
   # read in the airrflow output files (there's one per subject)
   rep_files <- list.files(path_repertoire, full.names = TRUE)
   if (length(rep_files) == 0) {
-    stop("No files found, are you sure you're using the correct directory?")
+    cli::cli_abort"No files found, are you sure you're using the correct directory?")
   }
   combined_bcr <- purrr::map(rep_files, read_tsv, show_col_types = FALSE,
                              # sometimes a "sex" column will use M or F which then

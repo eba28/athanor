@@ -31,15 +31,28 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                     pc_bcr = 20, k_param = 20, cluster = FALSE,
                     cluster_res = list("GEX" = 1, "BCR" = 1, "WNN" = 1),
                     modality_weights = NULL, verbose = FALSE) {
+  # TODO: update this to be able to run on other omics e.g. GEX & ADT
+
   # input validation
   if (!inherits(seurat_obj, "Seurat")) {
-    stop("seurat_obj must be a Seurat object.")
+    cli::cli_abort("seurat_obj must be a Seurat object.")
   }
   if (!"cell_id" %in% colnames(seurat_obj[[]])) {
-    stop("Cell ID column not found in metadata.")
+    cli::cli_abort("Cell ID column not found in metadata.")
   }
   if (ncol(embeddings) == 0) {
-    stop("No cells found in embeddings matrix.")
+    cli::cli_abort("No cells found in embeddings matrix.")
+  }
+
+  # if embeddings are not provided, then check for the presence of a BCR assay and use that instead
+  if (missing(embeddings)) {
+    if ("BCR" %in% names(seurat_obj@assays)) {
+      cli::cli_inform("Embeddings not provided, so using the BCR assay as the second modality.")
+      embeddings <- seurat_obj@assays[["BCR"]]@data # doesn't matter which slot to pull from since they should all be the same
+      embedding_type <- seurat_obj@misc$embedding_type # %||% "unknown"
+    } else {
+      stop("Embeddings not provided and no BCR assay found in the Seurat object.")
+    }
   }
 
   # remove any GEX clustering that might exist and reset the factor levels
@@ -54,15 +67,16 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
     cols_to_remove <- c(cols_to_remove, "seurat_clusters")
   }
   seurat_obj@meta.data <- seurat_obj[[]] %>%
-                            {if (length(cols_to_remove) > 0)
-                            select(., -all_of(cols_to_remove)) else .} %>%
-                          droplevels()
+    {if (length(cols_to_remove) > 0)
+      select(., -all_of(cols_to_remove)) else .} %>%
+    droplevels()
   # keep wiping the slate clean
   Idents(seurat_obj) <- "orig.ident"
   seurat_obj@graphs <- list() # RNA.nn, RNA.snn
   seurat_obj@reductions <- list() # pca, umap
 
   # build BCR object (subset to cells present in the GEX object)
+  # TODO: check if this is even necessary if using a merged object
   bcr_obj <- bcr_embeddings_pipeline(
     embeddings[, intersect(colnames(embeddings), seurat_obj$cell_id)],
     embedding_type = embedding_type,

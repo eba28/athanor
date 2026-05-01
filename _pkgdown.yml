@@ -17,6 +17,11 @@ articles:
   - plot_dimplot
 
 reference:
+- title: General
+  desc: General functions for processing and analyzing single-cell data.
+- contents:
+  - regen_reduc
+
 - title: Quality Control
   desc: Functions for QC and filtering.
 - contents:
