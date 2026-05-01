@@ -352,7 +352,7 @@ get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
 #'   `RNA_snn`, `RNA.nn`), optional clusters, and UMAP (`rna.umap`).
 #' @export
 seurat_pipeline <- function(seurat_obj, nfeatures_RNA, perc_mt,
-                            num_features = 2000, num_pcs = 50, num_dims = 30,
+                            num_features = 2000, num_pcs = 50, num_dims = 20,
                             k_param = 20, cluster_res = NULL,
                             filter_genes, ensembl_version = NULL,
                             cache_file = NULL, verbose = TRUE) {
@@ -404,7 +404,6 @@ seurat_pipeline <- function(seurat_obj, nfeatures_RNA, perc_mt,
                         approx = use_approx)
    cli::cli_inform(c("v" = "Computed PCA with {num_pcs} dimensions using {ifelse(use_approx, 'approximate', 'exact')} SVD."))
 
-   # TODO: pull this into a function for all of the times it has to be redone post subsetting?
    # SNN graph for clustering + neighbor object for evaluation
    seurat_obj <- FindNeighbors(seurat_obj, reduction = "rpca", dims = 1:num_dims,
                                k.param = k_param,
