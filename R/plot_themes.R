@@ -46,8 +46,12 @@ clean_umap <- ggplot2::theme(
 plot_anno <- patchwork::plot_annotation(tag_levels = "I")
 
 
-# named color palettes
-# adjust as desired
+#' Named color palettes for athanor plots
+#'
+#' A list of named character vectors mapping categorical values to hex colors,
+#' used as the `clrs_specific` argument in plotting functions.
+#'
+#' @export
 named_colors <- list()
 
 # general colors
