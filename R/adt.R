@@ -38,7 +38,7 @@ adt_dists_core <- function(adt_mat, nn_idx, distance_metric = "euclidean",
         lsa::cosine(xi_vec, as.numeric(nbrs[j, ]))
       }, numeric(1))
     } else {
-      cli::cli_abort"Please choose a valid distance metric: mean_abs, manhattan, ",
+      cli::cli_abort("Please choose a valid distance metric: mean_abs, manhattan, ",
            "euclidean, cosine.")
     }
 
@@ -73,11 +73,11 @@ get_adt_matrix <- function(seurat_obj, adt_assay = "ADT", layer = "data",
   # TODO: deal with it not always having layers
   # check the arguments
   if (!adt_assay %in% names(seurat_obj@assays)) {
-    cli::cli_abort"Assay '", adt_assay, "' not found in Seurat object. Available assays: ",
+    cli::cli_abort("Assay '", adt_assay, "' not found in Seurat object. Available assays: ",
          paste(names(seurat_obj@assays), collapse = ", "))
   }
   if (!layer %in% names(seurat_obj@assays[[adt_assay]]@data)) {
-    cli::cli_abort"Layer '", layer, "' not found in assay '", adt_assay, "'. Available layers: ",
+    cli::cli_abort("Layer '", layer, "' not found in assay '", adt_assay, "'. Available layers: ",
          paste(names(seurat_obj@assays[[adt_assay]]@data), collapse = ", "))
   }
 
@@ -86,11 +86,50 @@ get_adt_matrix <- function(seurat_obj, adt_assay = "ADT", layer = "data",
   if (!is.null(features_adt)) {
     keep <- intersect(features_adt, rownames(mat))
     if (length(keep) == 0) {
-      cli::cli_abort"None of the requested ADT features are present in assay '",
+      cli::cli_abort("None of the requested ADT features are present in assay '",
            adt_assay, "'.")
     }
     mat <- mat[keep, , drop = FALSE]
   }
 
   t(as.matrix(mat))
+}
+
+
+
+
+normalize_adt <- function(adt_mat, method = "log") {
+  if (method == "log") {
+    log1p(adt_mat)
+  } else if (method == "clr") {
+    sweep(log1p(adt_mat), 1, rowMeans(log1p(adt_mat)), FUN = "-")
+  } else {
+    cli::cli_abort("Unsupported normalization method: ", method)
+  }
+}
+
+
+batch_correct_adt <- function(adt_mat, batch_vec, method = "combat") {
+  if (method == "combat") {
+    # Use ComBat from the sva package
+    requireNamespace("sva", quietly = TRUE)
+    mod <- model.matrix(~1, data = data.frame(batch = batch_vec))
+    combat_mat <- sva::ComBat(dat = t(adt_mat), batch = batch_vec, mod = mod)
+    t(combat_mat)
+  } else if (method == "harmony") {
+    # Use Harmony from the Seurat package
+    requireNamespace("Seurat", quietly = TRUE)
+    # Create a temporary Seurat object to run Harmony
+    temp_seurat <- Seurat::CreateSeuratObject(counts = t(adt_mat))
+    temp_seurat$batch <- batch_vec
+    temp_seurat <- Seurat::RunHarmony(temp_seurat, group.by.vars = "batch")
+    # Extract the corrected embeddings
+    harmony_embeddings <- Seurat::Embeddings(temp_seurat, reduction = "harmony")
+    # Project the original ADT matrix onto the Harmony embeddings
+    corrected_mat <- as.matrix(adt_mat) %*% t(harmony_embeddings)
+    corrected_mat
+  }
+  else {
+    cli::cli_abort("Unsupported batch correction method: ", method)
+  }
 }

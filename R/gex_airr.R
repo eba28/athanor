@@ -32,11 +32,11 @@ gex_add_airr <- function(seurat_obj, airr_type = "BCR",
 
   # make sure there isn't a format mismatch between cell ids
   if (length(intersect(seurat_obj$cell_id, combined_airr$cell_id)) == 0) {
-    cli::cli_abort"Please check the cell id format in the Seurat object or AIRR table.")
+    cli::cli_abort("Please check the cell id format in the Seurat object or AIRR table.")
   }
 
   if (any(!new_cols %in% colnames(combined_airr))) {
-    cli::cli_abort"Make sure that you are only adding columns which exist in the AIRR table.")
+    cli::cli_abort("Make sure that you are only adding columns which exist in the AIRR table.")
   }
 
   # for comparison later on
@@ -237,21 +237,21 @@ had no matching GEX cell IDs and were excluded.",
 merge_gex_bcr <- function(gex_obj, bcr_obj, transfer_reductions = TRUE,
                           verbose = TRUE) {
   # argument checks
-  if (!inherits(gex_obj, "Seurat")) cli::cli_abort"gex_obj must be a Seurat object.")
-  if (!inherits(bcr_obj, "Seurat")) cli::cli_abort"bcr_obj must be a Seurat object.")
+  if (!inherits(gex_obj, "Seurat")) cli::cli_abort("gex_obj must be a Seurat object.")
+  if (!inherits(bcr_obj, "Seurat")) cli::cli_abort("bcr_obj must be a Seurat object.")
   if (!"cell_id" %in% colnames(gex_obj[[]])) {
-    cli::cli_abort"The GEX object must have a 'cell_id' metadata column.")
+    cli::cli_abort("The GEX object must have a 'cell_id' metadata column.")
   }
   if (!"cell_id" %in% colnames(bcr_obj[[]])) {
-    cli::cli_abort"The BCR object must have a 'cell_id' metadata column.")
+    cli::cli_abort("The BCR object must have a 'cell_id' metadata column.")
   }
   if (!"BCR" %in% names(bcr_obj@assays)) {
-    cli::cli_abort"The BCR object must contain a BCR assay.")
+    cli::cli_abort("The BCR object must contain a BCR assay.")
   }
 
   shared_cell_ids <- intersect(gex_obj$cell_id, bcr_obj$cell_id)
   if (length(shared_cell_ids) == 0) {
-    cli::cli_abort"No shared cell ids found; please check 'cell_id' formatting in both objects.")
+    cli::cli_abort("No shared cell ids found; please check 'cell_id' formatting in both objects.")
   }
 
   # original cell counts

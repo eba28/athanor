@@ -81,14 +81,14 @@ automated_annotation <- function(seurat_obj, annotation_method,
    # validate input
    valid_methods <- c("CellTypist")
    if (!any(annotation_method %in% valid_methods)) {
-      cli::cli_abort"Method must be one of: ", paste(valid_methods, collapse = ", "))
+      cli::cli_abort("Method must be one of: ", paste(valid_methods, collapse = ", "))
    }
    # run CellTypist annotation
    if (annotation_method == "CellTypist") {
       cli::cli_inform("Processing CellTypist annotation...")
 
       if (!requireNamespace("reticulate", quietly = TRUE)) {
-         cli::cli_abort"reticulate package is required for running CellTypist predictions")
+         cli::cli_abort("reticulate package is required for running CellTypist predictions")
       }
 
       # load model and data
@@ -216,13 +216,13 @@ find_k_clusters <- function(seurat_obj, graph_name = "RNA_snn", desired_k) {
          # message(paste("Resolution", res, "gives", desired_k, "clusters"))
          return(seurat_obj)
       } else if (n_clusters > desired_k) {
-         cli::cli_abort"The number of desired clusters has been exceeded.")
+         cli::cli_abort("The number of desired clusters has been exceeded.")
       } else {
          # don't keep the other resolutions
          seurat_obj[[paste0(graph_name, "_res.", res)]] <- c()
       }
    }
-   cli::cli_abort"Could not find resolution to match desired clusters.")
+   cli::cli_abort("Could not find resolution to match desired clusters.")
 }
 
 

@@ -41,7 +41,7 @@ reduce_object <- function(seurat_obj, dim_reducs = "rna.umap", meta_cols,
   # the metadata can take up a lot of memory, so you can filter it down to just the columns you need
   if (!rlang::is_missing(meta_cols)) {
     if (!all(meta_cols %in% colnames(obj_reduced[[]]))) {
-      cli::cli_abort"Please check that all of the specified metadata columns are present in the Seurat object.")
+      cli::cli_abort("Please check that all of the specified metadata columns are present in the Seurat object.")
     }
 
     obj_reduced@meta.data <- obj_reduced@meta.data %>% select(all_of(meta_cols))
@@ -77,7 +77,7 @@ resolve_neighbors <- function(seurat_obj, base_assay) {
   nn_name <- paste0(prefix, ".nn")
 
   if (!nn_name %in% names(seurat_obj@neighbors)) {
-    cli::cli_abort"Neighbors slot '", nn_name, "' not found in object. Available: ",
+    cli::cli_abort("Neighbors slot '", nn_name, "' not found in object. Available: ",
          paste(names(seurat_obj@neighbors), collapse = ", "))
   }
 

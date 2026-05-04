@@ -111,7 +111,7 @@ calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
   nn_idx <- resolve_neighbors(seurat_obj, base_assay)
 
   if (nrow(nn_idx) != nrow(adt_mat)) {
-    cli::cli_abort"Neighbor index rows (", nrow(nn_idx), ") do not match the number ",
+    cli::cli_abort("Neighbor index rows (", nrow(nn_idx), ") do not match the number ",
          "of cells (", nrow(adt_mat), "). Please ensure cell order matches ",
          "Cells(seurat_obj).")
   }
@@ -144,13 +144,13 @@ calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
 calc_adt_moran <- function(seurat_obj, features_adt, adt_assay = "ADT",
                            graph_name, row_standardize = TRUE) {
   if (!features_adt %in% rownames(seurat_obj@assays[[adt_assay]])) {
-    cli::cli_abort"The requested ADT feature is not present in assay '", adt_assay,
+    cli::cli_abort("The requested ADT feature is not present in assay '", adt_assay,
          "'. Available features: ",
          paste(sort(rownames(seurat_obj@assays[[adt_assay]])), collapse = ", "))
   }
 
   if (!graph_name %in% names(seurat_obj@graphs)) {
-    cli::cli_abort"Graph '", graph_name, "' not found in object. Available graphs: ",
+    cli::cli_abort("Graph '", graph_name, "' not found in object. Available graphs: ",
          paste(names(seurat_obj@graphs), collapse = ", "))
   }
 
@@ -383,7 +383,7 @@ calc_neighbor_matches <- function(seurat_obj, nn_name,
   }
 
   if (!all(c("category", "category_details") %in% names(seurat_obj@misc))) {
-    cli::cli_abort"Please fill the 'category' and 'category_details' miscellaneous slots.")
+    cli::cli_abort("Please fill the 'category' and 'category_details' miscellaneous slots.")
   }
 
   neighbors <- seurat_obj@neighbors[[nn_name]]
