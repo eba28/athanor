@@ -420,7 +420,7 @@ calc_neighbor_matches <- function(seurat_obj, nn_name,
       valid_cells <- !is.na(scores_mixing)
 
       if (any(scores_mixing > 1, na.rm = TRUE)) {
-        cli::cli_abortpaste0("The non-ADT scores are too high, please check the ",
+        cli::cli_abort(paste0("The non-ADT scores are too high, please check the ",
                     "calculation (the detected k is ", k, ")"))
       }
 
