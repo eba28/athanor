@@ -171,10 +171,10 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                                 reduction.key = "wnnUMAP_",
                                 verbose = verbose)
 
-  # use the Leiden algorithm (4) over the Louvain (1) because it has been shown
-  # to give better clusters
+  # the Leiden algorithm (4) has been shown to be better than Louvain (1), but
+  # in order to use it you have to install the 'leidenbase' package
   if (cluster) {
-    algo <- 4
+    algo <- 1
 
     # cluster the BCR assay
     seurat_obj <- FindClusters(object = seurat_obj,
