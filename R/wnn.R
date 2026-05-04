@@ -165,11 +165,37 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                                     return.intermediate = TRUE,
                                     modality.weight = modality_weights,
                                     verbose = verbose)
-  seurat_obj <- Seurat::RunUMAP(object = seurat_obj, nn.name = "w.nn",
-                                n.neighbors = k_param, # might not be needed
-                                reduction.name = "wnn.umap",
-                                reduction.key = "wnnUMAP_",
-                                verbose = verbose)
+
+  # check for NA values
+  # TODO: add this check to other UMAPs
+  na_nn <- is.na(seurat_obj$RNA.weight)
+  if (any(na_nn)) {
+    bad_cells <- seurat_obj[[]]$cell_id[na_nn]
+    bcr_mat <- GetAssayData(seurat_obj, assay = "BCR", layer = "data")
+    bcr_mat <- as.matrix(bcr_mat[, bad_cells])
+    # add 1 because the first column is not included in the duplicate count
+    dup_count <- sum(duplicated(t(bcr_mat))) + 1
+
+    # TODO: record all duplicates, not just the ones that failed??
+    Misc(seurat_obj, slot = "embedding_dups") <- bad_cells
+
+    cli::cli_inform(c("x" = "{sum(na_nn)} NA rows found in w.nn neighbor \\
+                            indices (out of {ncol(seurat_obj)} total cells). \\
+                            This means that these cells do not have any valid \\
+                            neighbors in the WNN space.",
+                      "i" = "This is most likely due to these cells having \\
+                             identical BCR embeddings. Out of the {sum(na_nn)} \\
+                             cells with NA neighbors, {dup_count} have \\
+                             identical BCR embeddings.",
+                      ">" = "UMAP will not be run for the WNN reduction because
+                      of the NA values."))
+  } else {
+    seurat_obj <- Seurat::RunUMAP(object = seurat_obj, nn.name = "w.nn",
+                                  n.neighbors = k_param, # might not be needed
+                                  reduction.name = "wnn.umap",
+                                  reduction.key = "wnnUMAP_",
+                                  verbose = verbose)
+  }
 
   # the Leiden algorithm (4) has been shown to be better than Louvain (1), but
   # in order to use it you have to install the 'leidenbase' package
@@ -205,11 +231,17 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
     mutate(weight_assay =
              case_when(seurat_obj[[]][["RNA.weight"]] > 0.5 ~ "RNA",
                        seurat_obj[[]][["RNA.weight"]] < 0.5 ~ "BCR",
+                       is.na(seurat_obj[[]][["RNA.weight"]]) ~ NA,
                        .default = "Tie"))
 
   if (verbose) {
-    cli::cli_inform(c("v" = "WNN neighbors calculated and UMAP run.",
-                      "i" = "Use {.fn Seurat::DimPlot} with {.arg reduction = 'wnn.umap'} or {.fn athanor::plot_dimplot} with {.arg reduc = 'wnn.umap'} to visualize the results."))
+    if (!any(na_nn)) {
+      cli::cli_inform(c("v" = "WNN neighbors calculated and UMAP run.",
+                        "i" = "Use {.fn Seurat::DimPlot} with \\
+                               {.arg reduction = 'wnn.umap'} or \\
+                               {.fn athanor::plot_dimplot} with \\
+                               {.arg reduc = 'wnn.umap'} to visualize the results."))
+    }
 
     # explain the weighting approach
     if (is.null(modality_weights)) {
