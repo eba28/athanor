@@ -36,4 +36,5 @@ It can also be used to regenerate these reductions if you have modified the obje
 }
 \details{
 If you are providing a reduction based on batch effect integration (e.g. Harmony, RPCA), then you should use the name of that reduction for \code{pca_name}.
+Although this function is called "regen_reduc", it can also be run to generate reductions for the first time (e.g. if you have already run PCA and just want to calculate neighbors and run UMAP).
 }

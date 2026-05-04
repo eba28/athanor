@@ -7,6 +7,7 @@
 #'
 #' @details
 #' If you are providing a reduction based on batch effect integration (e.g. Harmony, RPCA), then you should use the name of that reduction for `pca_name`.
+#' Although this function is called "regen_reduc", it can also be run to generate reductions for the first time (e.g. if you have already run PCA and just want to calculate neighbors and run UMAP).
 #'
 #' @param seurat_obj The Seurat object.
 #' @param pca_name Name of the PCA reduction to use for neighbor finding and UMAP. This should be the name of an existing PCA reduction in the Seurat object (e.g. "pca" or "rpca").

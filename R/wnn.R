@@ -14,9 +14,14 @@
 #' The `compute.SNN` option constructs a shared nearest neighbor graph using Jaccard index.
 #' Perhaps the GEX and BCR sections should be run if `modality_weights` is provided.
 #'
-#' @param seurat_obj A Seurat object containing GEX data (at the least).
-#' @param embeddings Matrix of BCR embeddings (genes by cells).
-#' @param embedding_type The embeddings method.
+#' @param seurat_obj A Seurat object containing GEX data (at the least). If this
+#'   is already a merged object produced by [merge_gex_bcr()] (i.e., it contains
+#'   a BCR assay and a `bpca` reduction), `embeddings` and `embedding_type` may
+#'   be omitted and the existing BCR infrastructure will be reused.
+#' @param embeddings Matrix of BCR embeddings (genes by cells). Optional if
+#'   `seurat_obj` already contains a BCR assay and `bpca` reduction.
+#' @param embedding_type The embeddings method. Optional for merged objects;
+#'   falls back to `seurat_obj@misc$embedding_type` if not provided.
 #' @param pc_gex The number of PCs for the GEX assay.
 #' @param pc_bcr The number of PCs for the BCR assay.
 #' @param k The number of neighbors to use for each modality.
@@ -32,6 +37,8 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                     cluster_res = list("GEX" = 1, "BCR" = 1, "WNN" = 1),
                     modality_weights = NULL, verbose = FALSE) {
   # TODO: update this to be able to run on other omics e.g. GEX & ADT
+  # TODO: add the option to filter out genes again???
+  # TODO: give the option to use an integrated GEX assay
 
   # input validation
   if (!inherits(seurat_obj, "Seurat")) {
@@ -40,28 +47,64 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
   if (!"cell_id" %in% colnames(seurat_obj[[]])) {
     cli::cli_abort("Cell ID column not found in metadata.")
   }
-  if (ncol(embeddings) == 0) {
-    cli::cli_abort("No cells found in embeddings matrix.")
-  }
-
-  # if embeddings are not provided, then check for the presence of a BCR assay and use that instead
-  if (missing(embeddings)) {
-    if ("BCR" %in% names(seurat_obj@assays)) {
-      cli::cli_inform("Embeddings not provided, so using the BCR assay as the second modality.")
-      embeddings <- seurat_obj@assays[["BCR"]]@data # doesn't matter which slot to pull from since they should all be the same
-      embedding_type <- seurat_obj@misc$embedding_type # %||% "unknown"
+  if (missing(pc_gex)) {
+    pc_gex <- if ("rpca" %in% names(seurat_obj@reductions)) {
+      ncol(seurat_obj@reductions[["rpca"]])
+    } else if ("pca" %in% names(seurat_obj@reductions)) {
+      ncol(seurat_obj@reductions[["pca"]])
     } else {
-      stop("Embeddings not provided and no BCR assay found in the Seurat object.")
+      20
+    }
+    cli::cli_inform(c("i" = "Using pc_gex = {pc_gex}", " from existing reductions."))
+  }}
+  if (missing(pc_bcr)) {
+    pc_bcr <- if ("bpca" %in% names(seurat_obj@reductions)) {
+      ncol(seurat_obj@reductions[["bpca"]])
+    } else {
+      20
+    }
+    cli::cli_inform(c("i" = "Using pc_bcr = {pc_bcr}", " from existing reductions."))
+  }
+  if (missing(k_param)) {
+    # use the k from the GEX neighbors if it exists, otherwise default to 20
+    if ("RNA.nn" %in% names(seurat_obj@neighbors)) {
+      nn <- seurat_obj@neighbors[["RNA.nn"]]
+      k_param <- ncol(nn@nn.idx)
+      cli::cli_inform(c("i" = "Using k = {k_param}", " from RNA neighbors."))
+    } else {
+      k_param <- 20
+      cli::cli_inform(c("i" = "Using default k = {k_param}."))
     }
   }
 
-  # remove any GEX clustering that might exist and reset the factor levels
+  # detect if the object is already merged (has BCR assay + bpca from merge_gex_bcr)
+  is_merged <- "BCR" %in% names(seurat_obj@assays) &&
+    "bpca" %in% names(seurat_obj@reductions)
+
+  if (is_merged) {
+    cli::cli_inform(c("i" = "Merged object detected: reusing existing BCR assay and reductions."))
+    if (missing(embedding_type)) {
+      embedding_type <- seurat_obj@misc$embedding_type
+    }
+  } else {
+    if (missing(embeddings)) {
+      cli::cli_abort(c(
+        "Must provide {.arg embeddings} or pass a merged object.",
+        "i" = "Run {.fn merge_gex_bcr} first, or provide an embeddings matrix."
+      ))
+    }
+    if (ncol(embeddings) == 0) {
+      cli::cli_abort("No cells found in embeddings matrix.")
+    }
+  }
+
+  # remove any clustering that might exist and reset the factor levels
   # assumes a UMAP might have been run for the RNA data (instead of tSNE)
   cols_to_remove <- c()
-  if (any(grepl("^RNA_snn_res", names(seurat_obj[[]])))) {
+  if (any(grepl("^snn_res", names(seurat_obj[[]])))) {
     cols_to_remove <-
       c(cols_to_remove,
-        grep("^RNA_snn_res", names(seurat_obj[[]]), value = TRUE))
+        grep("^snn_res", names(seurat_obj[[]]), value = TRUE))
   }
   if ("seurat_clusters" %in% names(seurat_obj[[]])) {
     cols_to_remove <- c(cols_to_remove, "seurat_clusters")
@@ -70,45 +113,41 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
     {if (length(cols_to_remove) > 0)
       select(., -all_of(cols_to_remove)) else .} %>%
     droplevels()
-  # keep wiping the slate clean
-  Idents(seurat_obj) <- "orig.ident"
-  seurat_obj@graphs <- list() # RNA.nn, RNA.snn
-  seurat_obj@reductions <- list() # pca, umap
 
-  # build BCR object (subset to cells present in the GEX object)
-  # TODO: check if this is even necessary if using a merged object
-  bcr_obj <- bcr_embeddings_pipeline(
-    embeddings[, intersect(colnames(embeddings), seurat_obj$cell_id)],
-    embedding_type = embedding_type,
-    num_pcs = pc_bcr, num_dims = pc_bcr, k_param = k_param, verbose = verbose)
+  if (!is_merged) {
+    # TODO: double check this part
 
-  # add BCR assay; Seurat v5 does not propagate nCount/nFeature automatically
-  suppressWarnings(seurat_obj[["BCR"]] <- bcr_obj[["BCR"]])
-  seurat_obj$nCount_BCR <- bcr_obj[[]][Cells(seurat_obj), "nCount_BCR"]
-  seurat_obj$nFeature_BCR <- bcr_obj[[]][Cells(seurat_obj), "nFeature_BCR"]
-  if ("nFeature_ADT" %in% names(seurat_obj[[]])) {
-    seurat_obj@meta.data <-
-      seurat_obj[[]] %>%
-      relocate(nCount_BCR, nFeature_BCR, .after = nFeature_ADT)
+    # build BCR object (subset to cells present in the GEX object)
+    bcr_obj <- bcr_embeddings_pipeline(
+      embeddings[, intersect(colnames(embeddings), seurat_obj$cell_id)],
+      embedding_type = embedding_type,
+      num_pcs = pc_bcr, num_dims = pc_bcr, k_param = k_param, verbose = verbose)
+
+    # add BCR assay; Seurat v5 does not propagate nCount/nFeature automatically
+    suppressWarnings(seurat_obj[["BCR"]] <- bcr_obj[["BCR"]])
+    seurat_obj$nCount_BCR <- bcr_obj[[]][Cells(seurat_obj), "nCount_BCR"]
+    seurat_obj$nFeature_BCR <- bcr_obj[[]][Cells(seurat_obj), "nFeature_BCR"]
+    if ("nFeature_ADT" %in% names(seurat_obj[[]])) {
+      seurat_obj@meta.data <-
+        seurat_obj[[]] %>%
+        relocate(nCount_BCR, nFeature_BCR, .after = nFeature_ADT)
+    }
+
+    if (ncol(seurat_obj@assays$RNA) != ncol(seurat_obj@assays$BCR)) {
+      cli::cli_abort("The number of cells in the RNA and BCR assays do not match.")
+    }
+
+    # transfer reductions and graphs
+    seurat_obj[["bpca"]] <- bcr_obj[["bpca"]]
+    seurat_obj[["bcr.umap"]] <- bcr_obj[["bcr.umap"]]
+    seurat_obj@neighbors[["BCR.nn"]] <- bcr_obj@neighbors[["BCR.nn"]]
+    seurat_obj@graphs[["BCR_nn"]] <- bcr_obj@graphs[["BCR_nn"]]
+    seurat_obj@graphs[["BCR_snn"]] <- bcr_obj@graphs[["BCR_snn"]]
+
+    # add run info
+    Misc(seurat_obj, slot = "embedding_type") <- embedding_type
+    Misc(seurat_obj, slot = "embedding_dims") <- nrow(seurat_obj@assays[["BCR"]])
   }
-
-  # TODO: move this to be earlier so that we don't go through the bit with the BCR assay if we don't need to
-  if (ncol(seurat_obj@assays$RNA) != ncol(seurat_obj@assays$BCR)) {
-    stop("The number of cells in the RNA and BCR assays do not match.")
-  }
-
-  # transfer reductions and graphs
-  seurat_obj[["bpca"]] <- bcr_obj[["bpca"]]
-  seurat_obj[["bcr.umap"]] <- bcr_obj[["bcr.umap"]]
-  seurat_obj@neighbors[["BCR.nn"]] <- bcr_obj@neighbors[["BCR.nn"]]
-  seurat_obj@graphs[["BCR_nn"]] <- bcr_obj@graphs[["BCR_nn"]]
-  seurat_obj@graphs[["BCR_snn"]] <- bcr_obj@graphs[["BCR_snn"]]
-
-  # RNA processing
-  # TODO: filter out genes
-  DefaultAssay(seurat_obj) <- "RNA"
-  seurat_obj <- seurat_pipeline(seurat_obj, num_pcs = pc_gex, num_dims = pc_gex,
-                                k_param = k_param, verbose = verbose)
 
   # find multimodal neighbors, then do clustering and make a UMAP
   seurat_obj <-
@@ -131,24 +170,27 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                                 reduction.key = "wnnUMAP_",
                                 verbose = verbose)
 
-  # use the "main" k for clustering and the Louvain algorithm
+  # use the Leiden algorithm (4) over the Louvain (1) because it has been shown
+  # to give better clusters
   if (cluster) {
+    algo <- 4
+
     # cluster the BCR assay
     seurat_obj <- FindClusters(object = seurat_obj,
                                graph.name = "BCR_snn",
                                resolution = cluster_res[["BCR"]],
-                               algorithm = 1, verbose = verbose)
+                               algorithm = algo, verbose = verbose)
     # cluster the GEX assay
     # TODO: do this in seurat_pipeline??
     seurat_obj <- FindClusters(object = seurat_obj,
                                graph.name = "RNA_snn",
                                resolution = cluster_res[["GEX"]],
-                               algorithm = 1, verbose = verbose)
+                               algorithm = algo, verbose = verbose)
     # cluster the WNN assay
     seurat_obj <- FindClusters(object = seurat_obj,
                                graph.name = "w_snn",
                                resolution = cluster_res[["WNN"]],
-                               algorithm = 1, verbose = verbose)
+                               algorithm = algo, verbose = verbose)
 
     # set the cluster identities and fix the order (RNA and BCR are fine)
     meta_res_wnn <- paste0("w_snn_res.", cluster_res[["WNN"]])
@@ -164,9 +206,26 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                        seurat_obj[[]][["RNA.weight"]] < 0.5 ~ "BCR",
                        .default = "Tie"))
 
-  # add run info
-  Misc(seurat_obj, slot = "embedding_type") <- embedding_type
-  Misc(seurat_obj, slot = "embedding_dims") <- nrow(seurat_obj@assays[["BCR"]])
+  if (verbose) {
+    cli::cli_inform(c("v" = "WNN neighbors calculated and UMAP run.",
+                      "i" = "Use {.fn Seurat::DimPlot} with {.arg reduction = 'wnn.umap'} or {.fn athanor::plot_dimplot} with {.arg reduc = 'wnn.umap'} to visualize the results."))
+
+    # explain the weighting approach
+    if (is.null(modality_weights)) {
+      cli::cli_inform(c("v" = "Modality weights were automatically calculated based on the provided assays.",
+                        "i" = "Check {.fn Seurat::FindMultiModalNeighbors} for more details."))
+      # summarize the resulting weight distribution with a total count
+      # weight_summary <- seurat_obj[[]] %>%
+      #   group_by(weight_assay) %>%
+      #   summarise(count = n()) %>%
+      #   ungroup()
+      # cli::cli_inform(c("v" = "Summary of modality weights across cells:",
+      #                   "i" = "{.code print(weight_summary)}"))
+    } else {
+      cli::cli_inform(c("v" = "Custom modality weights were used:",
+                        "i" = "{.arg modality_weights}"))
+    }
+  }
 
   return(seurat_obj)
 }

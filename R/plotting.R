@@ -475,6 +475,7 @@ plot_doublets <- function(seurat_obj, data_source, clrs_specific,
 #' @param second_assay List of other assays run through WNN in order.
 #' @param clrs_specific The specific color palette (should be named).
 #' @param split_by A meta.data column to split the box plots up by.
+#' @param facet_by A meta.data column to facet the box plots by.
 #' @param y_axis_label Label for the y-axis.
 #' @param details An optional custom subtitle.
 #'
@@ -482,7 +483,7 @@ plot_doublets <- function(seurat_obj, data_source, clrs_specific,
 #' @export
 plot_mws <- function(seurat_obj, second_assay = "BCR",
                      clrs_specific = named_colors$mu_freq_bins,
-                     split_by = "mu_freq_bins",
+                     split_by = "mu_freq_bins", facet_by = "annotated_clusters",
                      y_axis_label = "SHM Frequency Bins", details = NULL) {
   # parameter check
   if (!split_by %in% names(seurat_obj[[]])) {
@@ -517,7 +518,7 @@ plot_mws <- function(seurat_obj, second_assay = "BCR",
          labs(title = paste(details, "Weights by Cell Type"),
               subtitle = subtitle, x = "Weights", y = y_axis_label) +
          scale_fill_manual(values = clrs_specific) +
-         facet_wrap(vars(annotated_clusters), scales = "fixed") +
+         facet_wrap(vars(!!sym(facet_by)), scales = "fixed") +
          theme_bw_custom + labels_standard + theme(legend.position = "none")
 
   if (n_assay == 2) {

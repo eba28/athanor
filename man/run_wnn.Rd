@@ -18,11 +18,16 @@ run_wnn(
 )
 }
 \arguments{
-\item{seurat_obj}{A Seurat object containing GEX data (at the least).}
+\item{seurat_obj}{A Seurat object containing GEX data (at the least). If this
+is already a merged object produced by \code{\link[=merge_gex_bcr]{merge_gex_bcr()}} (i.e., it contains
+a BCR assay and a \code{bpca} reduction), \code{embeddings} and \code{embedding_type} may
+be omitted and the existing BCR infrastructure will be reused.}
 
-\item{embeddings}{Matrix of BCR embeddings (genes by cells).}
+\item{embeddings}{Matrix of BCR embeddings (genes by cells). Optional if
+\code{seurat_obj} already contains a BCR assay and \code{bpca} reduction.}
 
-\item{embedding_type}{The embeddings method.}
+\item{embedding_type}{The embeddings method. Optional for merged objects;
+falls back to \code{seurat_obj@misc$embedding_type} if not provided.}
 
 \item{pc_gex}{The number of PCs for the GEX assay.}
 

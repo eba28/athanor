@@ -9,6 +9,7 @@ plot_mws(
   second_assay = "BCR",
   clrs_specific = named_colors$mu_freq_bins,
   split_by = "mu_freq_bins",
+  facet_by = "annotated_clusters",
   y_axis_label = "SHM Frequency Bins",
   details = NULL
 )
@@ -21,6 +22,8 @@ plot_mws(
 \item{clrs_specific}{The specific color palette (should be named).}
 
 \item{split_by}{A meta.data column to split the box plots up by.}
+
+\item{facet_by}{A meta.data column to facet the box plots by.}
 
 \item{y_axis_label}{Label for the y-axis.}
 

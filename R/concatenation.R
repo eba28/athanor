@@ -17,10 +17,14 @@
 #' @note
 #' Currently assumes BCR data is already integrated into object metadata.
 #'
-#' @param seurat_obj A Seurat object containing RNA assay and BCR metadata.
+#' @param seurat_obj A Seurat object containing RNA assay and BCR metadata. If
+#'   this is a merged object produced by [merge_gex_bcr()] (i.e., it has a BCR
+#'   assay), `cols_to_include` may be omitted and the BCR assay features will be
+#'   used directly.
 #' @param pca_stage Add BCR information before PCA or after PCA.
 #' @param cols_to_include Character vector of BCR metadata column names to include
 #'   in the concatenated assay e.g. c("mu_freq", "isotype") or embedded dimensions.
+#'   Optional when a BCR assay is already present in `seurat_obj`.
 #' @param var_features If TRUE, run FindVariableFeatures on the combined
 #'   assay. If FALSE, concatenate BCR features onto existing variable features.
 #' @param normalize If TRUE, normalize the combined assay using
@@ -52,14 +56,26 @@ concatenate_gex_bcr <- function(seurat_obj, pca_stage = c("Before", "After"),
     # TODO: check if the RNA assay contains the names of the BCR assay
     # intersect(cols_to_include, rownames(GetAssayData(seurat_obj, assay = "RNA")))
 
-    # select features
-    bcr_features <- seurat_obj[[]] %>% select(all_of(cols_to_include))
-
-    # TODO: add an option to do weighting to influence the effect of the BCRs (post-normalization)
-
-    # process BCR features (rename, convert, normalize)
-    # TODO: check if the embeddings output has already been normalized by amulety
-    bcr_features <- process_bcr_features(bcr_features)
+    if (rlang::is_missing(cols_to_include)) {
+      if (!"BCR" %in% names(seurat_obj@assays)) {
+        cli::cli_abort(c(
+          "Must provide {.arg cols_to_include} or a merged object \\
+           with a BCR assay.",
+          "i" = "Run {.fn merge_gex_bcr} first, or specify \\
+                 {.arg cols_to_include}."
+        ))
+      }
+      # BCR assay data is already features x cells and processed
+      bcr_features <- GetAssayData(seurat_obj, assay = "BCR", layer = "data")
+      cli::cli_inform(c("i" = "Using BCR assay features \\
+        ({nrow(bcr_features)} dimensions) from merged object."))
+    } else {
+      # select and process BCR metadata columns
+      bcr_features <- seurat_obj[[]] %>% select(all_of(cols_to_include))
+      # TODO: add an option to do weighting to influence the effect of the BCRs (post-normalization)
+      # TODO: check if the embeddings output has already been normalized by amulety
+      bcr_features <- process_bcr_features(bcr_features)
+    }
     # bcr_features[, 1:5] # check them visually
 
     # make a new assay with both genes and BCR data

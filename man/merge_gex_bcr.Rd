@@ -30,7 +30,7 @@ objects have different cell counts (e.g. not every GEX cell has a BCR sequence).
 \details{
 Cell matching is done via \code{cell_id} metadata, not raw Seurat barcodes.
 If GEX barcodes differ from \code{cell_id} (e.g. they carry a sample prefix),
-BCR cell names are renamed via \code{\link[Seurat:RenameCells]{Seurat::RenameCells()}} to match before the
+BCR cell names are renamed via \code{\link[SeuratObject:RenameCells]{SeuratObject::RenameCells()}} to match before the
 assay is transferred.
 
 Both objects are subset to their shared cells; the result is suitable for concatenation or WNN or other downstream workflows.

@@ -18,12 +18,16 @@ concatenate_gex_bcr(
 )
 }
 \arguments{
-\item{seurat_obj}{A Seurat object containing RNA assay and BCR metadata.}
+\item{seurat_obj}{A Seurat object containing RNA assay and BCR metadata. If
+this is a merged object produced by \code{\link[=merge_gex_bcr]{merge_gex_bcr()}} (i.e., it has a BCR
+assay), \code{cols_to_include} may be omitted and the BCR assay features will be
+used directly.}
 
 \item{pca_stage}{Add BCR information before PCA or after PCA.}
 
 \item{cols_to_include}{Character vector of BCR metadata column names to include
-in the concatenated assay e.g. c("mu_freq", "isotype") or embedded dimensions.}
+in the concatenated assay e.g. c("mu_freq", "isotype") or embedded dimensions.
+Optional when a BCR assay is already present in \code{seurat_obj}.}
 
 \item{var_features}{If TRUE, run FindVariableFeatures on the combined
 assay. If FALSE, concatenate BCR features onto existing variable features.}
