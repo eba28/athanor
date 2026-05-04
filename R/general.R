@@ -42,6 +42,7 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
   # TODO: don't use assay to search for a command because Harmony and other batch effect integration methods will typically use a different assay name for their neighbor finding step
   nn_command <- stringr::str_c("FindNeighbors", assay, pca_name, sep = ".")
 
+  # TODO: only print out the actual values that are filled in
   if (missing(num_dims) | missing(k_param)) {
     # try to use the existing neighbors slot if possible
     if (nn_name %in% names(seurat_obj@neighbors)) {

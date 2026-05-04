@@ -13,4 +13,7 @@ labels_standard_vln
 \description{
 Standard label sizes for violin plots
 }
+\details{
+Removes "Identity".
+}
 \keyword{datasets}

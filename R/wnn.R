@@ -56,7 +56,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
       20
     }
     cli::cli_inform(c("i" = "Using pc_gex = {pc_gex}", " from existing reductions."))
-  }}
+  }
   if (missing(pc_bcr)) {
     pc_bcr <- if ("bpca" %in% names(seurat_obj@reductions)) {
       ncol(seurat_obj@reductions[["bpca"]])
@@ -82,9 +82,9 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
     "bpca" %in% names(seurat_obj@reductions)
 
   if (is_merged) {
-    cli::cli_inform(c("i" = "Merged object detected: reusing existing BCR assay and reductions."))
+    cli::cli_inform(c("i" = "Merged object detected: using existing GEX and BCR assays and reductions."))
     if (missing(embedding_type)) {
-      embedding_type <- seurat_obj@misc$embedding_type
+      embedding_type <- seurat_obj@misc$embedding_type # should exist
     }
   } else {
     if (missing(embeddings)) {
@@ -94,7 +94,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
       ))
     }
     if (ncol(embeddings) == 0) {
-      cli::cli_abort("No cells found in embeddings matrix.")
+      cli::cli_abort("No cells found in the provided embeddings matrix.")
     }
   }
 
@@ -109,7 +109,8 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
   if ("seurat_clusters" %in% names(seurat_obj[[]])) {
     cols_to_remove <- c(cols_to_remove, "seurat_clusters")
   }
-  seurat_obj@meta.data <- seurat_obj[[]] %>%
+  seurat_obj@meta.data <-
+    seurat_obj[[]] %>%
     {if (length(cols_to_remove) > 0)
       select(., -all_of(cols_to_remove)) else .} %>%
     droplevels()
@@ -165,7 +166,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                                     modality.weight = modality_weights,
                                     verbose = verbose)
   seurat_obj <- Seurat::RunUMAP(object = seurat_obj, nn.name = "w.nn",
-                                n.neighbors = k_param,
+                                n.neighbors = k_param, # might not be needed
                                 reduction.name = "wnn.umap",
                                 reduction.key = "wnnUMAP_",
                                 verbose = verbose)
