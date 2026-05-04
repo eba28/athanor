@@ -7,15 +7,9 @@ template:
   theme-dark: arrow-dark
 
 articles:
-- title: Evaluation
-  navbar: Evaluation
-  contents:
-  - adt_evaluation
 - title: Pipelines
   navbar: Pipelines
   contents:
-  - adt_normalization
-  - bcr_processing
   - main_pipeline
 - title: Visualization
   navbar: Visualization
@@ -129,6 +123,18 @@ reference:
 
 - title: Utilities
   desc: Utilities for various tasks.
+- subtitle: Colors
 - contents:
   - named_colors
+- subtitle: Seurat object
+- contents:
   - reduce_object
+- subtitle: Themes
+- contents:
+  - clean_umap
+  - labels_rotate_x
+  - labels_standard
+  - labels_standard_vln
+  - labels_standard_vln_rotate
+  - plot_anno
+  - theme_bw_custom
