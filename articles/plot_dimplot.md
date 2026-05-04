@@ -125,12 +125,8 @@ Sort the cell type levels alphabetically.
 
 ``` r
 
-named_clrs$annotated_clusters <-
-  c("Naive B cells" = "#93cc3d", "Memory B cells" = "#2d5f3f",
-    "Plasma cells" = "#cc095d", "Transitional B cells" = "#22e6e6")
-
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
-             clrs_specific = named_clrs$annotated_clusters,
+             clrs_specific = named_colors$cell_types_celltypist,
              title = "GEX", reduc = "rna.umap",
              meta_col = "annotated_clusters", plot_label = FALSE)
 ```
@@ -167,11 +163,11 @@ like any other metadata column.
 
 ``` r
 
-# named_clrs$cdr3 <- setNames(viridis(length(4:41)), nm = 4:41)
 named_clrs$cdr3 <- c(Short = "#482778", Medium = "#20938C", Long = "#C9E020")
 
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
              clrs_specific = named_clrs$cdr3,
+             # clrs_specific = named_colors$cdr3,
              title = "CDR3 Length", reduc = "rna.umap",
              meta_col = "cdr3_aa_length",
              plot_label = FALSE, legend_label = "CDR3 Length")
@@ -183,12 +179,9 @@ plot_dimplot(seurat_obj = obj, data_source = data_desc,
 
 ``` r
 
-# uses the colors from the alakazam package
-named_clrs$isotype <- c("IgA" = "#377EB8", "IgD" = "#FF7F00", "IgE" = "#E41A1C",
-                        "IgG" = "#4DAF4A", "IgM" = "#984EA3")
-
+# uses colors defined in the alakazam package
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
-             clrs_specific = named_clrs$isotype,
+             clrs_specific = named_colors$isotype,
              title = "Isotype", reduc = "rna.umap",
              meta_col = "isotype",
              plot_label = FALSE, legend_label = "Isotype")
@@ -202,18 +195,13 @@ You could also use a `FeaturePlot` to see the actual values.
 
 ``` r
 
-# named_clrs$mu_freq_bins <-
-#   viridis_pal(direction = -1, option = "C")(n = 5) %>% str_sub(1, 7)
 # note that the last bin's name is dependent on your dataset
-named_clrs$mu_freq_bins <- c("0%" = "#F0F921", "0% to 1%" = "#F89441",
-                             "1% to 5%%" = "#CC4678", "5% to 10%" = "#7E03A8",
-                             "10% to 25%" = "#0D0887")
-
 # be careful with the order
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
+             clrs_specific = named_colors$mu_freq_bins,
              title = "SHM Frequency", reduc = "rna.umap",
-             clrs_specific = named_clrs$mu_freq_bins, meta_col = "mu_freq_bins",
-             plot_label = FALSE, legend_label = "SHM Bins", sort_idents = FALSE,
+             meta_col = "mu_freq_bins", plot_label = FALSE,
+             legend_label = "SHM Bins", sort_idents = FALSE,
              order = TRUE)
 ```
 
@@ -223,13 +211,9 @@ plot_dimplot(seurat_obj = obj, data_source = data_desc,
 
 ``` r
 
-named_clrs$v_call_family <-
-  setNames(c("#7690c7", "#8d4bca", "#90b648", "#d16099", "#57865f", "#62396e",
-             "#bc9149"), nm = stringr::str_c("IGHV", 1:7))
-
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
              title = "V Gene Family",
-             clrs_specific = named_clrs$v_call_family,
+             clrs_specific = named_colors$v_call_family,
              meta_col = "v_call_family", plot_label = FALSE,
              legend_label = "V Gene Family", reduc = "rna.umap")
 ```
@@ -242,12 +226,12 @@ plot_dimplot(seurat_obj = obj, data_source = data_desc,
 
 p_iso <- plot_dimplot(obj, data_source = data_desc,
                       title = "Isotype", reduc = "rna.umap",
-                      clrs_specific = named_clrs$isotype,
+                      clrs_specific = named_colors$isotype,
                       meta_col = "isotype",
                       plot_label = FALSE, legend_label = "Isotype")
 p_shm <- plot_dimplot(obj, data_source = data_desc,
                       title = "SHM", reduc = "rna.umap",
-                      clrs_specific = named_clrs$mu_freq_bins,
+                      clrs_specific = named_colors$mu_freq_bins,
                       meta_col = "mu_freq_bins",
                       plot_label = FALSE, legend_label = "SHM Bins",
                       order = TRUE)

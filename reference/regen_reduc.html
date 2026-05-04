@@ -23,10 +23,11 @@ It can also be used to regenerate these reductions if you have modified the obje
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Pipeline</h6></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Pipelines</h6></li>
     <li><a class="dropdown-item" href="../articles/main_pipeline.html">Main processing pipeline: GEX, concatenation, and WNN</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Visualization</h6></li>
+    <li><a class="dropdown-item" href="../articles/color_palettes.html">Color palettes in athanor</a></li>
     <li><a class="dropdown-item" href="../articles/plot_dimplot.html">Visualizing scRNA-Seq data with plot_dimplot()</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -98,7 +99,8 @@ It can also be used to regenerate these reductions if you have modified the obje
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>If you are providing a reduction based on batch effect integration (e.g. Harmony, RPCA), then you should use the name of that reduction for <code>pca_name</code>.</p>
+    <p>If you are providing a reduction based on batch effect integration (e.g. Harmony, RPCA), then you should use the name of that reduction for <code>pca_name</code>.
+Although this function is called "regen_reduc", it can also be run to generate reductions for the first time (e.g. if you have already run PCA and just want to calculate neighbors and run UMAP).</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

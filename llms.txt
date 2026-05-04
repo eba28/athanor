@@ -239,19 +239,43 @@ Simulate GEX and AIRR data.
 
 Utilities for various tasks.
 
+### Colors
+
 - [`named_colors`](https://eba28.github.io/athanor/reference/named_colors.md)
   : Named color palettes for athanor plots
+
+### Seurat object
+
 - [`reduce_object()`](https://eba28.github.io/athanor/reference/reduce_object.md)
   : Reduce a Seurat object's size
 
+### Themes
+
+- [`clean_umap`](https://eba28.github.io/athanor/reference/clean_umap.md)
+  : Clean theme for UMAP plots
+- [`labels_rotate_x`](https://eba28.github.io/athanor/reference/labels_rotate_x.md)
+  : Rotate x-axis labels 45 degrees
+- [`labels_standard`](https://eba28.github.io/athanor/reference/labels_standard.md)
+  : Standard label sizes for athanor plots
+- [`labels_standard_vln`](https://eba28.github.io/athanor/reference/labels_standard_vln.md)
+  : Standard label sizes for violin plots
+- [`labels_standard_vln_rotate`](https://eba28.github.io/athanor/reference/labels_standard_vln_rotate.md)
+  : Violin plot labels with horizontal x-axis text
+- [`plot_anno`](https://eba28.github.io/athanor/reference/plot_anno.md)
+  : Patchwork annotation with Roman numeral panel labels
+- [`theme_bw_custom`](https://eba28.github.io/athanor/reference/theme_bw_custom.md)
+  : ggplot2 theme with horizontal grid lines only
+
 # Articles
 
-### Pipeline
+### Pipelines
 
 - [Main processing pipeline: GEX, concatenation, and
   WNN](https://eba28.github.io/athanor/articles/main_pipeline.md):
 
 ### Visualization
 
+- [Color palettes in
+  athanor](https://eba28.github.io/athanor/articles/color_palettes.md):
 - [Visualizing scRNA-Seq data with
   plot_dimplot()](https://eba28.github.io/athanor/articles/plot_dimplot.md):

@@ -23,10 +23,11 @@ objects have different cell counts (e.g. not every GEX cell has a BCR sequence).
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Pipeline</h6></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Pipelines</h6></li>
     <li><a class="dropdown-item" href="../articles/main_pipeline.html">Main processing pipeline: GEX, concatenation, and WNN</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Visualization</h6></li>
+    <li><a class="dropdown-item" href="../articles/color_palettes.html">Color palettes in athanor</a></li>
     <li><a class="dropdown-item" href="../articles/plot_dimplot.html">Visualizing scRNA-Seq data with plot_dimplot()</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -89,7 +90,7 @@ into the merged object.</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Cell matching is done via <code>cell_id</code> metadata, not raw Seurat barcodes.
 If GEX barcodes differ from <code>cell_id</code> (e.g. they carry a sample prefix),
-BCR cell names are renamed via <code><a href="https://satijalab.github.io/seurat-object/reference/RenameCells.html" class="external-link">Seurat::RenameCells()</a></code> to match before the
+BCR cell names are renamed via <code><a href="https://satijalab.github.io/seurat-object/reference/RenameCells.html" class="external-link">SeuratObject::RenameCells()</a></code> to match before the
 assay is transferred.</p>
 <p>Both objects are subset to their shared cells; the result is suitable for concatenation or WNN or other downstream workflows.</p>
 <p>Due to subsetting, graphs, neighbors and reductions maybe have to be regenerated.</p>

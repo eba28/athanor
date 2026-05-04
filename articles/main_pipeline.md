@@ -139,7 +139,8 @@ table(obj$annotated_clusters)
 
 ``` r
 
-plot_dimplot(obj, data_source = data_desc, use_hues = TRUE,
+plot_dimplot(obj, data_source = data_desc,
+             clrs_specific = named_colors$cell_types_celltypist,
              title = "GEX", reduc = "rna.umap",
              meta_col = "annotated_clusters",
              plot_label = FALSE, legend_label = "Cell Type")
@@ -218,7 +219,8 @@ names(obj_cat@reductions)
 
 ``` r
 
-plot_dimplot(obj_cat, data_source = data_desc, use_hues = TRUE,
+plot_dimplot(obj_cat, data_source = data_desc,
+             clrs_specific = named_colors$cell_types_celltypist,
              title = "Concatenated GEX & BCR", reduc = "rna_bcr.umap",
              meta_col = "annotated_clusters",
              plot_label = FALSE, legend_label = "Cell Type")
@@ -266,7 +268,7 @@ obj_wnn <- run_wnn(obj, embeddings = bcr_embeddings,
 obj_wnn <- bin_mu_freq(obj_wnn)
 
 names(obj_wnn@reductions)
-#> [1] "bpca"     "bcr.umap" "rpca"     "rna.umap" "wnn.umap"
+#> [1] "rpca"     "rna.umap" "bpca"     "bcr.umap" "wnn.umap"
 ```
 
 ### Visualization
@@ -276,15 +278,15 @@ UMAPs:
 ``` r
 
 p_gex <- plot_dimplot(obj_wnn, title = "GEX", data_source = data_desc,
-                      use_hues = TRUE,
+                      clrs_specific = named_colors$cell_types_celltypist,
                       meta_col = "annotated_clusters", reduc = "rna.umap",
                       plot_label = FALSE, legend_label = "Cell Type")
 p_bcr <- plot_dimplot(obj_wnn, title = "BCR", data_source = data_desc,
-                      use_hues = TRUE,
+                      clrs_specific = named_colors$cell_types_celltypist,
                       meta_col = "annotated_clusters", reduc = "bcr.umap",
                       plot_label = FALSE, legend_label = "Cell Type")
 p_wnn <- plot_dimplot(obj_wnn, title = "WNN", data_source = data_desc,
-                      use_hues = TRUE,
+                      clrs_specific = named_colors$cell_types_celltypist,
                       meta_col = "annotated_clusters", reduc = "wnn.umap",
                       plot_label = FALSE, legend_label = "Cell Type")
 

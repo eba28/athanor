@@ -25,7 +25,11 @@ concatenate_gex_bcr(
 
 - seurat_obj:
 
-  A Seurat object containing RNA assay and BCR metadata.
+  A Seurat object containing RNA assay and BCR metadata. If this is a
+  merged object produced by
+  [`merge_gex_bcr()`](https://eba28.github.io/athanor/reference/merge_gex_bcr.md)
+  (i.e., it has a BCR assay), `cols_to_include` may be omitted and the
+  BCR assay features will be used directly.
 
 - pca_stage:
 
@@ -35,7 +39,8 @@ concatenate_gex_bcr(
 
   Character vector of BCR metadata column names to include in the
   concatenated assay e.g. c("mu_freq", "isotype") or embedded
-  dimensions.
+  dimensions. Optional when a BCR assay is already present in
+  `seurat_obj`.
 
 - var_features:
 

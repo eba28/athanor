@@ -29,15 +29,22 @@ run_wnn(
 
 - seurat_obj:
 
-  A Seurat object containing GEX data (at the least).
+  A Seurat object containing GEX data (at the least). If this is already
+  a merged object produced by
+  [`merge_gex_bcr()`](https://eba28.github.io/athanor/reference/merge_gex_bcr.md)
+  (i.e., it contains a BCR assay and a `bpca` reduction), `embeddings`
+  and `embedding_type` may be omitted and the existing BCR
+  infrastructure will be reused.
 
 - embeddings:
 
-  Matrix of BCR embeddings (genes by cells).
+  Matrix of BCR embeddings (genes by cells). Optional if `seurat_obj`
+  already contains a BCR assay and `bpca` reduction.
 
 - embedding_type:
 
-  The embeddings method.
+  The embeddings method. Optional for merged objects; falls back to
+  `seurat_obj@misc$embedding_type` if not provided.
 
 - pc_gex:
 

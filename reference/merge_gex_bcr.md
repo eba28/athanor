@@ -42,7 +42,7 @@ A Seurat object with both RNA and BCR assays and BCR metadata columns.
 Cell matching is done via `cell_id` metadata, not raw Seurat barcodes.
 If GEX barcodes differ from `cell_id` (e.g. they carry a sample prefix),
 BCR cell names are renamed via
-[`Seurat::RenameCells()`](https://satijalab.github.io/seurat-object/reference/RenameCells.html)
+[`SeuratObject::RenameCells()`](https://satijalab.github.io/seurat-object/reference/RenameCells.html)
 to match before the assay is transferred.
 
 Both objects are subset to their shared cells; the result is suitable

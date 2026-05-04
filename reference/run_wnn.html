@@ -23,10 +23,11 @@ The function also adds metadata about modality weights and run information to th
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Pipeline</h6></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Pipelines</h6></li>
     <li><a class="dropdown-item" href="../articles/main_pipeline.html">Main processing pipeline: GEX, concatenation, and WNN</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Visualization</h6></li>
+    <li><a class="dropdown-item" href="../articles/color_palettes.html">Color palettes in athanor</a></li>
     <li><a class="dropdown-item" href="../articles/plot_dimplot.html">Visualizing scRNA-Seq data with plot_dimplot()</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -73,15 +74,20 @@ The function also adds metadata about modality weights and run information to th
 
 
 <dl><dt id="arg-seurat-obj">seurat_obj<a class="anchor" aria-label="anchor" href="#arg-seurat-obj"></a></dt>
-<dd><p>A Seurat object containing GEX data (at the least).</p></dd>
+<dd><p>A Seurat object containing GEX data (at the least). If this
+is already a merged object produced by <code><a href="merge_gex_bcr.html">merge_gex_bcr()</a></code> (i.e., it contains
+a BCR assay and a <code>bpca</code> reduction), <code>embeddings</code> and <code>embedding_type</code> may
+be omitted and the existing BCR infrastructure will be reused.</p></dd>
 
 
 <dt id="arg-embeddings">embeddings<a class="anchor" aria-label="anchor" href="#arg-embeddings"></a></dt>
-<dd><p>Matrix of BCR embeddings (genes by cells).</p></dd>
+<dd><p>Matrix of BCR embeddings (genes by cells). Optional if
+<code>seurat_obj</code> already contains a BCR assay and <code>bpca</code> reduction.</p></dd>
 
 
 <dt id="arg-embedding-type">embedding_type<a class="anchor" aria-label="anchor" href="#arg-embedding-type"></a></dt>
-<dd><p>The embeddings method.</p></dd>
+<dd><p>The embeddings method. Optional for merged objects;
+falls back to <code>seurat_obj@misc$embedding_type</code> if not provided.</p></dd>
 
 
 <dt id="arg-pc-gex">pc_gex<a class="anchor" aria-label="anchor" href="#arg-pc-gex"></a></dt>

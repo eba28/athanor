@@ -13,6 +13,7 @@ plot_mws(
   second_assay = "BCR",
   clrs_specific = named_colors$mu_freq_bins,
   split_by = "mu_freq_bins",
+  facet_by = "annotated_clusters",
   y_axis_label = "SHM Frequency Bins",
   details = NULL
 )
@@ -35,6 +36,10 @@ plot_mws(
 - split_by:
 
   A meta.data column to split the box plots up by.
+
+- facet_by:
+
+  A meta.data column to facet the box plots by.
 
 - y_axis_label:
 
