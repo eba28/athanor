@@ -20,5 +20,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Edel Aron \email{edel.aron@yale.edu} (\href{https://orcid.org/0000-0002-8683-4772}{ORCID})
 
+Authors:
+\itemize{
+  \item Edel Aron \email{edel.aron@yale.edu} (\href{https://orcid.org/0000-0002-8683-4772}{ORCID})
+}
+
 }
 \keyword{internal}
