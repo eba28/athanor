@@ -121,6 +121,7 @@ reference:
   - contains("sim")
 
 - title: Utilities
-  desc: Utility functions for various tasks.
+  desc: Utilities for various tasks.
 - contents:
+  - named_colors
   - reduce_object
