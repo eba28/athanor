@@ -13,6 +13,10 @@ isotypes, SHM frequencies).
 named_colors
 ```
 
+## Format
+
+An object of class `list` of length 25.
+
 ## Details
 
 The `named_colors` list contains color mappings for various categories

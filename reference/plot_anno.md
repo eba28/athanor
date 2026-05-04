@@ -7,3 +7,7 @@ Patchwork annotation with Roman numeral panel labels
 ``` r
 plot_anno
 ```
+
+## Format
+
+An object of class `plot_annotation` of length 8.
