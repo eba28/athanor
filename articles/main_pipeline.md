@@ -262,11 +262,16 @@ obj_wnn <- run_wnn(obj, embeddings = bcr_embeddings,
                    cluster_res = list("GEX" = 0.5, "BCR" = 0.5, "WNN" = 0.5),
                    verbose = FALSE)
 
+# bin the mutation frequency for plotting
+obj_wnn <- bin_mu_freq(obj_wnn)
+
 names(obj_wnn@reductions)
 #> [1] "bpca"     "bcr.umap" "rpca"     "rna.umap" "wnn.umap"
 ```
 
 ### Visualization
+
+UMAPs:
 
 ``` r
 
@@ -288,6 +293,29 @@ p_wnn <- plot_dimplot(obj_wnn, title = "WNN", data_source = data_desc,
 ```
 
 ![](main_pipeline_files/figure-html/wnn-umap-1.png)
+
+Modality weights:
+
+``` r
+
+# by isotype
+plot_mws(seurat_obj = obj_wnn, second_assay = "BCR",
+         clrs_specific = named_colors$isotype, split_by = "isotype",
+         y_axis_label = "Isotype")
+```
+
+![](main_pipeline_files/figure-html/wnn-mw-box-1.png)
+
+``` r
+
+
+# by SHM frequency
+plot_mws(seurat_obj = obj_wnn, second_assay = "BCR",
+         clrs_specific = named_colors$mu_freq_bins, split_by = "mu_freq_bins",
+         y_axis_label = "SHM Frequency Bins")
+```
+
+![](main_pipeline_files/figure-html/wnn-mw-box-2.png)
 
 ### Object summary
 

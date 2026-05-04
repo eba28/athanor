@@ -89,7 +89,7 @@ into the merged object.</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Cell matching is done via <code>cell_id</code> metadata, not raw Seurat barcodes.
 If GEX barcodes differ from <code>cell_id</code> (e.g. they carry a sample prefix),
-BCR cell names are renamed via <code><a href="https://satijalab.org/seurat/reference/reexports.html" class="external-link">Seurat::RenameCells()</a></code> to match before the
+BCR cell names are renamed via <code><a href="https://satijalab.github.io/seurat-object/reference/RenameCells.html" class="external-link">Seurat::RenameCells()</a></code> to match before the
 assay is transferred.</p>
 <p>Both objects are subset to their shared cells; the result is suitable for concatenation or WNN or other downstream workflows.</p>
 <p>Due to subsetting, graphs, neighbors and reductions maybe have to be regenerated.</p>

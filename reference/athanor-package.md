@@ -17,3 +17,8 @@ Useful links:
 
 **Maintainer**: Edel Aron <edel.aron@yale.edu>
 ([ORCID](https://orcid.org/0000-0002-8683-4772))
+
+Authors:
+
+- Edel Aron <edel.aron@yale.edu>
+  ([ORCID](https://orcid.org/0000-0002-8683-4772))

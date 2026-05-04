@@ -1,5 +1,12 @@
 # Package index
 
+## General
+
+General functions for processing and analyzing single-cell data.
+
+- [`regen_reduc()`](https://eba28.github.io/athanor/reference/regen_reduc.md)
+  : Regenerate neighbor graphs and UMAPs.
+
 ## Quality Control
 
 Functions for QC and filtering.
@@ -195,7 +202,9 @@ Simulate GEX and AIRR data.
 
 ## Utilities
 
-Utility functions for various tasks.
+Utilities for various tasks.
 
+- [`named_colors`](https://eba28.github.io/athanor/reference/named_colors.md)
+  : Named color palettes for athanor plots
 - [`reduce_object()`](https://eba28.github.io/athanor/reference/reduce_object.md)
   : Reduce a Seurat object's size

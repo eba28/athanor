@@ -70,7 +70,7 @@ It allows for a comprehensive overview of the data across different embedding ty
 
 
 <dl><dt id="arg-seurat-objs">seurat_objs<a class="anchor" aria-label="anchor" href="#arg-seurat-objs"></a></dt>
-<dd><p>List of WNN objects with different embedding types.</p></dd>
+<dd><p>List of Seurat objects.</p></dd>
 
 
 <dt id="arg-data-source">data_source<a class="anchor" aria-label="anchor" href="#arg-data-source"></a></dt>
@@ -82,7 +82,7 @@ It allows for a comprehensive overview of the data across different embedding ty
 
 
 <dt id="arg-second-assay">second_assay<a class="anchor" aria-label="anchor" href="#arg-second-assay"></a></dt>
-<dd><p>The second assay to use in the title if plotting a WNN reduction.</p></dd>
+<dd><p>The second assay to use in the title if plotting a combined reduction. Will usually be "BCR".</p></dd>
 
 
 <dt id="arg-assay-name">assay_name<a class="anchor" aria-label="anchor" href="#arg-assay-name"></a></dt>
@@ -90,7 +90,7 @@ It allows for a comprehensive overview of the data across different embedding ty
 
 
 <dt id="arg-reduction">reduction<a class="anchor" aria-label="anchor" href="#arg-reduction"></a></dt>
-<dd><p>Which reduction to plot ("rna.umap", "bcr.umap", or "wnn.umap").</p></dd>
+<dd><p>Which reduction to plot (e.g. "rpca", "bcr.umap", "wnn.umap").</p></dd>
 
 
 <dt id="arg-use-adt">use_adt<a class="anchor" aria-label="anchor" href="#arg-use-adt"></a></dt>
@@ -98,18 +98,12 @@ It allows for a comprehensive overview of the data across different embedding ty
 
 
 <dt id="arg-comparisons">comparisons<a class="anchor" aria-label="anchor" href="#arg-comparisons"></a></dt>
-<dd><p>The labeling of the plots.</p></dd>
+<dd><p>Which metadata columns to plot. By default, it will plot "annotated_clusters_simpler", "v_call_family", "light_chains", "isotype", and "mu_freq". The first one is the simplified CellTypist annotations, and the rest are BCR features.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A patchwork object with overview plots in a grid.</p>
-    </div>
-    <div class="section level2">
-    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The names of the seurat_objs list correspond with embedding_types.
-Assumes that CellTypist is the annotation approach being used.
-<code>data_source</code> is set to empty to save on space.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

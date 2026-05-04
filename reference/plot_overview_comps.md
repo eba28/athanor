@@ -29,7 +29,7 @@ plot_overview_comps(
 
 - seurat_objs:
 
-  List of WNN objects with different embedding types.
+  List of Seurat objects.
 
 - data_source:
 
@@ -41,7 +41,8 @@ plot_overview_comps(
 
 - second_assay:
 
-  The second assay to use in the title if plotting a WNN reduction.
+  The second assay to use in the title if plotting a combined reduction.
+  Will usually be "BCR".
 
 - assay_name:
 
@@ -51,7 +52,7 @@ plot_overview_comps(
 
 - reduction:
 
-  Which reduction to plot ("rna.umap", "bcr.umap", or "wnn.umap").
+  Which reduction to plot (e.g. "rpca", "bcr.umap", "wnn.umap").
 
 - use_adt:
 
@@ -59,14 +60,11 @@ plot_overview_comps(
 
 - comparisons:
 
-  The labeling of the plots.
+  Which metadata columns to plot. By default, it will plot
+  "annotated_clusters_simpler", "v_call_family", "light_chains",
+  "isotype", and "mu_freq". The first one is the simplified CellTypist
+  annotations, and the rest are BCR features.
 
 ## Value
 
 A patchwork object with overview plots in a grid.
-
-## Details
-
-The names of the seurat_objs list correspond with embedding_types.
-Assumes that CellTypist is the annotation approach being used.
-`data_source` is set to empty to save on space.

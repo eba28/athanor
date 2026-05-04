@@ -13,7 +13,7 @@ seurat_pipeline(
   perc_mt,
   num_features = 2000,
   num_pcs = 50,
-  num_dims = 30,
+  num_dims = 20,
   k_param = 20,
   cluster_res = NULL,
   filter_genes,

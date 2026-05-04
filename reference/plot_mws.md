@@ -14,7 +14,7 @@ plot_mws(
   clrs_specific = named_colors$mu_freq_bins,
   split_by = "mu_freq_bins",
   y_axis_label = "SHM Frequency Bins",
-  details = ""
+  details = NULL
 )
 ```
 
