@@ -7,13 +7,20 @@ template:
   theme-dark: arrow-dark
 
 articles:
-- title: Pipeline
-  navbar: Pipeline
+- title: Evaluation
+  navbar: Evaluation
   contents:
+  - adt_evaluation
+- title: Pipelines
+  navbar: Pipelines
+  contents:
+  - adt_normalization
+  - bcr_processing
   - main_pipeline
 - title: Visualization
   navbar: Visualization
   contents:
+  - color_palettes
   - plot_dimplot
 
 reference:

@@ -216,7 +216,7 @@ had no matching GEX cell IDs and were excluded.",
 #' @details
 #' Cell matching is done via `cell_id` metadata, not raw Seurat barcodes.
 #' If GEX barcodes differ from `cell_id` (e.g. they carry a sample prefix),
-#' BCR cell names are renamed via [Seurat::RenameCells()] to match before the
+#' BCR cell names are renamed via [SeuratObject::RenameCells()] to match before the
 #' assay is transferred.
 #'
 #' Both objects are subset to their shared cells; the result is suitable for concatenation or WNN or other downstream workflows.

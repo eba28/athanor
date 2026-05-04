@@ -1,7 +1,6 @@
-# internal ggplot2 theme constants used across plotting functions
-
-# TODO: properly incorporate these into the package
-# TODO: give this a better name so it doesn't look like the base theme is just missing parentheses
+#' ggplot2 theme with horizontal grid lines only
+#'
+#' @export
 theme_bw_custom <- ggplot2::theme_bw() +
   ggplot2::theme(
     panel.grid.major.x = ggplot2::element_blank(),
@@ -9,6 +8,9 @@ theme_bw_custom <- ggplot2::theme_bw() +
                                                linewidth = 0.2)
   )
 
+#' Standard label sizes for athanor plots
+#'
+#' @export
 labels_standard <- ggplot2::theme(
   plot.title = ggplot2::element_text(size = 12, hjust = 0.5),
   plot.subtitle = ggplot2::element_text(size = 9, hjust = 0.5),
@@ -19,6 +21,13 @@ labels_standard <- ggplot2::theme(
   legend.text = ggplot2::element_text(size = 8)
 )
 
+#' Standard label sizes for violin plots
+#'
+#' @details
+#' Removes "Identity".
+#'
+#'
+#' @export
 labels_standard_vln <- ggplot2::theme(
   plot.title = ggplot2::element_text(size = 14, hjust = 0.5),
   plot.subtitle = ggplot2::element_text(size = 12, hjust = 0.5),
@@ -28,13 +37,22 @@ labels_standard_vln <- ggplot2::theme(
   legend.position = "none"
 )
 
+#' Violin plot labels with horizontal x-axis text
+#'
+#' @export
 labels_standard_vln_rotate <- labels_standard_vln +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5))
 
+#' Rotate x-axis labels 45 degrees
+#'
+#' @export
 labels_rotate_x <- ggplot2::theme(
   axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
 )
 
+#' Clean theme for UMAP plots
+#'
+#' @export
 clean_umap <- ggplot2::theme(
   plot.title = ggplot2::element_text(hjust = 0.5),
   axis.text.x = ggplot2::element_blank(),
@@ -43,6 +61,9 @@ clean_umap <- ggplot2::theme(
   aspect.ratio = 1
 )
 
+#' Patchwork annotation with Roman numeral panel labels
+#'
+#' @export
 plot_anno <- patchwork::plot_annotation(tag_levels = "I")
 
 
@@ -195,3 +216,5 @@ named_colors$embeddings <-
   setNames(c("#003049", "#6B2C39", "#D62828", "#F77F00", "#FCBF49", "#EAE2B7"),
            nm = c("antiberta2", "antiberty", "balm-paired", "esm2",
                   "immune2vec", "simulated"))
+
+# TODO: rearrange in alphabetical order
