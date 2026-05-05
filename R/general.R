@@ -61,8 +61,8 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
       cli::cli_inform("Using existing command {nn_command} for assay {assay} to determine num_dims ({num_dims}) and k_param ({k_param}).")
     }
       else {
-      cli::cli_warn("No existing neighbor graph found for assay {assay}, \\
-                    so using default values for num_dims (20) and k_param (20).")
+      cli::cli_inform(c("i" = "No existing neighbor graph found for assay {assay}, \\
+                               so using default values for num_dims (20) and k_param (20)."))
       if (missing(num_dims)) num_dims <- 20
       if (missing(k_param)) k_param <- 20
     }

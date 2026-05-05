@@ -472,7 +472,8 @@ plot_doublets <- function(seurat_obj, data_source, clrs_specific,
 #' Assumes "annotated_clusters" is a column.
 #'
 #' @param seurat_obj The post-WNN Seurat object.
-#' @param second_assay List of other assays run through WNN in order.
+#' @param data_source Dataset description.
+#' @param second_assay The second assay to compare against RNA (e.g. "BCR"). If multiple assays are provided, it will assume the weight column is in the format "main_assay.weight" (e.g. "BCR.weight").
 #' @param clrs_specific The specific color palette (should be named).
 #' @param split_by A meta.data column to split the box plots up by.
 #' @param facet_by A meta.data column to facet the box plots by.
@@ -481,9 +482,10 @@ plot_doublets <- function(seurat_obj, data_source, clrs_specific,
 #'
 #' @returns A ggplot with the distribution of weights
 #' @export
-plot_mws <- function(seurat_obj, second_assay = "BCR",
+plot_mws <- function(seurat_obj, data_source = "", second_assay = "BCR",
                      clrs_specific = named_colors$mu_freq_bins,
-                     split_by = "mu_freq_bins", facet_by = "annotated_clusters",
+                     split_by = "mu_freq_bins",
+                     facet_by = "annotated_clusters_simpler",
                      y_axis_label = "SHM Frequency Bins", details = NULL) {
   # parameter check
   if (!split_by %in% names(seurat_obj[[]])) {
@@ -492,8 +494,19 @@ plot_mws <- function(seurat_obj, second_assay = "BCR",
 
   main_assay <- ifelse(length(second_assay) > 1, second_assay[-1], second_assay)
 
-  weight <- grep(paste0("^", main_assay, ".*\\.weight.*$"),
-                 colnames(seurat_obj[[]]), value = TRUE)
+  # could return BCR.weight and BCR_equal
+  # weight <- grep(paste0("^", main_assay, ".*\\.weight.*$"),
+  #                colnames(seurat_obj[[]]), value = TRUE)
+
+  # assuming the weight colname is in the format "main_assay.weight"
+  weight <- paste0(main_assay, ".weight")
+  if (!weight %in% names(seurat_obj[[]])) {
+    cli::cli_abort("{weight} is not a valid metadata column name. \\
+                   Please make sure you have run WNN and that the weight \\
+                   column is named in the format 'main_assay.weight' \\
+                   (e.g. 'RNA.weight' or 'BCR.weight'). \\
+                   Available columns: {names(seurat_obj[[]])}.")
+  }
 
   n_assay <- length(second_assay) + 1
 
@@ -501,22 +514,13 @@ plot_mws <- function(seurat_obj, second_assay = "BCR",
     seurat_obj[[]][split_by] <- factor(seurat_obj[[]][[split_by]])
   }
 
-  # don't require using the embeddings approach
-  # TODO: add back this code
-  # if ("embedding_type" %in% names(seurat_obj@misc)) {
-  #   subtitle <- embedding_types[[seurat_obj@misc$embedding_type]]
-  # } else {
-  #   subtitle <- NULL
-  # }
-  subtitle <- NULL
-
   p <- ggplot(seurat_obj[[]],
               aes(x = !!sym(weight), y = !!sym(split_by),
                   fill = !!sym(split_by))) +
          geom_boxplot(outlier.size = 0.5) +
          geom_jitter(size = 0.2) +
-         labs(title = paste(details, "Weights by Cell Type"),
-              subtitle = subtitle, x = "Weights", y = y_axis_label) +
+         labs(title = paste(data_source, "Weights by Cell Type"),
+              subtitle = details, x = "Weights", y = y_axis_label) +
          scale_fill_manual(values = clrs_specific) +
          facet_wrap(vars(!!sym(facet_by)), scales = "fixed") +
          theme_bw_custom + labels_standard + theme(legend.position = "none")

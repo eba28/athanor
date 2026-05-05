@@ -15,7 +15,6 @@
 #' @importFrom clevr homogeneity
 #' @importFrom cli cli_abort
 #' @importFrom cli cli_inform
-#' @importFrom cli cli_warn
 #' @importFrom cluster silhouette
 #' @importFrom clusterSim index.DB
 #' @importFrom clValid dunn

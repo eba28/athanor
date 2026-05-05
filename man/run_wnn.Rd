@@ -14,7 +14,7 @@ run_wnn(
   cluster = FALSE,
   cluster_res = list(GEX = 1, BCR = 1, WNN = 1),
   modality_weights = NULL,
-  verbose = FALSE
+  verbose = TRUE
 )
 }
 \arguments{

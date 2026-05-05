@@ -269,7 +269,7 @@ get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
       biomaRt::useEnsembl(biomart = "genes", dataset = dataset,
                           version = ensembl_version),
       error = function(e) {
-         cli::cli_warn(c(
+         cli::cli_inform(c(
             "Ensembl archive v{ensembl_version} is unreachable; falling back to the current live release (v{current_version}).",
             "i" = "Use {.arg cache_file} to avoid this in future runs."
          ))

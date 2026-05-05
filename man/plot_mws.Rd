@@ -6,10 +6,11 @@
 \usage{
 plot_mws(
   seurat_obj,
+  data_source = "",
   second_assay = "BCR",
   clrs_specific = named_colors$mu_freq_bins,
   split_by = "mu_freq_bins",
-  facet_by = "annotated_clusters",
+  facet_by = "annotated_clusters_simpler",
   y_axis_label = "SHM Frequency Bins",
   details = NULL
 )
@@ -17,7 +18,9 @@ plot_mws(
 \arguments{
 \item{seurat_obj}{The post-WNN Seurat object.}
 
-\item{second_assay}{List of other assays run through WNN in order.}
+\item{data_source}{Dataset description.}
+
+\item{second_assay}{The second assay to compare against RNA (e.g. "BCR"). If multiple assays are provided, it will assume the weight column is in the format "main_assay.weight" (e.g. "BCR.weight").}
 
 \item{clrs_specific}{The specific color palette (should be named).}
 

@@ -35,7 +35,7 @@
 run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                     pc_bcr = 20, k_param = 20, cluster = FALSE,
                     cluster_res = list("GEX" = 1, "BCR" = 1, "WNN" = 1),
-                    modality_weights = NULL, verbose = FALSE) {
+                    modality_weights = NULL, verbose = TRUE) {
   # TODO: update this to be able to run on other omics e.g. GEX & ADT
   # TODO: add the option to filter out genes again???
   # TODO: give the option to use an integrated GEX assay

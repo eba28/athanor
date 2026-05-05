@@ -16,6 +16,8 @@
 calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
                                  cor_method = "spearman") {
   # TODO: only calculate on a subset of the neighbors if desired
+  # TODO: print a list of graphs used
+  # TODO: add a verbose parameter
 
   if (rlang::is_missing(features_adt)) {
     features_adt <- rownames(seurat_obj@assays[[adt_assay]])
