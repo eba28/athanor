@@ -150,21 +150,71 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
     Misc(seurat_obj, slot = "embedding_dims") <- nrow(seurat_obj@assays[["BCR"]])
   }
 
-  # find multimodal neighbors, then do clustering and make a UMAP
-  seurat_obj <-
-    Seurat::FindMultiModalNeighbors(object = seurat_obj,
-                                    reduction.list = list("rpca", "bpca"),
-                                    dims.list = list(1:pc_gex, 1:pc_bcr),
-                                    k.nn = k_param,
-                                    # match the RNA and BCR style
-                                    knn.graph.name = "w_nn",
-                                    snn.graph.name = "w_snn",
-                                    weighted.nn.name = "w.nn",
-                                    modality.weight.name =
-                                      str_c(c("RNA", "BCR"), ".weight"),
-                                    return.intermediate = TRUE,
-                                    modality.weight = modality_weights,
-                                    verbose = verbose)
+  # find multimodal neighbors
+  if (is.null(modality_weights)) {
+    seurat_obj <-
+      Seurat::FindMultiModalNeighbors(object = seurat_obj,
+                                      reduction.list = list("rpca", "bpca"),
+                                      dims.list = list(1:pc_gex, 1:pc_bcr),
+                                      k.nn = k_param,
+                                      # match the RNA and BCR style
+                                      knn.graph.name = "w_nn",
+                                      snn.graph.name = "w_snn",
+                                      weighted.nn.name = "w.nn",
+                                      modality.weight.name =
+                                        str_c(c("RNA", "BCR"), ".weight"),
+                                      return.intermediate = TRUE,
+                                      modality.weight = modality_weights,
+                                      verbose = verbose)
+
+    # add a metadata column listing which assay was chosen for each cell
+    seurat_obj@meta.data <-
+      seurat_obj[[]] %>%
+      mutate(weight_assay =
+               case_when(seurat_obj[[]][["RNA.weight"]] > 0.5 ~ "RNA",
+                         seurat_obj[[]][["RNA.weight"]] < 0.5 ~ "BCR",
+                         is.na(seurat_obj[[]][["RNA.weight"]]) ~ NA,
+                         .default = "Tie"))
+  } else {
+    # must provide a Seurat object with WNN already run so we can rebuild
+    # the ModalityWeights object
+    # TODO: see if there's a way to make it from scratch
+    if (modality_weights == "equal") {
+      mw_mod <- seurat_obj@misc$modality.weight
+      mw_mod_names <- Cells(seurat_obj)
+
+      mw_mod@modality.weight.list$rpca <-
+        setNames(rep(0.5, ncol(seurat_obj)), mw_mod_names)
+      mw_mod@modality.weight.list$bpca <-
+        setNames(rep(0.5, ncol(seurat_obj)), mw_mod_names)
+
+      seurat_obj <-
+        Seurat::FindMultiModalNeighbors(object = seurat_obj,
+                                        reduction.list = list("rpca", "bpca"),
+                                        dims.list = list(1:pc_gex, 1:pc_bcr),
+                                        k.nn = k_param,
+                                        # match the RNA and BCR style
+                                        knn.graph.name = "w_equal_nn",
+                                        snn.graph.name = "w_equal_snn",
+                                        weighted.nn.name = "w_equal.nn",
+                                        modality.weight.name =
+                                          str_c(c("RNA", "BCR"), "_equal.weight"),
+                                        return.intermediate = TRUE,
+                                        modality.weight = mw_mod,
+                                        verbose = verbose)
+
+      # add a metadata column listing which assay was chosen for each cell
+      seurat_obj@meta.data <-
+        seurat_obj[[]] %>%
+        mutate(weight_assay_equal =
+                 case_when(seurat_obj[[]][["RNA_equal.weight"]] > 0.5 ~ "RNA",
+                           seurat_obj[[]][["RNA_equal.weight"]] < 0.5 ~ "BCR",
+                           is.na(seurat_obj[[]][["RNA_equal.weight"]]) ~ NA,
+                           .default = "Tie"))
+    } else {
+      cli::cli_abort("Please provide a valid customization approach. Only 'equal' is currently supported.")
+    }
+  }
 
   # check for NA values
   # TODO: add this check to other UMAPs
@@ -190,10 +240,16 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                       ">" = "UMAP will not be run for the WNN reduction because
                       of the NA values."))
   } else {
-    seurat_obj <- Seurat::RunUMAP(object = seurat_obj, nn.name = "w.nn",
+    mw_name <- modality_weights
+    if (!is.null(modality_weights)) mw_name <- paste0("_", mw_name)
+
+    seurat_obj <- Seurat::RunUMAP(object = seurat_obj,
+                                  nn.name = paste0("w", mw_name, ".nn"),
                                   n.neighbors = k_param, # might not be needed
-                                  reduction.name = "wnn.umap",
-                                  reduction.key = "wnnUMAP_",
+                                  reduction.name =
+                                    paste0("wnn", mw_name, ".umap"),
+                                  reduction.key =
+                                    paste0("wnn", mw_name, "UMAP_"),
                                   verbose = verbose)
   }
 
@@ -225,15 +281,6 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
     Idents(seurat_obj) <- meta_res_wnn
   }
 
-  # add a metadata column listing which assay was chosen for each cell
-  seurat_obj@meta.data <-
-    seurat_obj[[]] %>%
-    mutate(weight_assay =
-             case_when(seurat_obj[[]][["RNA.weight"]] > 0.5 ~ "RNA",
-                       seurat_obj[[]][["RNA.weight"]] < 0.5 ~ "BCR",
-                       is.na(seurat_obj[[]][["RNA.weight"]]) ~ NA,
-                       .default = "Tie"))
-
   if (verbose) {
     if (!any(na_nn)) {
       cli::cli_inform(c("v" = "WNN neighbors calculated and UMAP run.",
@@ -256,7 +303,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
       #                   "i" = "{.code print(weight_summary)}"))
     } else {
       cli::cli_inform(c("v" = "Custom modality weights were used:",
-                        "i" = "{.arg modality_weights}"))
+                        "i" = "{modality_weights}"))
     }
   }
 
