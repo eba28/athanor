@@ -10,10 +10,11 @@ clusters in a post-WNN Seurat object. It should be run after
 ``` r
 plot_mws(
   seurat_obj,
+  data_source = "",
   second_assay = "BCR",
   clrs_specific = named_colors$mu_freq_bins,
   split_by = "mu_freq_bins",
-  facet_by = "annotated_clusters",
+  facet_by = "annotated_clusters_simpler",
   y_axis_label = "SHM Frequency Bins",
   details = NULL
 )
@@ -25,9 +26,15 @@ plot_mws(
 
   The post-WNN Seurat object.
 
+- data_source:
+
+  Dataset description.
+
 - second_assay:
 
-  List of other assays run through WNN in order.
+  The second assay to compare against RNA (e.g. "BCR"). If multiple
+  assays are provided, it will assume the weight column is in the format
+  "main_assay.weight" (e.g. "BCR.weight").
 
 - clrs_specific:
 
