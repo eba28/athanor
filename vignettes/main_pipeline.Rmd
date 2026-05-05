@@ -278,12 +278,12 @@ Modality weights:
 # by isotype
 plot_mws(seurat_obj = obj_wnn, second_assay = "BCR",
          clrs_specific = named_colors$isotype, split_by = "isotype",
-         y_axis_label = "Isotype")
+         facet_by = "annotated_clusters", y_axis_label = "Isotype")
 
 # by SHM frequency
 plot_mws(seurat_obj = obj_wnn, second_assay = "BCR",
          clrs_specific = named_colors$mu_freq_bins, split_by = "mu_freq_bins",
-         y_axis_label = "SHM Frequency Bins")
+         facet_by = "annotated_clusters", y_axis_label = "SHM Frequency Bins")
 ```
 
 ### Object summary
