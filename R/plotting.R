@@ -750,15 +750,16 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       # catch other possible comparisons
       if (!all(comparisons %in% possible_comps)) {
         other_comps <- comparisons[!comparisons %in% possible_comps]
-        cli::cli_alert("The following comparisons were not recognized and will be plotted if they are valid metadata columns: {other_comps}")
-
+        cli::cli_alert("{length(other_comps)} comparison{?s} {?was/were} \\
+                       not recognized and will be plotted if {?it/they} \\
+                       {?is a/are} valid metadata column{?s}: {other_comps}")
         for (comp in other_comps) {
           title <- stringr::str_to_title(stringr::str_replace_all(comp, "_", " "))
 
-          colors_specific <- if (comp %in% names(named_colors)) {
+          if (comp %in% names(named_colors)) {
             plots_overview[[paste0(comp, "_", type)]] <-
               plot_dimplot(seurat_obj = seurat_obj,
-                           data_source = "", clrs_specific = colors_specific,
+                           data_source = "", clrs_specific = named_colors[[comp]],
                            pt_size = pt_size,
                            title = paste(assay_name, title), reduc = reduction,
                            meta_col = comp, plot_label = FALSE,
