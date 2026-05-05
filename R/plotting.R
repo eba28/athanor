@@ -755,12 +755,25 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
         for (comp in other_comps) {
           title <- stringr::str_to_title(stringr::str_replace_all(comp, "_", " "))
 
-          plots_overview[[paste0(comp, "_", type)]] <-
-            plot_dimplot(seurat_obj = seurat_obj,
-                         data_source = "", use_hues = TRUE, pt_size = pt_size,
-                         title = paste(assay_name, title), reduc = reduction,
-                         meta_col = comp, plot_label = FALSE,
-                         details = details, ...)
+          colors_specific <- if (comp %in% names(named_colors)) {
+            plots_overview[[paste0(comp, "_", type)]] <-
+              plot_dimplot(seurat_obj = seurat_obj,
+                           data_source = "", clrs_specific = colors_specific,
+                           pt_size = pt_size,
+                           title = paste(assay_name, title), reduc = reduction,
+                           meta_col = comp, plot_label = FALSE,
+                           details = details, ...)
+          } else {
+            plots_overview[[paste0(comp, "_", type)]] <-
+              plot_dimplot(seurat_obj = seurat_obj,
+                           data_source = "", use_hues = TRUE,
+                           pt_size = pt_size,
+                           title = paste(assay_name, title), reduc = reduction,
+                           meta_col = comp, plot_label = FALSE,
+                           details = details, ...)
+          }
+
+
         }
       }
     }
