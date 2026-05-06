@@ -14,7 +14,7 @@
 #' @param assay Name of the assay to use for neighbor finding and UMAP.
 #' @param num_dims Number of PCA dimensions to use for neighbor finding.
 #' @param k_param Number of nearest neighbors.
-#' @param verbose Print out Seurat's progress messages.
+#' @param verbose Logical indicating whether or not to print messages.
 #'
 #' @returns A processed Seurat object with the `graphs`, `neighbors`, and `reductions` slots filled in or updated.
 #' @export
@@ -85,6 +85,8 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
   seurat_obj <- RunUMAP(seurat_obj, reduction = pca_name, assay = assay,
                         nn.name = nn_name, n.neighbors = k_param,
                         reduction.name = stringr::str_c(tolower(assay), ".umap"),
+                        # note that if assay has any underscores in it, Seurat
+                        # will remove them when making the key
                         reduction.key = stringr::str_c(tolower(assay), "UMAP_"),
                         verbose = verbose)
 

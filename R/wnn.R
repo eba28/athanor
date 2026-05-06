@@ -28,7 +28,7 @@
 #' @param cluster Whether or not to perform clustering.
 #' @param cluster_res Named list of clustering resolutions for GEX, BCR, and WNN.
 #' @param modality_weights Named vector of modality weights. If NULL, Seurat will calculate automatically.
-#' @param verbose Whether or not to show output from Seurat functions.
+#' @param verbose Logical indicating whether or not to print messages.
 #'
 #' @returns A Seurat object with WNN run.
 #' @export
@@ -117,6 +117,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
 
   if (!is_merged) {
     # TODO: double check this part
+    # TODO: use merge_gex_bcr??
 
     # build BCR object (subset to cells present in the GEX object)
     bcr_obj <- bcr_embeddings_pipeline(
@@ -243,14 +244,15 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
     mw_name <- modality_weights
     if (!is.null(modality_weights)) mw_name <- paste0("_", mw_name)
 
-    seurat_obj <- Seurat::RunUMAP(object = seurat_obj,
-                                  nn.name = paste0("w", mw_name, ".nn"),
-                                  n.neighbors = k_param, # might not be needed
-                                  reduction.name =
-                                    paste0("wnn", mw_name, ".umap"),
-                                  reduction.key =
-                                    paste0("wnn", mw_name, "UMAP_"),
-                                  verbose = verbose)
+    seurat_obj <-
+      Seurat::RunUMAP(object = seurat_obj,
+                      nn.name = paste0("w", mw_name, ".nn"),
+                      n.neighbors = k_param, # might not be needed
+                      reduction.name = paste0("wnn", mw_name, ".umap"),
+                      # note that if modality_weights has any underscores in it,
+                      # Seurat will remove them when making the key
+                      reduction.key = paste0("wnn", modality_weights, "UMAP_"),
+                      verbose = verbose)
   }
 
   # the Leiden algorithm (4) has been shown to be better than Louvain (1), but
@@ -259,19 +261,16 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
     algo <- 1
 
     # cluster the BCR assay
-    seurat_obj <- FindClusters(object = seurat_obj,
-                               graph.name = "BCR_snn",
+    seurat_obj <- FindClusters(object = seurat_obj, graph.name = "BCR_snn",
                                resolution = cluster_res[["BCR"]],
                                algorithm = algo, verbose = verbose)
     # cluster the GEX assay
     # TODO: do this in seurat_pipeline??
-    seurat_obj <- FindClusters(object = seurat_obj,
-                               graph.name = "RNA_snn",
+    seurat_obj <- FindClusters(object = seurat_obj, graph.name = "RNA_snn",
                                resolution = cluster_res[["GEX"]],
                                algorithm = algo, verbose = verbose)
     # cluster the WNN assay
-    seurat_obj <- FindClusters(object = seurat_obj,
-                               graph.name = "w_snn",
+    seurat_obj <- FindClusters(object = seurat_obj, graph.name = "w_snn",
                                resolution = cluster_res[["WNN"]],
                                algorithm = algo, verbose = verbose)
 

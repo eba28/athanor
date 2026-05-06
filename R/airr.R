@@ -61,7 +61,7 @@ add_family_info <- function(combined_airr) {
 #' @param num_pcs Number of principal components to compute.
 #' @param num_dims Number of PCA dimensions to use for neighbor finding and UMAP.
 #' @param k_param Number of nearest neighbors.
-#' @param verbose Logical indicating whether to print progress messages.
+#' @param verbose Logical indicating whether or not to print messages.
 #'
 #' @returns A Seurat object with a BCR assay, a new PCA (`bpca`), new neighbor graphs
 #'   (`BCR_nn`, `BCR_snn`, `BCR.nn`), and a new UMAP (`bcr.umap`).

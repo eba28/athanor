@@ -346,7 +346,7 @@ get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
 #' @param filter_genes If specified, filter out genes from this category (e.g. "IG" and/or "TR").
 #' @param ensembl_version Ensembl version for gene annotations (e.g. "GRCh38.104"). If NULL, uses the default in `get_airr_genes()`.
 #' @param cache_file Passed to [get_airr_genes()]. Path to a cached RDS result to use instead of querying Ensembl.
-#' @param verbose Print out Seurat's progress messages.
+#' @param verbose Logical indicating whether or not to print messages.
 #'
 #' @returns A processed Seurat object with PCA (`rpca`), neighbor graphs (`RNA_nn`,
 #'   `RNA_snn`, `RNA.nn`), optional clusters, and UMAP (`rna.umap`).

@@ -83,14 +83,14 @@ sim_gex_manual <- function(num_genes = 1000, num_cells = 2000,
 #' @param splatter_method Splatter simulation method.
 #' @param splatter_groups Group probabilities for Splatter simulation.
 #' @param seed Random seed for reproducible simulations.
-#' @param verbose Whether or not to print verbose output.
+#' @param verbose Logical indicating whether or not to print messages.
 #'
 #' @returns A Seurat object containing the simulated gene expression data with
 #'   metadata and cell identifiers
 #' @export
 sim_gex_splatter <- function(num_genes = 1000, num_cells = 2000,
                              splatter_groups = 1, splatter_method = "single",
-                             seed = 42, verbose = FALSE) {
+                             seed = 42, verbose = TRUE) {
   # splatter with defaults - gives a SCE object
   sim <- splatSimulate(params = newSplatParams(nGenes = num_genes,
                                                batchCells = num_cells,

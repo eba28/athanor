@@ -46,11 +46,26 @@ concatenate_gex_bcr <- function(seurat_obj, pca_stage = c("Before", "After"),
                                 cols_to_include, var_features = FALSE,
                                 normalize = TRUE, num_pcs = 50, num_dims = 20,
                                 k_param = 20, filter_genes,
-                                ensembl_version = NULL) {
-  # TODO: include k as a parameter?
+                                ensembl_version = NULL, verbose = TRUE) {
   pca_stage <- match.arg(pca_stage)
   # TODO: double check the formatting of filter genes
   # TODO: give an option to use a pre-defined list of filter_genes
+
+  # input validation
+  if (!inherits(seurat_obj, "Seurat")) {
+    cli::cli_abort("seurat_obj must be a Seurat object.")
+  }
+  if (missing(k_param)) {
+    # use the k from the GEX neighbors if it exists, otherwise default to 20
+    if ("RNA.nn" %in% names(seurat_obj@neighbors)) {
+      nn <- seurat_obj@neighbors[["RNA.nn"]]
+      k_param <- ncol(nn@nn.idx)
+      cli::cli_inform(c("i" = "Using k = {k_param}", " from RNA neighbors."))
+    } else {
+      k_param <- 20
+      cli::cli_inform(c("i" = "Using default k = {k_param}."))
+    }
+  }
 
   if (pca_stage == "Before") {
     # TODO: check if the RNA assay contains the names of the BCR assay
@@ -167,16 +182,6 @@ concatenate_gex_bcr <- function(seurat_obj, pca_stage = c("Before", "After"),
       ))
     }
 
-    # remove unnecessary WNN information
-    # seurat_obj@graphs$w_nn <- c()
-    # seurat_obj@graphs$w_snn <- c()
-    # seurat_obj@neighbors$w.nn <- c()
-    # seurat_obj@reductions$wnn.umap <- c()
-    seurat_obj[["w_nn"]] <- NULL
-    seurat_obj[["w_snn"]] <- NULL
-    seurat_obj[["w.nn"]] <- NULL
-    seurat_obj[["wnn.umap"]] <- NULL
-
     # just use the RNA slot by default
 
     # assumes that both reductions have the same number of PCs
@@ -194,16 +199,9 @@ concatenate_gex_bcr <- function(seurat_obj, pca_stage = c("Before", "After"),
 
   }
 
-  seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "rna_bcr.pca",
-                              k.param = k_param, dims = 1:num_dims,
-                              verbose = FALSE, graph.name = "RNA_BCR_nn")
-  seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "rna_bcr.pca",
-                              k.param = k_param, dims = 1:num_dims,
-                              return.neighbor = TRUE,
-                              verbose = FALSE, graph.name = "RNA_BCR.nn")
-  seurat_obj <- RunUMAP(object = seurat_obj, nn.name = "RNA_BCR.nn",
-                        n.neighbors = k_param, reduction.name = "rna_bcr.umap",
-                        reduction.key = "rnabcrUMAP_")
+  seurat_obj <- regen_reduc(seurat_obj = seurat_obj, pca_name = "rna_bcr.pca",
+                            assay = "RNA_BCR", num_dims = num_dims,
+                            k_param = k_param, verbose = verbose)
 
   return(seurat_obj)
 }

@@ -17,7 +17,7 @@
 #' @param airr_type Type of immune receptor data. Currently supports "BCR".
 #' @param combined_airr BCR AIRR formatted data frame with heavy and light chains.
 #' @param new_cols Vector of column names to select from the AIRR data.
-#' @param verbose Whether to print integration summary information.
+#' @param verbose Logical indicating whether or not to print integration summary information.
 #'
 #' @returns The Seurat object with AIRR columns added to the metadata, including
 #'   Has_BCR, isotype information, mutation frequencies, and pairing status.
@@ -230,7 +230,7 @@ had no matching GEX cell IDs and were excluded.",
 #' @param transfer_reductions Whether to copy BCR reductions (`bpca`,
 #'   `bcr.umap`) and graphs (`BCR.nn`, `BCR_nn`, `BCR_snn`) from `bcr_obj`
 #'   into the merged object.
-#' @param verbose Whether or not to print a summary of the merge.
+#' @param verbose Logical indicating whether or not to print a summary of the merge.
 #'
 #' @returns A Seurat object with both RNA and BCR assays and BCR metadata columns.
 #' @export
