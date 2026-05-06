@@ -24,7 +24,7 @@ regen_reduc(
 
 \item{k_param}{Number of nearest neighbors.}
 
-\item{verbose}{Print out Seurat's progress messages.}
+\item{verbose}{Logical indicating whether or not to print messages.}
 }
 \value{
 A processed Seurat object with the \code{graphs}, \code{neighbors}, and \code{reductions} slots filled in or updated.

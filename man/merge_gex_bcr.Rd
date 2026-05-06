@@ -17,7 +17,7 @@ metadata column (typically produced by \code{\link[=bcr_embeddings_pipeline]{bcr
 \code{bcr.umap}) and graphs (\code{BCR.nn}, \code{BCR_nn}, \code{BCR_snn}) from \code{bcr_obj}
 into the merged object.}
 
-\item{verbose}{Whether or not to print a summary of the merge.}
+\item{verbose}{Logical indicating whether or not to print a summary of the merge.}
 }
 \value{
 A Seurat object with both RNA and BCR assays and BCR metadata columns.

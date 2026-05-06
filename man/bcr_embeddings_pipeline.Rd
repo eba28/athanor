@@ -32,7 +32,7 @@ Only used when \code{combined_airr} is provided.}
 
 \item{k_param}{Number of nearest neighbors.}
 
-\item{verbose}{Logical indicating whether to print progress messages.}
+\item{verbose}{Logical indicating whether or not to print messages.}
 }
 \value{
 A Seurat object with a BCR assay, a new PCA (\code{bpca}), new neighbor graphs

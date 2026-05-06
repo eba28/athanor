@@ -42,7 +42,7 @@ seurat_pipeline(
 
 \item{cache_file}{Passed to \code{\link[=get_airr_genes]{get_airr_genes()}}. Path to a cached RDS result to use instead of querying Ensembl.}
 
-\item{verbose}{Print out Seurat's progress messages.}
+\item{verbose}{Logical indicating whether or not to print messages.}
 }
 \value{
 A processed Seurat object with PCA (\code{rpca}), neighbor graphs (\code{RNA_nn},

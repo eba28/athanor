@@ -10,7 +10,7 @@ sim_gex_splatter(
   splatter_groups = 1,
   splatter_method = "single",
   seed = 42,
-  verbose = FALSE
+  verbose = TRUE
 )
 }
 \arguments{
@@ -24,7 +24,7 @@ sim_gex_splatter(
 
 \item{seed}{Random seed for reproducible simulations.}
 
-\item{verbose}{Whether or not to print verbose output.}
+\item{verbose}{Logical indicating whether or not to print messages.}
 }
 \value{
 A Seurat object containing the simulated gene expression data with
