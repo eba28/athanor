@@ -12,6 +12,7 @@ plot_overview_comps(
   assay_name,
   reduction = "wnn.umap",
   use_adt = FALSE,
+  ncol,
   comparisons = c("annotated_clusters_simpler", "v_call_family", "light_chains",
     "isotype", "mu_freq"),
   ...
@@ -31,6 +32,8 @@ plot_overview_comps(
 \item{reduction}{Which reduction to plot (e.g. "rpca", "bcr.umap", "wnn.umap").}
 
 \item{use_adt}{Whether or not the comparisons being plotted represent ADT markers.}
+
+\item{ncol}{The number of columns to use in the grid.}
 
 \item{comparisons}{Which metadata columns to plot. By default, it will plot "annotated_clusters_simpler", "v_call_family", "light_chains", "isotype", and "mu_freq". The first one is the simplified CellTypist annotations, and the rest are BCR features.}
 }

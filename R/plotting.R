@@ -245,7 +245,7 @@ plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
 plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
                          use_hues = FALSE, pt_size = 0.2, title,
                          reduc = "rna.umap", meta_col = "annotated_clusters",
-                         highlight, plot_label = TRUE, label_size = 3,
+                         highlight, plot_label = FALSE, label_size = 3,
                          label_box = TRUE, include_legend = TRUE, legend_label,
                          sort_idents = TRUE, idents_char = TRUE, order = FALSE,
                          details, ...) {
@@ -280,7 +280,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
   meta_col <- stringr::str_to_title(stringr::str_replace_all(meta_col, "_", " "))
 
   # fill in missing arguments if needed
-  if (data_source == "") data_source <- NULL # don't show the subtitle
+  if (is.null(data_source) || data_source == "") data_source <- NULL # don't show the subtitle
   if (rlang::is_missing(title)) title <- meta_col
   # if you want to use default ggplot2 or generated iwanthue colors
   if (rlang::is_missing(clrs_specific)) {
@@ -329,7 +329,9 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 
   # give white background to the boxes (skip in highlight modes)
   if (label_box && rlang::is_missing(highlight)) {
-    p <- p + scale_fill_manual(values = rep("white", length(clrs_specific)))
+    # Idents will always be a factor due to previous code in this function,
+    # so using nlevels is safe
+    p <- p + scale_fill_manual(values = rep("white", nlevels(Idents(seurat_obj))))
     # okay this seems to be broken right now, so do this too
     if ("geom.use" %in% names(p@layers)) {
       p@layers$geom.use$aes_params$fill <- rep("white", length(clrs_specific))
@@ -566,13 +568,14 @@ plot_mws <- function(seurat_obj, data_source = "", second_assay = "BCR",
 #' @param assay_name The name of the assay to use in the title. By default, it will be set based on the reduction (e.g. "GEX" for "rna.umap", "BCR" for "bcr.umap", and "GEX & BCR" for "wnn.umap").
 #' @param reduction Which reduction to plot (e.g. "rpca", "bcr.umap", "wnn.umap").
 #' @param use_adt Whether or not the comparisons being plotted represent ADT markers.
+#' @param ncol The number of columns to use in the grid.
 #' @param comparisons Which metadata columns to plot. By default, it will plot "annotated_clusters_simpler", "v_call_family", "light_chains", "isotype", and "mu_freq". The first one is the simplified CellTypist annotations, and the rest are BCR features.
 #'
 #' @return A patchwork object with overview plots in a grid.
 #' @export
 plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                                 second_assay = "BCR", assay_name,
-                                reduction = "wnn.umap", use_adt = FALSE,
+                                reduction = "wnn.umap", use_adt = FALSE, ncol,
                                 comparisons = c("annotated_clusters_simpler",
                                                 "v_call_family", "light_chains",
                                                 "isotype", "mu_freq"), ...) {
@@ -781,16 +784,12 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
   }
 
   # combine all of the plots
-  if (length(seurat_objs) == 1) {
+  if (!missing(ncol)) {
+    wrap_plots(plots_overview, ncol = ncol, byrow = FALSE) +
+      plot_anno + plot_layout(guides = "collect")
+  } else if (length(seurat_objs) == 1) {
     wrap_plots(plots_overview, ncol = min(length(comparisons), 5)) + plot_anno
   } else {
-    # if (use_adt) {
-    #   wrap_plots(plots_overview, ncol = length(seurat_objs)) +
-    #     plot_anno # + plot_layout(guides = "collect")
-    # } else {
-    #   wrap_plots(plots_overview, nrow = length(comparisons), byrow = FALSE) +
-    #     plot_anno + plot_layout(guides = "collect")
-    # }
     wrap_plots(plots_overview, nrow = length(comparisons), byrow = FALSE) +
       plot_anno + plot_layout(guides = "collect")
   }

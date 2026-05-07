@@ -291,6 +291,14 @@ merge_gex_bcr <- function(gex_obj, bcr_obj, transfer_reductions = TRUE,
 
   if (verbose) cli::cli_inform(c("!" = "{n_missing} cells had no BCR metadata and were excluded."))
 
+  # filter out cells without paired light chains
+  # have to use quotes because it is a factor
+  n_unpaired <- sum(seurat_obj$paired_light == "FALSE")
+  seurat_obj <- subset(seurat_obj, paired_light == "TRUE")
+  bcr_obj <- subset(bcr_obj, paired_light == "TRUE")
+
+  if (verbose) cli::cli_inform(c("!" = "{n_unpaired} cells had no paired light chain{?s} and were excluded."))
+
   # just in case
   seurat_obj@meta.data <- seurat_obj@meta.data %>% droplevels()
 
