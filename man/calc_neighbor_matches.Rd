@@ -17,6 +17,7 @@ calc_neighbor_matches(
   permute = FALSE,
   n_permutations = 10,
   previous_matches,
+  return_mean = TRUE,
   path_save
 )
 }
@@ -41,11 +42,14 @@ feature before computing matches to get a random baseline.}
 \item{previous_matches}{Data frame of previous matches to combine with new
 results (optional).}
 
+\item{return_mean}{If TRUE, return the mean across all cells; else return
+per-cell values.}
+
 \item{path_save}{Where to save the results.}
 }
 \value{
 Data frame with columns: Full_Name, Category, Category_Details,
-Assay, Meta_Col, Method, Matches.
+Assay, Meta_Col, Method, Matches. If \code{return_mean = TRUE}, \code{Matches} will be the mean across all cells; else it will contain per-cell values.
 }
 \description{
 Calculates the proportion of neighbors that match each cell's metadata

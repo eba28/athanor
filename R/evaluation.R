@@ -18,6 +18,7 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
   # TODO: only calculate on a subset of the neighbors if desired
   # TODO: print a list of graphs used
   # TODO: add a verbose parameter
+  # TODO: include the airrflow version?
 
   if (rlang::is_missing(features_adt)) {
     features_adt <- rownames(seurat_obj@assays[[adt_assay]])
@@ -354,10 +355,12 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
 #' @param n_permutations The number of times to permute labels.
 #' @param previous_matches Data frame of previous matches to combine with new
 #'   results (optional).
+#' @param return_mean If TRUE, return the mean across all cells; else return
+#'   per-cell values.
 #' @param path_save Where to save the results.
 #'
 #' @return Data frame with columns: Full_Name, Category, Category_Details,
-#'   Assay, Meta_Col, Method, Matches.
+#'   Assay, Meta_Col, Method, Matches. If `return_mean = TRUE`, `Matches` will be the mean across all cells; else it will contain per-cell values.
 #' @export
 calc_neighbor_matches <- function(seurat_obj, nn_name,
                                   meta_cols =
@@ -371,11 +374,12 @@ calc_neighbor_matches <- function(seurat_obj, nn_name,
                                   adt_features = NULL, adt_range = 0.1,
                                   adt_methods = c("mean_abs", "range"),
                                   permute = FALSE, n_permutations = 10,
-                                  previous_matches, path_save) {
+                                  previous_matches, return_mean = TRUE, path_save) {
   # TODO: improve the assay that is returned
   # TODO: don't require category and category details
-  # TODO: return the mean as an option
+  # TODO: rename matches to score for consistency
 
+  # input validation
   if (!rlang::is_missing(path_save)) {
     if (!dir.exists(path_save)) dir.create(path_save, recursive = TRUE)
   }
@@ -403,7 +407,7 @@ calc_neighbor_matches <- function(seurat_obj, nn_name,
 
     # calculate matches for categorical/discrete metadata
     for (meta_col in meta_cols) {
-      meta_group <- seurat_obj[[]][[meta_col]]
+      meta_group <- seurat_obj@meta.data[[meta_col]]
       assay <- ifelse(meta_col %in% str_c("annotated_clusters_",
                                           c("binary", "gex_bcr", "simpler")),
                       "GEX", "BCR")
@@ -534,18 +538,29 @@ calc_neighbor_matches <- function(seurat_obj, nn_name,
                                 TRUE ~ Category),
            Category = str_replace_all(Category, "_", " "))
 
-  neighbor_matches <- neighbor_matches %>%
+  neighbor_matches <-
+    neighbor_matches %>%
     mutate(Meta_Col = ifelse(Assay == "ADT", toupper(Meta_Col), Meta_Col))
+
+  if (return_mean) {
+    neighbor_matches <-
+      neighbor_matches %>%
+      group_by(Full_Name, Category, Category_Details, Assay, Meta_Col,
+               Method) %>%
+      summarize(Matches = mean(Matches, na.rm = TRUE), .groups = "drop")
+  }
 
   # TODO: add the graphs too, or calculate on all graphs
   cli::cli_inform("Scores calculated on {k} neighbors for \\
-{str_replace_all(seurat_obj@misc$category, '_', ' ')} \\
-{str_replace_all(seurat_obj@misc$category_details, '_', ' ')}.")
+                  {str_replace_all(seurat_obj@misc$category, '_', ' ')} \\
+                  {str_replace_all(seurat_obj@misc$category_details, '_', ' ')}.")
 
   if (!rlang::is_missing(path_save)) {
     file_name <- tolower(str_c(category, category_details, sep = "_"))
-    qd_save(neighbor_matches,
-            file.path(path_save, paste0(file_name, ".qdata")))
+    path_save <- file.path(path_save, paste0(file_name, ".qdata"))
+    qd_save(neighbor_matches, path_save)
+
+    cli::cli_inform(c("v" = "Saved neighbor matches to {path_save}"))
   } else {
     return(neighbor_matches)
   }
