@@ -63,8 +63,8 @@ gex_add_airr <- function(seurat_obj, airr_type = "BCR",
   }
 
   # Seurat only takes unique cell ids, hence the filter to heavy/beta chains
-  cells_main <- (filter(combined_airr, locus == "IGH"))$cell_id
-  cells_other <- (filter(combined_airr, locus != "IGH"))$cell_id
+  cells_main <- (filter(combined_airr, locus == locus_main))$cell_id
+  cells_other <- (filter(combined_airr, locus != locus_main))$cell_id
   cells_paired <- intersect(cells_main, cells_other) # cells_main[which(cells_main %in% cells_other)]
 
   # select columns of interest from the AIRR data
@@ -163,22 +163,38 @@ gex_add_airr <- function(seurat_obj, airr_type = "BCR",
                ifelse(mu_freq <= 0.01 & isotype %in% c("IgM", "IgD"),
                       "Naive B Cells", "Non-Naive B Cells"))
 
-    # TODO: print out that this wasn't added if applicable
     if ("annotated_clusters_simpler" %in% colnames(seurat_obj[[]])) {
-             # assumes that the plasma cells don't need re-assigning
+      # assumes that the plasma cells don't need re-assigning
       seurat_obj@meta.data <-
         seurat_obj[[]] %>%
         mutate(annotated_clusters_gex_bcr =
                  ifelse(annotated_clusters_simpler == "Naive B cells" &
                           (mu_freq > 0.01 | isotype %in% c("IgA", "IgE", "IgG")),
                         "Memory B cells", annotated_clusters_simpler))
+    } else {
+      cli::cli_inform(c("!" = "{.code annotated_clusters_gex_bcr} not added: \\
+        {.code annotated_clusters_simpler} column not found in metadata."))
+    }
+  } else if (airr_type == "TCRs") {
+    # classify cells by TCR chain type (alpha-beta vs gamma-delta)
+    has_tra <- "v_call_family_TRA" %in% names(seurat_obj[[]])
+    has_trg <- "v_call_family_TRG" %in% names(seurat_obj[[]])
+
+    if (has_tra || has_trg) {
+      seurat_obj@meta.data <-
+        seurat_obj[[]] %>%
+        mutate(tcr_chain_type =
+                 case_when(has_tra & !is.na(v_call_family_TRA) ~ "Alpha-Beta",
+                           has_trg & !is.na(v_call_family_TRG) ~ "Gamma-Delta",
+                           .default = NA),
+               .after = locus)
     }
   }
 
   # make sure that the levels are okay
   seurat_obj@meta.data <- seurat_obj@meta.data %>% droplevels()
 
-  # print an verbose of the integration
+  # print a summary of the integration
   if (verbose) {
     count_gex_airr <- nrow(filter(combined_airr_select, get(airr_col)))
     count_paired <- nrow(filter(combined_airr_select, get(paired_col) == "TRUE"))
@@ -199,6 +215,31 @@ gex_add_airr <- function(seurat_obj, airr_type = "BCR",
 ({label_percent(accuracy = 0.1)(count_excluded)} of total {chain_main} chains) \\
 had no matching GEX cell IDs and were excluded.",
       "i" = "New metadata columns added: {new_cols}."))
+
+    # detailed chain pairing breakdown
+    if (airr_type == "BCRs") {
+      has_igk <- !is.na(combined_airr_select$v_call_family_IGK)
+      has_igl <- !is.na(combined_airr_select$v_call_family_IGL)
+      count_one_light  <- sum(xor(has_igk, has_igl))
+      count_multi_light <- sum(has_igk & has_igl)
+      count_no_light   <- sum(!has_igk & !has_igl)
+      cli::cli_inform(c(
+        "i" = "Of the {count_gex_airr} heavy chains: {count_one_light} have one paired \\
+light chain, {count_multi_light} have multiple paired light chains, \\
+and {count_no_light} have no paired light chain."))
+    } else if (airr_type == "TCRs" &&
+               "v_call_family_TRA" %in% names(combined_airr_select)) {
+      has_tra <- !is.na(combined_airr_select$v_call_family_TRA)
+      count_one_alpha   <- sum(has_tra & !str_detect(combined_airr_select$v_call_family_TRA,
+                                                     ", ", negate = FALSE))
+      count_multi_alpha <- sum(has_tra & str_detect(combined_airr_select$v_call_family_TRA,
+                                                    ", "))
+      count_no_alpha    <- sum(!has_tra)
+      cli::cli_inform(c(
+        "i" = "Of the {count_gex_airr} beta chains: {count_one_alpha} have one paired \\
+alpha chain, {count_multi_alpha} have multiple paired alpha chains, \\
+and {count_no_alpha} have no paired alpha chain."))
+    }
   }
 
   # return the updated Seurat object
@@ -254,10 +295,14 @@ merge_gex_bcr <- function(gex_obj, bcr_obj, transfer_reductions = TRUE,
     cli::cli_abort("No shared cell ids found; please check 'cell_id' formatting in both objects.")
   }
 
-  # original cell counts
+  # original cell counts and BCR info
   n_gex <- ncol(gex_obj)
   n_bcr <- ncol(bcr_obj)
   n_shared <- length(shared_cell_ids)
+
+  # TODO: use inferring functions
+  bcr_dims <- bcr_obj@neighbors$BCR.nn@alg.info$ndim
+  bcr_k <- ncol(bcr_obj@neighbors[["BCR.nn"]]@nn.idx)
 
   if (verbose) {
     cov_gex <- scales::label_percent(accuracy = 0.1)(n_shared / n_gex)
@@ -281,11 +326,12 @@ merge_gex_bcr <- function(gex_obj, bcr_obj, transfer_reductions = TRUE,
     left_join(seurat_obj[[]],
               bcr_obj[[]] %>% select(cell_id, nCount_BCR, nFeature_BCR),
               by = join_by(cell_id)) %>%
-    relocate(nCount_BCR, nFeature_BCR, .after = nFeature_ADT)
+    {if ("nFeature_ADT" %in% names(.))
+      relocate(., nCount_BCR, nFeature_BCR, .after = nFeature_ADT) else .}
   rownames(seurat_obj@meta.data) <- seurat_obj$cell_id
 
   # filter out cells that have no BCR data
-  n_missing <- sum(!obj$Has_BCR)
+  n_missing <- sum(!seurat_obj$Has_BCR)
   seurat_obj <- subset(seurat_obj, Has_BCR == TRUE)
   bcr_obj <- subset(bcr_obj, Has_BCR == TRUE)
 
@@ -305,6 +351,11 @@ merge_gex_bcr <- function(gex_obj, bcr_obj, transfer_reductions = TRUE,
   # transfer BCR reductions and graphs
   # assumes standard names for the BCR object
   if (transfer_reductions) {
+    for (reduc in c("bpca", "bcr.umap")) {
+      if (reduc %in% names(bcr_obj@reductions)) {
+        seurat_obj@reductions[[reduc]] <- bcr_obj@reductions[[reduc]]
+      }
+    }
     for (graph in c("BCR_nn", "BCR_snn")) {
       if (graph %in% names(bcr_obj@graphs)) {
         seurat_obj@graphs[[graph]] <- bcr_obj@graphs[[graph]]
@@ -314,11 +365,15 @@ merge_gex_bcr <- function(gex_obj, bcr_obj, transfer_reductions = TRUE,
     for (nn in "BCR.nn") {
       if (nn %in% names(bcr_obj@neighbors)) {
         seurat_obj@neighbors[[nn]] <- bcr_obj@neighbors[[nn]]
-      }
-    }
-    for (reduc in c("bpca", "bcr.umap")) {
-      if (reduc %in% names(bcr_obj@reductions)) {
-        seurat_obj@reductions[[reduc]] <- bcr_obj@reductions[[reduc]]
+      } else {
+        # don't need all of regen_reduc()
+        # TODO: do this on the bcr_obj?
+        seurat_obj@neighbors[[nn]] <-
+          FindNeighbors(seurat_obj, reduction = "bpca",
+                        dims = 1:bcr_dims, k.param = bcr_k,
+                        graph.name = stringr::str_c("BCR", "_", c("", "s"),
+                                                    "nn"),
+                        verbose = verbose)
       }
     }
   }
@@ -327,6 +382,7 @@ merge_gex_bcr <- function(gex_obj, bcr_obj, transfer_reductions = TRUE,
   seurat_obj@commands <- c(seurat_obj@commands, bcr_obj@commands)
   seurat_obj@misc <- c(seurat_obj@misc, bcr_obj@misc)
 
+  # TODO: print out the reductions
   if (verbose) {
     n_gex_only <- n_gex - n_shared
     n_bcr_only <- n_bcr - n_shared
@@ -345,210 +401,494 @@ merge_gex_bcr <- function(gex_obj, bcr_obj, transfer_reductions = TRUE,
 }
 
 
+#' Infer k_param from existing RNA neighbors, or return a default.
+#'
+#' @description
+#' Infers the k_param used for neighbor finding from the existing RNA neighbors slot, or
+#' returns a default if not found.
+#'
+#' @param seurat_obj A Seurat object containing a neighbors slot.
+#' @param default The default k_param to return if not found in the neighbors slot.
+#' @param verbose Logical indicating whether or not to print a message about the source of the
+#' inferred k_param.
+#'
+#' @returns An integer representing the k_param used for neighbor finding.
+infer_k_param <- function(seurat_obj, default = 20, verbose = TRUE) {
+  # # TODO: only print out the actual values that are filled in
+  # if (missing(num_dims) | missing(k_param)) {
+  #   # try to use the existing neighbors slot if possible
+  #   if (nn_name %in% names(seurat_obj@neighbors)) {
+  #     nn <- seurat_obj@neighbors[[nn_name]]
+  #
+  #     if (missing(num_dims)) num_dims <- nn@alg.info$ndim
+  #     if (missing(k_param)) k_param <- ncol(nn@nn.idx)
+  #
+  #     cli::cli_inform("Using existing neighbor graph for assay {assay} to determine num_dims ({num_dims}) and k_param ({k_param}).")
+  #   } else if (nn_command %in% names(seurat_obj@commands)) {
+  #     cmd <- seurat_obj@commands[[nn_command]]
+  #
+  #     if (missing(num_dims)) num_dims <- length(cmd$dims)
+  #     if (missing(k_param)) k_param <- cmd$k.param
+  #
+  #     cli::cli_inform("Using existing command {nn_command} for assay {assay} to determine num_dims ({num_dims}) and k_param ({k_param}).")
+  #   }
+  #   else {
+  #     cli::cli_inform(c("i" = "No existing neighbor graph found for assay {assay}, \\
+  #                              so using default values for num_dims (20) and k_param (20)."))
+  #     if (missing(num_dims)) num_dims <- 20
+  #     if (missing(k_param)) k_param <- 20
+  #   }
+  # }
+
+  has_nn <- "RNA.nn" %in% names(seurat_obj@neighbors)
+  k <- if (has_nn) ncol(seurat_obj@neighbors[["RNA.nn"]]@nn.idx) else as.integer(default)
+  if (verbose) {
+    source_msg <- if (has_nn) "RNA neighbors" else "default"
+    cli::cli_inform(c("i" = "Using k_param = {k} from {source_msg}."))
+  }
+  k
+}
+
+#' Infer num_dims (PCA dims used for neighbor finding) from existing RNA neighbors.
+#'
+#' @description
+#' Infers the number of dimensions used for neighbor finding from the existing RNA neighbors slot, or returns a default if not found.
+#'
+#' @param seurat_obj A Seurat object containing a neighbors slot.
+#' @param default The default number of dimensions to return if not found in the neighbors slot.
+#' @param verbose Logical indicating whether or not to print a message about the source of the inferred num_dims.
+#'
+#' @returns An integer representing the number of dimensions used for neighbor finding.
+infer_num_dims <- function(seurat_obj, default = 20, verbose = TRUE) {
+  has_nn <- "RNA.nn" %in% names(seurat_obj@neighbors)
+  d <- if (has_nn) seurat_obj@neighbors[["RNA.nn"]]@alg.info$ndim else as.integer(default)
+  if (verbose) {
+    source_msg <- if (has_nn) "existing neighbors" else "default"
+    cli::cli_inform(c("i" = "Using num_dims = {d} from {source_msg}."))
+  }
+  d
+}
+
+
 #' Concatenate GEX and BCR data in a Seurat object
 #'
 #' @description
-#' Creates a new assay combining gene expression (GEX) and B-cell receptor (BCR)
-#' data by concatenating processed BCR features with RNA data. Runs the standard
-#' Seurat pipeline on the combined data.
+#' Creates a combined representation of gene expression (GEX) and B-cell
+#' receptor (BCR) data, then runs the standard Seurat pipeline on the result.
+#' Supports two input types and two PCA stages — see Details.
 #'
 #' @details
 #' This would typically be used after [seurat_pipeline()] and [gex_add_airr()].
-#' The function:
-#'   1. Extracts specified BCR metadata columns from the Seurat object
-#'   2. Processes BCR features using [process_bcr_features()]
-#'   3. Creates a new assay by row-binding RNA and BCR data
-#'   4. Optionally filters out IG/TR genes from variable features
-#'   5. Runs standard Seurat workflow: normalize, scale, PCA, neighbors, UMAP
 #'
-#' @note
-#' Currently assumes BCR data is already integrated into object metadata.
+#' The six combinations of `input_type` and `pca_stage` offer different
+#' tradeoffs:
 #'
-#' @param seurat_obj A Seurat object containing RNA assay and BCR metadata. If
-#'   this is a merged object produced by [merge_gex_bcr()] (i.e., it has a BCR
-#'   assay), `cols_to_include` may be omitted and the BCR assay features will be
-#'   used directly.
-#' @param pca_stage Add BCR information before PCA or after PCA.
-#' @param cols_to_include Character vector of BCR metadata column names to include
-#'   in the concatenated assay e.g. c("mu_freq", "isotype") or embedded dimensions.
-#'   Optional when a BCR assay is already present in `seurat_obj`.
-#' @param var_features If TRUE, run FindVariableFeatures on the combined
-#'   assay. If FALSE, concatenate BCR features onto existing variable features.
-#' @param normalize If TRUE, normalize the combined assay using
-#'   LogNormalize. If FALSE, skip normalization.
+#' **`input_type = "embeddings"`, `pca_stage = "raw"`** \cr
+#' Same as above but BCR data comes from a pre-computed embedding matrix or the
+#' `BCR` assay of a merged object (from [merge_gex_bcr()]). Supply `embeddings`
+#' directly or pass a merged object and the BCR assay is detected automatically.
+#' Embedding dimensions tend to have more comparable scales to RNA features than
+#' raw metadata columns, but scale mismatch still applies.
+#'
+#' **`input_type = "features"`, `pca_stage = "raw"`** (default) \cr
+#' BCR metadata columns (via `cols_to_include`) are processed by
+#' [process_bcr_features()] into a numeric features-by-cells matrix and
+#' row-bound onto the RNA count/data matrix. A new `RNA_BCR` assay is created
+#' and the full Seurat pipeline (normalize, scale, PCA, neighbors, UMAP) is run
+#' from scratch on the combined data. The main limitation is scale mismatch:
+#' log-normalized RNA values and BCR metadata live in different ranges, so PCA
+#' may be dominated by whichever modality has higher total variance even after
+#' scaling.
+#'
+#' **`input_type = "embeddings"`, `pca_stage = "reduced"`** \cr
+#' Same as the features variant above but uses BCR embeddings instead of
+#' metadata columns. BCR embedding dimensions are appended to transposed GEX PCA
+#' embeddings and a joint PCA is run on the combined matrix.
+#'
+#' **`input_type = "features"`, `pca_stage = "reduced"`** \cr
+#' A middle ground between `"raw"` and `"embed"`. Instead of row-binding BCR
+#' features onto the raw RNA matrix, they are appended to the transposed GEX PCA
+#' embeddings (`rpca`, subset to `num_dims` PCs). The combined matrix
+#' (n_gex_pcs + n_bcr_features rows) is stored as a new `RNA_BCR` assay,
+#' scaled, and a joint PCA is run. This avoids the scale mismatch of `"raw"`
+#' (GEX PCs and BCR metadata are in more comparable ranges) while still
+#' performing a new projection that can mix the two modalities. Normalization is
+#' skipped since GEX PCs are already processed. `filter_genes` does not apply.
+#'
+#' **`input_type = "embeddings"`, `pca_stage = "embed"`** \cr
+#' Column-binds the existing `rpca` and `bpca` reductions directly. Requires a
+#' merged object from [merge_gex_bcr()] with both reductions already computed.
+#' This is the most efficient path when BCR embeddings are already available.
+#' As with the features "embed" path, `num_dims` controls how many PCs are taken
+#' from each reduction before joining.
+#'
+#' **`input_type = "features"`, `pca_stage = "embed"`** \cr
+#' BCR metadata features are first embedded into their own PCA space: a
+#' `BCR_meta` assay is created, scaled, and PCA is run to produce `bcr_meta.pca`
+#' (capped at `nrow(bcr_features) - 1` PCs). The resulting BCR PCA embeddings
+#' are then column-bound with the existing `rpca` embeddings to form a joint PCA
+#' space. This is more principled than `"raw"` for metadata features because
+#' both modalities are in comparable PCA spaces before being joined, and each
+#' modality's internal variance structure is preserved. Use `num_dims` to
+#' control how many PCs are taken from each side.
+#'
+#' For the `"raw"` and `"reduced"` paths, variable features are always set by
+#' appending BCR features onto the existing RNA variable features rather than
+#' re-running [FindVariableFeatures()]. Re-running would drop BCR features from
+#' the selection and trigger Seurat warnings about underscores in feature names
+#' and missing count layers.
+#'
+#' The `normalize`, `num_features`, `num_pcs`, `num_dims`, and `k_param`
+#' arguments are passed to [seurat_pipeline()] for the `"raw"` and `"reduced"`
+#' paths. For `"reduced"` and `"embed"`, `num_dims` additionally controls how
+#' many GEX PCs are taken from `rpca` before concatenation.
+#'
+#' @param seurat_obj A Seurat object with RNA assay and BCR metadata.
+#' @param pca_stage One of `"raw"`, `"reduced"`, or `"embed"`. `"raw"`
+#'   concatenates at the count/feature level and runs a joint PCA from scratch.
+#'   `"reduced"` appends BCR features onto transposed GEX PCA embeddings and
+#'   runs a joint PCA. `"embed"` column-binds existing GEX and BCR PCA spaces
+#'   directly. See Details for all combinations.
+#' @param gex_reduction Name of the GEX PCA reduction to use as the GEX
+#'   component for `pca_stage = "reduced"` and `pca_stage = "embed"`. Defaults
+#'   to `"rpca"`. Use `"integrated"` to use a batch-corrected reduction (e.g.
+#'   from Harmony).
+#' @param input_type `"features"` to use processed BCR metadata columns;
+#'   `"embeddings"` to use a pre-computed embedding matrix or the BCR assay
+#'   from a merged object.
+#' @param cols_to_include Character vector of BCR metadata column names to use
+#'   as features (e.g. `c("mu_freq", "isotype")`). Required for
+#'   `input_type = "features"`.
+#' @param embeddings A features-by-cells matrix of BCR embeddings. Required for
+#'   `input_type = "embeddings"` when no merged object is provided.
+#' @param filter_genes If specified, filter out genes from this category
+#'   (e.g. `"IG"` and/or `"TR"`). Only applies for `pca_stage = "raw"`.
+#' @param ensembl_version Ensembl version for gene annotations (e.g.
+#'   `"GRCh38.104"`). If `NULL`, auto-detected from
+#'   `Misc(seurat_obj, "ensembl_version")` when available.
+#' @param cache_file Passed to [get_airr_genes()]. Path to a cached RDS result
+#'   to use instead of querying Ensembl live.
+#' @param normalize If `TRUE`, normalize the `RNA_BCR` assay before scaling.
+#'   Set to `FALSE` if the data has already been normalized. Ignored for
+#'   `pca_stage = "reduced"` (GEX PCs do not need normalization).
+#' @param num_features Number of variable features for the `"Before"` paths.
 #' @param num_pcs Number of principal components to compute.
-#' @param num_dims Number of PCA dimensions to use for neighbor finding and UMAP.
+#' @param num_dims Number of PCA dimensions to use for neighbor finding. For
+#'   `"After"` and `"Before_PCs"`, also controls how many GEX PCs are taken
+#'   from `rpca` before concatenation.
 #' @param k_param Number of nearest neighbors.
-#' @param filter_genes If specified, filter out genes from this category (e.g. "IG" and/or "TR")
-#' @param ensembl_version If filtering genes, specify the Ensembl version to use for gene annotations (e.g. "GRCh38.104"). If NULL, uses the default version in [get_airr_genes()].
+#' @param verbose Whether to show output from Seurat functions.
 #'
-#' @return
-#' A Seurat object with:
-#'   - New `RNA_BCR` assay containing concatenated GEX and BCR features
+#' @returns A Seurat object with:
+#'   - New `RNA_BCR` assay (for `pca_stage = "Before"`)
 #'   - PCA reduction (`rna_bcr.pca`)
 #'   - UMAP reduction (`rna_bcr.umap`)
 #'   - Neighbor graphs computed on the combined data
 #' @export
-concatenate_gex_bcr <- function(seurat_obj, pca_stage = c("Before", "After"),
-                                cols_to_include, var_features = FALSE,
-                                normalize = TRUE, num_pcs = 50, num_dims = 20,
-                                k_param = 20, filter_genes,
-                                ensembl_version = NULL, verbose = TRUE) {
-  pca_stage <- match.arg(pca_stage)
-  # TODO: double check the formatting of filter genes
-  # TODO: give an option to use a pre-defined list of filter_genes
+concatenate_gex_bcr <- function(seurat_obj,
+                                pca_stage = c("raw", "reduced", "embed"),
+                                input_type = c("features", "embeddings"),
+                                cols_to_include, embeddings = NULL,
+                                gex_reduction = "rpca",
+                                filter_genes, ensembl_version = NULL,
+                                cache_file = NULL,
+                                normalize = TRUE, num_features = 2000,
+                                num_pcs = 50, num_dims = 20, k_param = 20,
+                                verbose = TRUE) {
+  # TODO: add an option to do weighting to influence the effect of the BCRs (post-normalization)
 
-  # input validation
+  pca_stage  <- match.arg(pca_stage)
+  input_type <- match.arg(input_type)
+
   if (!inherits(seurat_obj, "Seurat")) {
-    cli::cli_abort("seurat_obj must be a Seurat object.")
+    cli::cli_abort("{.arg seurat_obj} must be a Seurat object.")
   }
-  if (missing(k_param)) {
-    # use the k from the GEX neighbors if it exists, otherwise default to 20
-    if ("RNA.nn" %in% names(seurat_obj@neighbors)) {
-      nn <- seurat_obj@neighbors[["RNA.nn"]]
-      k_param <- ncol(nn@nn.idx)
-      cli::cli_inform(c("i" = "Using k = {k_param}", " from RNA neighbors."))
-    } else {
-      k_param <- 20
-      cli::cli_inform(c("i" = "Using default k = {k_param}."))
+  if (!"cell_id" %in% colnames(seurat_obj[[]])) {
+    cli::cli_abort("Cell ID column not found in metadata.")
+  }
+  # auto-detect ensembl version from object misc slot when filtering
+  if (!missing(filter_genes) && is.null(ensembl_version)) {
+    ensembl_version <- Misc(seurat_obj, "ensembl_version")
+    if (!is.null(ensembl_version) && verbose) {
+      cli::cli_inform(c("i" = "Using Ensembl version {ensembl_version} from object."))
     }
   }
 
-  if (pca_stage == "Before") {
-    # TODO: check if the RNA assay contains the names of the BCR assay
-    # intersect(cols_to_include, rownames(GetAssayData(seurat_obj, assay = "RNA")))
+  # `missing()` only works on formal args of the function it's called from, so
+  # validate cols_to_include here rather than inside each branch
+  if (input_type == "features" && missing(cols_to_include)) {
+    cli::cli_abort(c(
+      '{.arg cols_to_include} is required for {.code input_type = "features"}.',
+      "i" = 'e.g. {.code cols_to_include = c("mu_freq", "isotype")}.'
+    ))
+  }
 
-    if (rlang::is_missing(cols_to_include)) {
-      if (!"BCR" %in% names(seurat_obj@assays)) {
+  # detect merged object (has BCR assay + bpca from merge_gex_bcr)
+  is_merged <- "BCR" %in% names(seurat_obj@assays) &&
+    "bpca" %in% names(seurat_obj@reductions)
+
+  # for non-merged embeddings, subset to shared cells before any branch logic
+  if (input_type == "embeddings" && !is_merged && !is.null(embeddings)) {
+    shared <- intersect(colnames(embeddings), seurat_obj$cell_id)
+    if (length(shared) < ncol(seurat_obj)) {
+      if (verbose) {
+        cli::cli_inform(c("i" = "Embeddings cover {length(shared)} of {ncol(seurat_obj)} \\
+                                 cells; subsetting to shared set."))
+      }
+      seurat_obj <- subset(seurat_obj, cells = shared)
+    }
+  }
+
+  if (pca_stage == "raw") {
+    # warn loudly if normalizing embeddings — log1p of PLM values is meaningless
+    if (input_type == "embeddings" && normalize) {
+      cli::cli_warn(c(
+        "!" = "{.code normalize = TRUE} with {.code input_type = 'embeddings'} \\
+               will log-normalize embedding values alongside RNA counts.",
+        "i" = "For pretrained embeddings, prefer {.code normalize = FALSE}."
+      ))
+    }
+
+    # --- resolve BCR data (features x cells matrix) ---
+    if (input_type == "embeddings") {
+      if (is_merged) {
+        bcr_features <- GetAssayData(seurat_obj, assay = "BCR", layer = "data")
+        if (verbose) {
+          cli::cli_inform(c("i" = "Using BCR assay ({nrow(bcr_features)} dimensions) \\
+                                   from merged object."))
+        }
+      } else if (!is.null(embeddings)) {
+        bcr_features <- embeddings[, Cells(seurat_obj), drop = FALSE]
+        if (verbose) {
+          cli::cli_inform(c("i" = "Using provided embeddings matrix \\
+                                   ({nrow(bcr_features)} dimensions, {ncol(bcr_features)} cells)."))
+        }
+      } else {
         cli::cli_abort(c(
-          "Must provide {.arg cols_to_include} or a merged object \\
-           with a BCR assay.",
-          "i" = "Run {.fn merge_gex_bcr} first, or specify \\
-                 {.arg cols_to_include}."
+          'Must provide a merged object or an {.arg embeddings} matrix \\
+           for {.code input_type = "embeddings"}.',
+          "i" = "Run {.fn merge_gex_bcr} first, or pass an embeddings matrix."
         ))
       }
-      # BCR assay data is already features x cells and processed
-      bcr_features <- GetAssayData(seurat_obj, assay = "BCR", layer = "data")
-      cli::cli_inform(c("i" = "Using BCR assay features \\
-        ({nrow(bcr_features)} dimensions) from merged object."))
     } else {
-      # select and process BCR metadata columns
       bcr_features <- seurat_obj[[]] %>% select(all_of(cols_to_include))
-      # TODO: add an option to do weighting to influence the effect of the BCRs (post-normalization)
-      # TODO: check if the embeddings output has already been normalized by amulety
-      bcr_features <- process_bcr_features(bcr_features)
+      bcr_features <- process_bcr_features(bcr_features, verbose = verbose)
     }
-    # bcr_features[, 1:5] # check them visually
 
-    # make a new assay with both genes and BCR data
-    # TODO: try making a BCR assay first?
+    # Seurat 5 silently rewrites "_" to "-" in feature names at assay creation,
+    # de-syncing the assay names from the VariableFeatures list and causing
+    # ScaleData to find nothing to scale. Using "." avoids the rewrite.
+    rownames(bcr_features) <- gsub("_", ".", rownames(bcr_features))
 
-    # need counts if we're going to normalize later
-    seurat_layer <- ifelse(normalize, "counts", "data")
-    seurat_obj[["RNA_BCR"]] <-
-      CreateAssayObject(counts = rbind(GetAssayData(seurat_obj, assay = "RNA",
-                                                    layer = seurat_layer),
-                                       bcr_features))
+    # write to counts when normalizing (seurat_pipeline will call NormalizeData
+    # which populates data), or directly to data when already normalized
+    if (normalize) {
+      seurat_obj[["RNA_BCR"]] <- CreateAssay5Object(
+        counts = rbind(GetAssayData(seurat_obj, assay = "RNA", layer = "counts"),
+                       bcr_features))
+    } else {
+      seurat_obj[["RNA_BCR"]] <- CreateAssay5Object(
+        data = rbind(GetAssayData(seurat_obj, assay = "RNA", layer = "data"),
+                     bcr_features))
+    }
     DefaultAssay(seurat_obj) <- "RNA_BCR"
 
-    # TODO: use seurat_pipeline()
-
-    # make sure that the BCR data are included as variable features
-    # TODO: try other selection methods (not just vst)
-    if (var_features) {
-      seurat_obj <- FindVariableFeatures(seurat_obj, verbose = FALSE)
-      ## Warning: Feature names cannot have underscores ('_'), replacing with dashes ('-')
-
-      ## Warning: Layer counts isn't present in the assay object; returning NULL
-      ## Warning message:
-      ## In FindVariableFeatures.Assay(object = object[[assay]], selection.method = selection.method,  :
-      ##   selection.method set to 'vst' but count slot is empty; will use data slot instead
-    } else {
-      # just concatenate onto the existing ones
-      # which already had IG features removed, so it's less than 2000
-      VariableFeatures(seurat_obj) <-
-        c(VariableFeatures(seurat_obj, assay = "RNA"), rownames(bcr_features))
-      VariableFeatures(seurat_obj) <- unique(VariableFeatures(seurat_obj))
+    # always append BCR features onto existing RNA variable features rather than
+    # re-running FindVariableFeatures, which would drop BCR features from the
+    # selection and trigger Seurat warnings about underscores in feature names
+    # and about the count layer being missing when normalize = FALSE
+    collisions <- intersect(VariableFeatures(seurat_obj, assay = "RNA"),
+                            rownames(bcr_features))
+    if (length(collisions) > 0) {
+      cli::cli_warn(c(
+        "!" = "{length(collisions)} BCR feature name{?s} collide with existing \\
+               RNA variable features: {.val {collisions}}.",
+        "i" = "Consider renaming BCR features to avoid ambiguity."
+      ))
     }
-    # TODO: run the finder, then concatenate anyways?
+    n_rna_var <- length(VariableFeatures(seurat_obj, assay = "RNA"))
+    VariableFeatures(seurat_obj) <-
+      unique(c(VariableFeatures(seurat_obj, assay = "RNA"), rownames(bcr_features)))
+    if (verbose) {
+      n_total <- length(VariableFeatures(seurat_obj))
+      cli::cli_inform(c("i" = "Variable features: {n_rna_var} RNA + \\
+                               {nrow(bcr_features)} BCR = {n_total} total."))
+    }
 
-    ##   Warning messages:
-    ## 1: In eval(predvars, data, env) : NaNs produced
-    ## 2: In hvf.info$variance.expected[not.const] <- 10^fit$fitted :
-    ##   number of items to replace is not a multiple of replacement length
-
-    # TODO: add the option to not filter out the IG genes
-    # so I'd have to rerun FindVariableFeatures on the RNA alone
-
-    # filter out the IG and/or TR genes
-    # TODO: check the object for the species, ensembl version
-    if (!rlang::is_missing(filter_genes)) {
+    if (!missing(filter_genes)) {
       seurat_obj <- filter_variable_features(seurat_obj, filter_genes,
                                              ensembl_version = ensembl_version,
+                                             cache_file = cache_file,
                                              bcr_features = bcr_features)
     }
 
-    # process with the standard Seurat pipeline
-    # TODO: update seurat_pipeline() to take an alternate reduction name?
-    # seurat_obj <- seurat_pipeline(seurat_obj, num_dims = k,
-    #                               filter_genes = filter_genes, verbose = FALSE)
-
-    # don't normalize twice
-    if (normalize) {
-      seurat_obj <- NormalizeData(seurat_obj,
-                                  normalization.method = "LogNormalize",
-                                  scale.factor = 10000, verbose = FALSE)
+    seurat_obj <- seurat_pipeline(seurat_obj, assay = "RNA_BCR",
+                                  pca_name = "rna_bcr.pca",
+                                  normalize = normalize,
+                                  num_features = num_features,
+                                  num_pcs = num_pcs, num_dims = num_dims,
+                                  k_param = k_param,
+                                  find_var_features = FALSE,
+                                  verbose = verbose)
+  } else if (pca_stage == "reduced") {
+    if (!gex_reduction %in% names(seurat_obj@reductions)) {
+      cli::cli_abort(c(
+        "Reduction {.code {gex_reduction}} not found.",
+        "i" = "Run {.fn seurat_pipeline} first to compute the GEX PCA."
+      ))
     }
 
-    # TODO: don't scale twice??
-    seurat_obj <- ScaleData(object = seurat_obj, verbose = FALSE)
+    # resolve BCR data — same logic as "raw"
+    if (input_type == "embeddings") {
+      if (is_merged) {
+        bcr_features <- GetAssayData(seurat_obj, assay = "BCR", layer = "data")
+        if (verbose) {
+          cli::cli_inform(c("i" = "Using BCR assay ({nrow(bcr_features)} dimensions) \\
+                                   from merged object."))
+        }
+      } else if (!is.null(embeddings)) {
+        bcr_features <- embeddings[, Cells(seurat_obj), drop = FALSE]
+        if (verbose) {
+          cli::cli_inform(c("i" = "Using provided embeddings matrix \\
+                                   ({nrow(bcr_features)} dimensions, {ncol(bcr_features)} cells)."))
+        }
+      } else {
+        cli::cli_abort(c(
+          'Must provide a merged object or an {.arg embeddings} matrix \\
+           for {.code input_type = "embeddings"}.',
+          "i" = "Run {.fn merge_gex_bcr} first, or pass an embeddings matrix."
+        ))
+      }
+    } else {
+      bcr_features <- seurat_obj[[]] %>% select(all_of(cols_to_include))
+      bcr_features <- process_bcr_features(bcr_features, verbose = verbose)
+    }
 
-    # irlba throws a warning to "use a standard svd instead" when requesting more
-    # than 50% of all singular value, so let's use exact SVD if that happens
-    # (which is also faster when the embedding dimension is small)
-    scale_data <- Seurat::GetAssayData(seurat_obj, layer = "scale.data")
-    max_dim <- min(nrow(scale_data), ncol(scale_data))
-    use_approx <- num_pcs < max_dim / 2
-    seurat_obj <- RunPCA(object = seurat_obj, npcs = num_pcs,
-                         reduction.name = "rna_bcr.pca",
-                         reduction.key = "rnabcrpca_",
-                         approx = use_approx)
-    cli::cli_inform(c("v" = "Computed PCA with {num_pcs} dimensions using {ifelse(use_approx, 'approximate', 'exact')} SVD."))
+    # subset GEX PCA to num_dims PCs and transpose to features-by-cells
+    n_gex_dims <- min(num_dims, ncol(Embeddings(seurat_obj, gex_reduction)))
+    gex_pca_mat <- t(Embeddings(seurat_obj, gex_reduction)[, seq_len(n_gex_dims), drop = FALSE])
+
+    # same "_" → "." rename as "raw" branch — avoids Seurat 5's silent rewrite
+    rownames(gex_pca_mat)  <- gsub("_", ".", rownames(gex_pca_mat))
+    rownames(bcr_features) <- gsub("_", ".", rownames(bcr_features))
+
+    combined_mat <- rbind(gex_pca_mat, bcr_features)
+    if (verbose) {
+      cli::cli_inform(c("i" = "Combining {n_gex_dims} GEX PCs + \\
+                               {nrow(bcr_features)} BCR features = \\
+                               {nrow(combined_mat)} rows."))
+    }
+
+    # write to counts then copy to data — ScaleData reads from data, not counts,
+    # but CreateAssay5Object requires at least one of counts/data to be provided
+    seurat_obj[["RNA_BCR"]] <- CreateAssay5Object(counts = combined_mat)
+    LayerData(seurat_obj, assay = "RNA_BCR", layer = "data") <-
+      LayerData(seurat_obj, assay = "RNA_BCR", layer = "counts")
+    DefaultAssay(seurat_obj) <- "RNA_BCR"
+    VariableFeatures(seurat_obj) <- rownames(combined_mat)
+
+    seurat_obj <- seurat_pipeline(seurat_obj, assay = "RNA_BCR",
+                                  pca_name = "rna_bcr.pca",
+                                  normalize = FALSE,
+                                  num_features = num_features,
+                                  num_pcs = num_pcs, num_dims = num_dims,
+                                  k_param = k_param,
+                                  find_var_features = FALSE,
+                                  verbose = verbose)
   } else {
-    # check that the necessary PCAs exist
-    if (!"rpca" %in% names(seurat_obj@reductions)) {
+    # pca_stage == "embed": column-bind GEX and BCR PCA spaces
+    if (!gex_reduction %in% names(seurat_obj@reductions)) {
       cli::cli_abort(c(
-        "{.arg seurat_obj} must contain an RNA PCA reduction.",
-        i = "Run {.fn RunPCA} with {.code reduction.name = \"rpca\"} first."
-      ))
-    }
-    if (!"bpca" %in% names(seurat_obj@reductions)) {
-      cli::cli_abort(c(
-        "{.arg seurat_obj} must contain a BCR PCA reduction.",
-        i = "Run {.fn RunPCA} with {.code reduction.name = \"bpca\"} first."
+        "Reduction {.code {gex_reduction}} not found.",
+        "i" = 'Run {.fn RunPCA} with {.code reduction.name = "{gex_reduction}"} first.'
       ))
     }
 
-    # just use the RNA slot by default
+    if (input_type == "features") {
+      # embed BCR metadata features into their own PCA space first, then cbind
+      bcr_features <- seurat_obj[[]] %>% select(all_of(cols_to_include))
+      bcr_features <- process_bcr_features(bcr_features, verbose = verbose)
 
-    # assumes that both reductions have the same number of PCs
-    # TODO: address how in the combined PCA has total_dims columns but FindNeighbors uses dims = 1:num_dims, which only covers half the combined dimensions
-    total_dims <- num_dims * 2
+      # cap PCs at number of BCR features (can't exceed rank of the matrix)
+      n_bcr_pcs <- min(nrow(bcr_features) - 1L, num_dims)
+      if (verbose) {
+        cli::cli_inform(c("i" = "Computing BCR PCA from {nrow(bcr_features)} metadata \\
+                                 features ({n_bcr_pcs} PCs)."))
+      }
+      # BCR metadata is already on a sane scale; write to data so ScaleData
+      # doesn't need a counts layer
+      # TODO: call this RNA_BCR for consistency??
+      colnames(bcr_features) <- Cells(seurat_obj)
+      seurat_obj[["BCR_meta"]] <- CreateAssay5Object(counts = bcr_features)
+      LayerData(seurat_obj, assay = "BCR_meta", layer = "data") <-
+        LayerData(seurat_obj, assay = "BCR_meta", layer = "counts")
+      VariableFeatures(seurat_obj, assay = "BCR_meta") <- rownames(bcr_features)
+      seurat_obj <- ScaleData(seurat_obj, assay = "BCR_meta", verbose = verbose)
+      scale_bcr <- GetAssayData(seurat_obj, assay = "BCR_meta", layer = "scale.data")
+      use_approx <- n_bcr_pcs < min(nrow(scale_bcr), ncol(scale_bcr)) / 2
+      seurat_obj <- RunPCA(seurat_obj, assay = "BCR_meta", npcs = n_bcr_pcs,
+                           reduction.name = "bcr_meta.pca",
+                           reduction.key = "bcrmetapca_",
+                           approx = use_approx, verbose = verbose)
+      bcr_reduc <- "bcr_meta.pca"
+    } else {
+      # embeddings: use existing bpca from merge_gex_bcr
+      if (!is_merged) {
+        cli::cli_abort(c(
+          '{.code input_type = "embeddings"} with {.code pca_stage = "embed"} \\
+           requires a merged object with a BCR assay and {.code bpca} reduction.',
+          "i" = "Run {.fn merge_gex_bcr} first."
+        ))
+      }
+      if (!"bpca" %in% names(seurat_obj@reductions)) {
+        cli::cli_abort(c(
+          "Reduction {.code bpca} not found.",
+          "i" = 'Run {.fn RunPCA} with {.code reduction.name = "bpca"} first.'
+        ))
+      }
+      bcr_reduc <- "bpca"
+    }
+
+    n_gex_dims <- min(num_dims, ncol(Embeddings(seurat_obj, gex_reduction)))
+    n_bcr_dims <- min(num_dims, ncol(Embeddings(seurat_obj, bcr_reduc)))
+    total_dims  <- n_gex_dims + n_bcr_dims
+
     combined_pca <-
-      cbind(Embeddings(seurat_obj, "rpca"), Embeddings(seurat_obj, "bpca"))
-    colnames(combined_pca) <- str_c("pca_", 1:total_dims) # TODO: check if this is necessary and what happens to cell ids
-    # what about the feature loadings?
+      cbind(Embeddings(seurat_obj, gex_reduction)[, seq_len(n_gex_dims), drop = FALSE],
+            Embeddings(seurat_obj, bcr_reduc)[, seq_len(n_bcr_dims), drop = FALSE])
+    colnames(combined_pca) <- str_c("rnabcrpca_", seq_len(total_dims))
 
-    # new PCA reduction
     seurat_obj[["rna_bcr.pca"]] <-
       CreateDimReducObject(embeddings = combined_pca, key = "rnabcrpca_",
                            assay = DefaultAssay(seurat_obj))
+    if (verbose) {
+      cli::cli_inform(c("i" = "Combined PCA: {n_gex_dims} GEX + \\
+                               {n_bcr_dims} BCR = {total_dims} dims."))
+    }
 
+    seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "rna_bcr.pca",
+                                k.param = k_param, dims = 1:total_dims,
+                                verbose = verbose,
+                                graph.name = c("RNA_BCR_nn", "RNA_BCR_snn"))
+    seurat_obj <- FindNeighbors(object = seurat_obj, reduction = "rna_bcr.pca",
+                                k.param = k_param, dims = 1:total_dims,
+                                return.neighbor = TRUE,
+                                verbose = verbose, graph.name = "RNA_BCR.nn")
+    seurat_obj <- RunUMAP(object = seurat_obj, nn.name = "RNA_BCR.nn",
+                          n.neighbors = k_param, reduction.name = "rna_bcr.umap",
+                          reduction.key = "rnabcrUMAP_", verbose = verbose)
   }
 
-  seurat_obj <- regen_reduc(seurat_obj = seurat_obj, pca_name = "rna_bcr.pca",
-                            assay = "RNA_BCR", num_dims = num_dims,
-                            k_param = k_param, verbose = verbose)
+  Misc(seurat_obj, slot = "concat_pca_stage")  <- pca_stage
+  Misc(seurat_obj, slot = "concat_input_type") <- input_type
+
+  if (verbose) {
+    cli::cli_inform(c(
+      "v" = "Concatenated GEX & BCR pipeline complete.",
+      "i" = "Use {.fn Seurat::DimPlot} with {.arg reduction = 'rna_bcr.umap'} or \\
+             {.fn athanor::plot_dimplot} with {.arg reduc = 'rna_bcr.umap'} to visualize."
+    ))
+  }
 
   return(seurat_obj)
 }
@@ -589,11 +929,12 @@ concatenate_gex_bcr <- function(seurat_obj, pca_stage = c("Before", "After"),
 #' @returns A Seurat object with WNN run.
 #' @export
 run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
-                    pc_bcr = 20, k_param = 20, cluster = FALSE,
+                    pc_bcr = 20, k_param = 20,
+                    gex_reduction = "rpca", bcr_reduction = "bpca",
+                    cluster = FALSE,
                     cluster_res = list("GEX" = 1, "BCR" = 1, "WNN" = 1),
                     modality_weights = NULL, verbose = TRUE) {
   # TODO: update this to be able to run on other omics e.g. GEX & ADT
-  # TODO: add the option to filter out genes again???
   # TODO: give the option to use an integrated GEX assay
 
   # input validation
@@ -604,38 +945,30 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
     cli::cli_abort("Cell ID column not found in metadata.")
   }
   if (missing(pc_gex)) {
-    pc_gex <- if ("rpca" %in% names(seurat_obj@reductions)) {
-      ncol(seurat_obj@reductions[["rpca"]])
+    pc_gex <- if (gex_reduction %in% names(seurat_obj@reductions)) {
+      ncol(seurat_obj@reductions[[gex_reduction]])
     } else if ("pca" %in% names(seurat_obj@reductions)) {
       ncol(seurat_obj@reductions[["pca"]])
     } else {
       20
     }
-    cli::cli_inform(c("i" = "Using pc_gex = {pc_gex}", " from existing reductions."))
+    cli::cli_inform(c("i" = "Using pc_gex = {pc_gex} from existing reductions."))
   }
   if (missing(pc_bcr)) {
-    pc_bcr <- if ("bpca" %in% names(seurat_obj@reductions)) {
-      ncol(seurat_obj@reductions[["bpca"]])
+    pc_bcr <- if (bcr_reduction %in% names(seurat_obj@reductions)) {
+      ncol(seurat_obj@reductions[[bcr_reduction]])
     } else {
       20
     }
-    cli::cli_inform(c("i" = "Using pc_bcr = {pc_bcr}", " from existing reductions."))
+    cli::cli_inform(c("i" = "Using pc_bcr = {pc_bcr} from existing reductions."))
   }
   if (missing(k_param)) {
-    # use the k from the GEX neighbors if it exists, otherwise default to 20
-    if ("RNA.nn" %in% names(seurat_obj@neighbors)) {
-      nn <- seurat_obj@neighbors[["RNA.nn"]]
-      k_param <- ncol(nn@nn.idx)
-      cli::cli_inform(c("i" = "Using k = {k_param}", " from RNA neighbors."))
-    } else {
-      k_param <- 20
-      cli::cli_inform(c("i" = "Using default k = {k_param}."))
-    }
+    k_param <- infer_k_param(seurat_obj, verbose = verbose)
   }
 
-  # detect if the object is already merged (has BCR assay + bpca from merge_gex_bcr)
+  # detect if the object is already merged (has BCR assay + bcr_reduction from merge_gex_bcr)
   is_merged <- "BCR" %in% names(seurat_obj@assays) &&
-    "bpca" %in% names(seurat_obj@reductions)
+    bcr_reduction %in% names(seurat_obj@reductions)
 
   if (is_merged) {
     cli::cli_inform(c("i" = "Merged object detected: using existing GEX and BCR assays and reductions."))
@@ -696,7 +1029,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
     }
 
     # transfer reductions and graphs
-    seurat_obj[["bpca"]] <- bcr_obj[["bpca"]]
+    seurat_obj[[bcr_reduction]] <- bcr_obj[["bpca"]]
     seurat_obj[["bcr.umap"]] <- bcr_obj[["bcr.umap"]]
     seurat_obj@neighbors[["BCR.nn"]] <- bcr_obj@neighbors[["BCR.nn"]]
     seurat_obj@graphs[["BCR_nn"]] <- bcr_obj@graphs[["BCR_nn"]]
@@ -711,20 +1044,19 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
   if (is.null(modality_weights)) {
     seurat_obj <-
       Seurat::FindMultiModalNeighbors(object = seurat_obj,
-                                      reduction.list = list("rpca", "bpca"),
+                                      reduction.list = list(gex_reduction,
+                                                            bcr_reduction),
                                       dims.list = list(1:pc_gex, 1:pc_bcr),
                                       k.nn = k_param,
-                                      # match the RNA and BCR style
                                       knn.graph.name = "w_nn",
                                       snn.graph.name = "w_snn",
                                       weighted.nn.name = "w.nn",
                                       modality.weight.name =
                                         str_c(c("RNA", "BCR"), ".weight"),
                                       return.intermediate = TRUE,
-                                      modality.weight = modality_weights,
+                                      modality.weight = NULL,
                                       verbose = verbose)
 
-    # add a metadata column listing which assay was chosen for each cell
     seurat_obj@meta.data <-
       seurat_obj[[]] %>%
       mutate(weight_assay =
@@ -732,50 +1064,79 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                          seurat_obj[[]][["RNA.weight"]] < 0.5 ~ "BCR",
                          is.na(seurat_obj[[]][["RNA.weight"]]) ~ NA,
                          .default = "Tie"))
+
+    wnn_nn_name    <- "w.nn"
+    rna_weight_col <- "RNA.weight"
+    wnn_umap_name  <- "wnn.umap"
+    wnn_umap_key   <- "wnnUMAP_"
   } else {
-    # must provide a Seurat object with WNN already run so we can rebuild
-    # the ModalityWeights object
-    # TODO: see if there's a way to make it from scratch
-    if (modality_weights == "equal") {
-      mw_mod <- seurat_obj@misc$modality.weight
-      mw_mod_names <- Cells(seurat_obj)
-
-      mw_mod@modality.weight.list$rpca <-
-        setNames(rep(0.5, ncol(seurat_obj)), mw_mod_names)
-      mw_mod@modality.weight.list$bpca <-
-        setNames(rep(0.5, ncol(seurat_obj)), mw_mod_names)
-
-      seurat_obj <-
-        Seurat::FindMultiModalNeighbors(object = seurat_obj,
-                                        reduction.list = list("rpca", "bpca"),
-                                        dims.list = list(1:pc_gex, 1:pc_bcr),
-                                        k.nn = k_param,
-                                        # match the RNA and BCR style
-                                        knn.graph.name = "w_equal_nn",
-                                        snn.graph.name = "w_equal_snn",
-                                        weighted.nn.name = "w_equal.nn",
-                                        modality.weight.name =
-                                          str_c(c("RNA", "BCR"), "_equal.weight"),
-                                        return.intermediate = TRUE,
-                                        modality.weight = mw_mod,
-                                        verbose = verbose)
-
-      # add a metadata column listing which assay was chosen for each cell
-      seurat_obj@meta.data <-
-        seurat_obj[[]] %>%
-        mutate(weight_assay_equal =
-                 case_when(seurat_obj[[]][["RNA_equal.weight"]] > 0.5 ~ "RNA",
-                           seurat_obj[[]][["RNA_equal.weight"]] < 0.5 ~ "BCR",
-                           is.na(seurat_obj[[]][["RNA_equal.weight"]]) ~ NA,
-                           .default = "Tie"))
+    # custom weights: "equal" or a length-2 numeric vector c(gex_wt, bcr_wt)
+    if (identical(modality_weights, "equal")) {
+      gex_wt    <- 0.5
+      bcr_wt    <- 0.5
+      mw_suffix <- "equal"
+    } else if (is.numeric(modality_weights) && length(modality_weights) == 2) {
+      if (abs(sum(modality_weights) - 1) > 1e-6) {
+        cli::cli_abort("{.arg modality_weights} values must sum to 1.")
+      }
+      gex_wt    <- modality_weights[[1]]
+      bcr_wt    <- modality_weights[[2]]
+      mw_suffix <- paste0(gex_wt, "_", bcr_wt)
     } else {
-      cli::cli_abort("Please provide a valid customization approach. Only 'equal' is currently supported.")
+      cli::cli_abort(c(
+        "Invalid {.arg modality_weights}.",
+        "i" = "Provide {.code NULL} for automatic weighting, \\
+               {.code \"equal\"} for 50/50, or a length-2 numeric vector \\
+               summing to 1 (e.g. {.code c(0.7, 0.3)})."
+      ))
     }
+
+    if (is.null(seurat_obj@misc$modality.weight)) {
+      cli::cli_abort(c(
+        "No existing WNN run found in {.code @misc$modality.weight}.",
+        "i" = "Run {.fn run_wnn} with {.code modality_weights = NULL} first \\
+               to generate the initial WNN, then re-run with custom weights."
+      ))
+    }
+
+    mw_mod      <- seurat_obj@misc$modality.weight
+    mw_mod_names <- Cells(seurat_obj)
+    mw_mod@modality.weight.list[[gex_reduction]] <-
+      setNames(rep(gex_wt, ncol(seurat_obj)), mw_mod_names)
+    mw_mod@modality.weight.list[[bcr_reduction]] <-
+      setNames(rep(bcr_wt, ncol(seurat_obj)), mw_mod_names)
+
+    wnn_nn_name    <- paste0("w_", mw_suffix, ".nn")
+    rna_weight_col <- paste0("RNA_", mw_suffix, ".weight")
+    wnn_umap_name  <- paste0("wnn_", mw_suffix, ".umap")
+    wnn_umap_key   <- paste0("wnn", mw_suffix, "UMAP_")
+
+    seurat_obj <-
+      Seurat::FindMultiModalNeighbors(object = seurat_obj,
+                                      reduction.list = list(gex_reduction,
+                                                            bcr_reduction),
+                                      dims.list = list(1:pc_gex, 1:pc_bcr),
+                                      k.nn = k_param,
+                                      knn.graph.name = paste0("w_", mw_suffix, "_nn"),
+                                      snn.graph.name = paste0("w_", mw_suffix, "_snn"),
+                                      weighted.nn.name = wnn_nn_name,
+                                      modality.weight.name =
+                                        str_c(c("RNA", "BCR"), "_", mw_suffix, ".weight"),
+                                      return.intermediate = TRUE,
+                                      modality.weight = mw_mod,
+                                      verbose = verbose)
+
+    seurat_obj@meta.data <-
+      seurat_obj[[]] %>%
+      mutate(!!paste0("weight_assay_", mw_suffix) :=
+               case_when(seurat_obj[[]][[rna_weight_col]] > 0.5 ~ "RNA",
+                         seurat_obj[[]][[rna_weight_col]] < 0.5 ~ "BCR",
+                         is.na(seurat_obj[[]][[rna_weight_col]]) ~ NA,
+                         .default = "Tie"))
   }
 
-  # check for NA values
-  # TODO: add this check to other UMAPs
-  na_nn <- is.na(seurat_obj$RNA.weight)
+  # check for NA values in the neighbor index
+  na_nn <- is.na(seurat_obj[[rna_weight_col]])
   if (any(na_nn)) {
     bad_cells <- seurat_obj[[]]$cell_id[na_nn]
     bcr_mat <- GetAssayData(seurat_obj, assay = "BCR", layer = "data")
@@ -783,31 +1144,26 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
     # add 1 because the first column is not included in the duplicate count
     dup_count <- sum(duplicated(t(bcr_mat))) + 1
 
-    # TODO: record all duplicates, not just the ones that failed??
     Misc(seurat_obj, slot = "embedding_dups") <- bad_cells
 
-    cli::cli_inform(c("x" = "{sum(na_nn)} NA rows found in w.nn neighbor \\
-                            indices (out of {ncol(seurat_obj)} total cells). \\
-                            This means that these cells do not have any valid \\
-                            neighbors in the WNN space.",
-                      "i" = "This is most likely due to these cells having \\
-                             identical BCR embeddings. Out of the {sum(na_nn)} \\
-                             cells with NA neighbors, {dup_count} have \\
-                             identical BCR embeddings.",
-                      ">" = "UMAP will not be run for the WNN reduction because
-                      of the NA values."))
+    cli::cli_inform(c(
+      "x" = "{sum(na_nn)} cell{?s} (out of {ncol(seurat_obj)}) have no valid \\
+             neighbors in the WNN space.",
+      "i" = "This is most likely due to identical {bcr_reduction} embeddings. \\
+             Out of the {sum(na_nn)} affected cell{?s}, {dup_count} \\
+             {?has/have} duplicate embeddings.",
+      ">" = "UMAP will not be run for this WNN reduction.",
+      ">" = "Consider filtering duplicate {bcr_reduction} embeddings before \\
+             calling {.fn run_wnn}: \\
+             {.code seurat_obj <- subset(seurat_obj, !cell_id %in% embedding_dups)}"
+    ))
   } else {
-    mw_name <- modality_weights
-    if (!is.null(modality_weights)) mw_name <- paste0("_", mw_name)
-
     seurat_obj <-
       Seurat::RunUMAP(object = seurat_obj,
-                      nn.name = paste0("w", mw_name, ".nn"),
-                      n.neighbors = k_param, # might not be needed
-                      reduction.name = paste0("wnn", mw_name, ".umap"),
-                      # note that if modality_weights has any underscores in it,
-                      # Seurat will remove them when making the key
-                      reduction.key = paste0("wnn", modality_weights, "UMAP_"),
+                      nn.name = wnn_nn_name,
+                      n.neighbors = k_param,
+                      reduction.name = wnn_umap_name,
+                      reduction.key = wnn_umap_key,
                       verbose = verbose)
   }
 
@@ -838,27 +1194,20 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
 
   if (verbose) {
     if (!any(na_nn)) {
-      cli::cli_inform(c("v" = "WNN neighbors calculated and UMAP run.",
-                        "i" = "Use {.fn Seurat::DimPlot} with \\
-                               {.arg reduction = 'wnn.umap'} or \\
-                               {.fn athanor::plot_dimplot} with \\
-                               {.arg reduc = 'wnn.umap'} to visualize the results."))
+      cli::cli_inform(c(
+        "v" = "WNN neighbors calculated and UMAP run.",
+        "i" = "Use {.fn Seurat::DimPlot} with {.code reduction = '{wnn_umap_name}'} \\
+               or {.fn athanor::plot_dimplot} with {.code reduc = '{wnn_umap_name}'}."))
     }
 
-    # explain the weighting approach
     if (is.null(modality_weights)) {
-      cli::cli_inform(c("v" = "Modality weights were automatically calculated based on the provided assays.",
-                        "i" = "Check {.fn Seurat::FindMultiModalNeighbors} for more details."))
-      # summarize the resulting weight distribution with a total count
-      # weight_summary <- seurat_obj[[]] %>%
-      #   group_by(weight_assay) %>%
-      #   summarise(count = n()) %>%
-      #   ungroup()
-      # cli::cli_inform(c("v" = "Summary of modality weights across cells:",
-      #                   "i" = "{.code print(weight_summary)}"))
+      cli::cli_inform(c(
+        "v" = "Modality weights were automatically calculated.",
+        "i" = "See {.fn Seurat::FindMultiModalNeighbors} for details."))
     } else {
-      cli::cli_inform(c("v" = "Custom modality weights were used:",
-                        "i" = "{modality_weights}"))
+      cli::cli_inform(c(
+        "v" = "Custom modality weights applied ({gex_reduction}: {gex_wt}, \\
+               {bcr_reduction}: {bcr_wt})."))
     }
   }
 
@@ -884,62 +1233,58 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
 extract_wnn_vars <- function(seurat_obj, gex_pca = "rpca",
                              other_pca = "bpca", other_type = "BCR") {
   # TODO: update this to work on a concatenated object too
-  # base message (after AIRR integration)
-  message <- paste("This object has", ncol(seurat_obj), "cells, ")
+  # TODO: print info about reduction
 
   # assay details
-  assay_details <- c()
+  assay_details <- character(0)
   bcr_embeddings_name <- grep("^BCR", names(seurat_obj@assays), value = TRUE)
 
-  # GEX info
   if ("RNA" %in% names(seurat_obj@assays)) {
-    assay_details <-
-      c(assay_details, paste(nrow(seurat_obj@assays$RNA), "genes"))
+    assay_details <- c(assay_details,
+                       paste(nrow(seurat_obj@assays$RNA), "genes"))
   }
-
-  # ADT info
   if ("ADT" %in% names(seurat_obj@assays)) {
-    assay_details <-
-      c(assay_details,
-        paste(nrow(seurat_obj@assays$ADT), "cell surface protein markers"))
+    assay_details <- c(assay_details,
+                       paste(nrow(seurat_obj@assays$ADT),
+                             "cell surface protein markers"))
   }
-
-  # BCR info
   if (length(bcr_embeddings_name) > 0) {
-    assay_details <-
-      c(assay_details,
-        paste(nrow(seurat_obj@assays[[bcr_embeddings_name]]),
-              "embedding dimensions"))
+    assay_details <- c(assay_details,
+                       paste(nrow(seurat_obj@assays[[bcr_embeddings_name]]),
+                             "embedding dimensions"))
   }
 
-  message <- paste0(message, str_c(assay_details, collapse = ", "), ".")
+  cli::cli_inform(c(
+    "i" = "This object has {ncol(seurat_obj)} cells with \\
+           {str_c(assay_details, collapse = ', ')}."
+  ))
 
-  # reductions info
-  if ("weighted.nn" %in% names(seurat_obj@neighbors)) {
-    message <- paste(message, "WNN was run with",
-                     ncol(seurat_obj@reductions[[gex_pca]]), "GEX PCs and",
-                     ncol(seurat_obj@reductions[[other_pca]]), other_type, "PCs.")
+  # WNN reduction info
+  # TODO: fix the count
+  if ("w.nn" %in% names(seurat_obj@neighbors) &&
+      all(c(gex_pca, other_pca) %in% names(seurat_obj@reductions))) {
+
+    # objs_wnn[["immune2vec"]]@commands[["Seurat..FindMultiModalNeighbors"]]@params[["dims.list"]]
+    cli::cli_inform(c(
+      "i" = "WNN was run with {ncol(seurat_obj@reductions[[gex_pca]])} GEX PCs \\
+             and {ncol(seurat_obj@reductions[[other_pca]])} {other_type} PCs."
+    ))
   }
 
-  # TODO: remove this?
-  # clustering info
-  # does not account for multiple clustering resolutions
+  # clustering info (largest resolution only)
   if ("seurat_clusters" %in% colnames(seurat_obj[[]])) {
-    nclusters_rna <-
-      select(seurat_obj[[]], starts_with("RNA_snn")) %>% select(last_col())
-    nclusters_bcr <-
-      select(seurat_obj[[]], starts_with("BCR_snn")) %>% select(last_col())
-    nclusters_wnn <-
-      select(seurat_obj[[]], starts_with("w_snn")) %>% select(last_col())
+    nclusters_rna <- n_distinct(
+      select(seurat_obj[[]], starts_with("RNA_snn")) %>% select(last_col()))
+    nclusters_bcr <- n_distinct(
+      select(seurat_obj[[]], starts_with("BCR_snn")) %>% select(last_col()))
+    nclusters_wnn <- n_distinct(
+      select(seurat_obj[[]], starts_with("w_snn")) %>% select(last_col()))
 
-    message <- paste(message,
-                     "There were", n_distinct(nclusters_rna), "RNA clusters,",
-                     n_distinct(nclusters_bcr), "BCR clusters, and",
-                     n_distinct(nclusters_wnn),
-                     "WNN clusters identified (in the largest resolutions).")
-    # cat(str_glue("There were {nclusters_rna} RNA clusters, {nclusters_bcr} BCR clusters, and {nclusters_wnn} WNN clusters identified."))
+    cli::cli_inform(c(
+      "i" = "Clusters (largest resolution): {nclusters_rna} RNA, \\
+             {nclusters_bcr} BCR, {nclusters_wnn} WNN."
+    ))
   }
 
-  # output the message
-  cli::cli_inform(message)
+  invisible(seurat_obj)
 }
