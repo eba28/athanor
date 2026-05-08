@@ -4,11 +4,13 @@
 \alias{process_bcr_features}
 \title{Process BCR features for integration}
 \usage{
-process_bcr_features(bcr_features)
+process_bcr_features(bcr_features, verbose = TRUE)
 }
 \arguments{
 \item{bcr_features}{A data frame containing BCR features (e.g. isotype, mutation
 frequency). May contain ordered factors, numeric, or categorical variables.}
+
+\item{verbose}{Logical indicating whether or not to print messages.}
 }
 \value{
 A transposed matrix of processed features where:

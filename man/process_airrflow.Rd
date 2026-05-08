@@ -4,12 +4,14 @@
 \alias{process_airrflow}
 \title{Read in and process output files from nf-core/airrflow}
 \usage{
-process_airrflow(dataset_path, version_airrflow)
+process_airrflow(dataset_path, version_airrflow, verbose = TRUE)
 }
 \arguments{
 \item{dataset_path}{The path to the dataset directory.}
 
 \item{version_airrflow}{The airrflow version (as a string).}
+
+\item{verbose}{Logical indicating whether or not to print messages.}
 }
 \value{
 A processed AIRR-formatted data.frame with several columns added.

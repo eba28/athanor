@@ -4,7 +4,12 @@
 \alias{convert_embeddings}
 \title{Convert the output of an embedding method to a matrix}
 \usage{
-convert_embeddings(embeddings, combined_airr, combined_airr_input)
+convert_embeddings(
+  embeddings,
+  combined_airr,
+  combined_airr_input,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{embeddings}{The data.frame embeddings output.}
@@ -12,6 +17,8 @@ convert_embeddings(embeddings, combined_airr, combined_airr_input)
 \item{combined_airr}{The combined output from airrflow/Immcantation. Must contain columns called "cell_id" and "cell_id_original".}
 
 \item{combined_airr_input}{The data.frame provided to immune2vec; contains translated sequences.}
+
+\item{verbose}{Logical indicating whether or not to print messages.}
 }
 \value{
 A \code{Matrix} of embeddings

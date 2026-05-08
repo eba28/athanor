@@ -343,10 +343,12 @@ bin_mu_freq <- function(seurat_obj, num_bins = c(2, 3, 5)) {
 #' @param embeddings The data.frame embeddings output.
 #' @param combined_airr The combined output from airrflow/Immcantation. Must contain columns called "cell_id" and "cell_id_original".
 #' @param combined_airr_input The data.frame provided to immune2vec; contains translated sequences.
+#' @param verbose Logical indicating whether or not to print messages.
 #'
 #' @returns A `Matrix` of embeddings
 #' @export
-convert_embeddings <- function(embeddings, combined_airr, combined_airr_input) {
+convert_embeddings <- function(embeddings, combined_airr, combined_airr_input,
+                               verbose = TRUE) {
   # check just in case
   if (!all(c("cell_id", "cell_id_original") %in% colnames(combined_airr))) {
     cli::cli_abort("One or both of the required columns (`cell_id`, `cell_id_original`) ",
@@ -377,7 +379,7 @@ convert_embeddings <- function(embeddings, combined_airr, combined_airr_input) {
   if (length(embeddings_only_cell_ids) > 0) { # or any(is.na(cell_ids))
     embeddings <- filter(embeddings, !cell_id %in% embeddings_only_cell_ids)
   }
-  cli::cli_inform("{length(embeddings_only_cell_ids)} cell{?s} in the embedding with no \\
+  if (verbose) cli::cli_inform("{length(embeddings_only_cell_ids)} cell{?s} in the embedding with no \\
 corresponding cell IDs in the combined AIRR file were removed.")
 
   # depending on how AMULETy was run and read in, there might be sample names
@@ -490,10 +492,11 @@ factor_family_info <- function(combined_airr) {
 #'
 #' @param dataset_path The path to the dataset directory.
 #' @param version_airrflow The airrflow version (as a string).
+#' @param verbose Logical indicating whether or not to print messages.
 #'
 #' @returns A processed AIRR-formatted data.frame with several columns added.
 #' @export
-process_airrflow <- function(dataset_path, version_airrflow) {
+process_airrflow <- function(dataset_path, version_airrflow, verbose = TRUE) {
   # deal with possible format e.g. 4.0 or 4.3.1
   version_airrflow_num <-
     str_split_1(version_airrflow, pattern = "")[1:3] %>% str_c(collapse = "")
@@ -554,7 +557,7 @@ process_airrflow <- function(dataset_path, version_airrflow) {
   }
 
   # filter out heavy chains with unassigned isotypes
-  cli::cli_inform("{nrow(filter(combined_bcr, locus == 'IGH', is.na(c_call)))} \\
+  if (verbose) cli::cli_inform("{nrow(filter(combined_bcr, locus == 'IGH', is.na(c_call)))} \\
 heavy chain{?s} with {.code NA} c_calls.")
   combined_bcr <- combined_bcr %>% filter(!is.na(c_call) | locus != "IGH")
 
@@ -566,7 +569,7 @@ heavy chain{?s} with {.code NA} c_calls.")
     filter(!any(locus == "IGH")) %>%
     pull(cell_id)
 
-  cli::cli_inform("{length(unpaired_light_chains)} unpaired light chain{?s} \\
+  if (verbose) cli::cli_inform("{length(unpaired_light_chains)} unpaired light chain{?s} \\
 (no corresponding heavy chain with the same cell ID).")
   combined_bcr <- combined_bcr %>% filter(!cell_id %in% unpaired_light_chains)
 
@@ -577,7 +580,7 @@ heavy chain{?s} with {.code NA} c_calls.")
     filter(locus == "IGH", is.na(isotype)) %>%
     pull(cell_id)
 
-  cli::cli_inform("{length(multi_heavy_chains)} heavy chain{?s} with light chain c_calls.")
+  if (verbose) cli::cli_inform("{length(multi_heavy_chains)} heavy chain{?s} with light chain c_calls.")
   combined_bcr <- combined_bcr %>% filter(!cell_id %in% multi_heavy_chains)
 
   # preserve the original c_call column and create a simplified version
@@ -605,7 +608,7 @@ heavy chain{?s} with {.code NA} c_calls.")
   # add gene family information
   combined_bcr <- add_family_info(combined_airr = combined_bcr)
 
-  cli::cli_inform("{nrow(combined_bcr)} total chain{?s} in the combined data.")
+  if (verbose) cli::cli_inform("{nrow(combined_bcr)} total chain{?s} in the combined data.")
 
   return(combined_bcr)
 }
@@ -627,6 +630,7 @@ heavy chain{?s} with {.code NA} c_calls.")
 #'
 #' @param bcr_features A data frame containing BCR features (e.g. isotype, mutation
 #'   frequency). May contain ordered factors, numeric, or categorical variables.
+#' @param verbose Logical indicating whether or not to print messages.
 #'
 #' @return A transposed matrix of processed features where:
 #'   - Ordered variables are converted to numeric scores and suffixed with "-ordered"
@@ -635,7 +639,7 @@ heavy chain{?s} with {.code NA} c_calls.")
 #'   - All numeric predictors are normalized to mean = 0 and sd = 1
 #'   - Underscores are removed from feature names (so Seurat doesn't throw a warning)
 #' @export
-process_bcr_features <- function(bcr_features) {
+process_bcr_features <- function(bcr_features, verbose = TRUE) {
   has_ordered <- any(sapply(bcr_features, is.ordered))
 
   # rename numeric columns
@@ -644,7 +648,7 @@ process_bcr_features <- function(bcr_features) {
 
   # rename (to distinguish from existing metadata) and convert the columns
   if (has_ordered) {
-    cli::cli_inform(c("i" = "Ordered variables detected: converting with ordinal scoring"))
+    if (verbose) cli::cli_inform(c("i" = "Ordered variables detected: converting with ordinal scoring"))
     bcr_features <- bcr_features %>%
                       rename_with(~str_c(., "-ordered"), where(is.ordered))
 
@@ -654,7 +658,7 @@ process_bcr_features <- function(bcr_features) {
                   step_unknown(all_nominal_predictors()) %>%
                   step_dummy(all_nominal_predictors(), one_hot = TRUE)
   } else {
-    cli::cli_inform(c("i" = "No ordered variables: applying one-hot encoding to nominal predictors"))
+    if (verbose) cli::cli_inform(c("i" = "No ordered variables: applying one-hot encoding to nominal predictors"))
 
     # one-hot encoding of categorical variables
     ref_cell <- recipe( ~ ., data = bcr_features) %>%
@@ -671,13 +675,13 @@ process_bcr_features <- function(bcr_features) {
                 prep(training = bcr_features)
 
   n_removed <- length(ref_cell$steps[[which(sapply(ref_cell$steps, \(s) inherits(s, "step_zv")))]]$removals)
-  if (n_removed > 0) {
+  if (n_removed > 0 && verbose) {
     cli::cli_inform(c("i" = "Removed {n_removed} zero-variance feature{?s}"))
   }
 
   bcr_features <- bake(ref_cell, new_data = NULL) %>% base::t()
 
-  cli::cli_inform(c("v" = "Processed {nrow(bcr_features)} feature{?s} across {ncol(bcr_features)} cell{?s}"))
+  if (verbose) cli::cli_inform(c("v" = "Processed {nrow(bcr_features)} feature{?s} across {ncol(bcr_features)} cell{?s}"))
 
   # step_dummy uses underscores for level names; Seurat requires dashes in feature names
   rownames(bcr_features) <- gsub("_", "-", rownames(bcr_features))

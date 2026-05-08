@@ -23,6 +23,7 @@ plot_dimplot(
   idents_char = TRUE,
   order = FALSE,
   details,
+  fix_aspect = TRUE,
   ...
 )
 }
@@ -62,6 +63,8 @@ plot_dimplot(
 \item{order}{Plot cells on top or not.}
 
 \item{details}{An optional custom subtitle.}
+
+\item{fix_aspect}{Fix the aspect ratio to 1:1 via \code{clean_umap}.}
 
 \item{...}{Any other Seurat parameters.}
 }

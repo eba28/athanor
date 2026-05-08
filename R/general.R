@@ -23,6 +23,7 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
   # TODO: regenerate PCA too?
   # TODO: integrate this into other functions e.g. seurat_pipeline, run_wnn?
   # TODO: don't use the cli calls if verbose = FALSE
+  # TODO: just reuse seurat_pipeline and bcr_embeddings_pipeline???
 
   # parameter checks
   if (!pca_name %in% names(seurat_obj@reductions)) {
@@ -43,7 +44,7 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
   nn_command <- stringr::str_c("FindNeighbors", assay, pca_name, sep = ".")
 
   # TODO: only print out the actual values that are filled in
-  if (missing(num_dims) | missing(k_param)) {
+  if (missing(num_dims) || missing(k_param)) {
     # try to use the existing neighbors slot if possible
     if (nn_name %in% names(seurat_obj@neighbors)) {
       nn <- seurat_obj@neighbors[[nn_name]]
@@ -88,6 +89,180 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
                         # note that if assay has any underscores in it, Seurat
                         # will remove them when making the key
                         reduction.key = stringr::str_c(tolower(assay), "UMAP_"),
+                        verbose = verbose)
+
+  seurat_obj
+}
+
+
+#' Run Seurat's standard pipeline
+#'
+#' @description
+#' Runs the standard Seurat pipeline (normalize, scale, PCA, neighbors, UMAP) on a
+#' Seurat object. Optionally filters cells by QC metrics first, filters IG/TR genes
+#' from variable features, and clusters. Supports any assay (e.g. `"RNA"`,
+#' `"RNA_BCR"`), with reduction names derived automatically from the assay name.
+#'
+#' @details
+#' Cell filtering (`nfeatures_RNA`, `perc_mt`) and ADT normalization are only
+#' applied when `assay = "RNA"`. For other assays, pass `normalize = FALSE` if
+#' the data has already been normalized.
+#'
+#' @param seurat_obj The Seurat object.
+#' @param assay Name of the assay to run the pipeline on. Defaults to `"RNA"`.
+#' @param pca_name Name to give the PCA reduction. If `NULL`, defaults to
+#'   `"rpca"` for the RNA assay, or `paste0(tolower(assay), ".pca")` for others
+#'   (e.g. `"rna_bcr.pca"` for `assay = "RNA_BCR"`).
+#' @param nfeatures_RNA Minimum number of RNA features to retain per cell. If
+#'   omitted, cell filtering is skipped. Only applies when `assay = "RNA"`.
+#' @param perc_mt Maximum percentage of mitochondrial genes to retain. If
+#'   omitted, cell filtering is skipped. Only applies when `assay = "RNA"`.
+#' @param num_features Desired number of variable features.
+#' @param num_pcs Number of principal components to compute.
+#' @param num_dims Number of PCA dimensions to use for neighbor finding.
+#' @param k_param Number of nearest neighbors.
+#' @param normalize If `TRUE`, normalize the assay using LogNormalize before
+#'   scaling. Set to `FALSE` if the assay has already been normalized.
+#' @param find_var_features If `TRUE`, run [FindVariableFeatures()] before
+#'   scaling. Set to `FALSE` if variable features are already set on the assay
+#'   (e.g. when calling this after manually setting them in [concatenate_gex_bcr()]).
+#' @param cluster_res Clustering resolution(s). If `NULL`, clustering is skipped.
+#' @param filter_genes If specified, filter out genes from this category (e.g. `"IG"` and/or `"TR"`).
+#' @param ensembl_version Ensembl version for gene annotations (e.g. `"GRCh38.104"`). If `NULL`, uses the default in [get_airr_genes()].
+#' @param cache_file Passed to [get_airr_genes()]. Path to a cached RDS result to use instead of querying Ensembl.
+#' @param verbose Logical indicating whether or not to print messages.
+#'
+#' @returns A processed Seurat object with PCA, neighbor graphs, optional
+#'   clusters, and UMAP. Reduction names are derived from `assay` and `pca_name`.
+#' @export
+seurat_pipeline <- function(seurat_obj, assay = "RNA", pca_name = NULL,
+                            nfeatures_RNA, perc_mt,
+                            num_features = 2000, num_pcs = 50, num_dims = 20,
+                            k_param = 20, normalize = TRUE,
+                            find_var_features = TRUE, cluster_res = NULL,
+                            filter_genes, ensembl_version = NULL,
+                            cache_file = NULL, verbose = TRUE) {
+  # derive reduction and graph names from assay
+  if (is.null(pca_name)) {
+    pca_name <- if (assay == "RNA") "rpca" else paste0(tolower(assay), ".pca")
+  }
+  pca_key   <- paste0(gsub("[._]", "", tolower(pca_name)), "_")
+  umap_name <- paste0(tolower(assay), ".umap")
+  umap_key  <- paste0(gsub("_", "", tolower(assay)), "UMAP_")
+  nn_name   <- paste0(assay, ".nn")
+  snn_name  <- paste0(assay, "_snn")
+
+  # cell filtering - RNA only
+  if (assay == "RNA" && !rlang::is_missing(nfeatures_RNA) && !rlang::is_missing(perc_mt)) {
+    if ("percent.mt" %in% names(seurat_obj[[]])) {
+      seurat_obj <- subset(seurat_obj,
+                           subset = nFeature_RNA > nfeatures_RNA & percent.mt < perc_mt)
+    } else {
+      warning("No filtration was performed upon this object.")
+    }
+  }
+
+  # normalization
+  if (normalize) {
+    seurat_obj <- NormalizeData(seurat_obj, assay = assay,
+                                normalization.method = "LogNormalize",
+                                scale.factor = 10000, verbose = verbose)
+    # ADT normalization - RNA only, normalizes across cells not features
+    if (assay == "RNA" && "ADT" %in% names(seurat_obj@assays)) {
+      seurat_obj <- NormalizeData(seurat_obj,
+                                  normalization.method = "CLR", margin = 2,
+                                  assay = "ADT", verbose = verbose)
+    }
+  }
+
+  # highly variable features
+  if (find_var_features) {
+    seurat_obj <- FindVariableFeatures(seurat_obj, assay = assay,
+                                       selection.method = "vst",
+                                       nfeatures = num_features, verbose = verbose)
+  }
+
+  # note: `features = rownames(seurat_obj)` can cause crashes
+  seurat_obj <- ScaleData(seurat_obj, assay = assay, verbose = verbose)
+
+  if (!rlang::is_missing(filter_genes)) {
+    seurat_obj <- filter_variable_features(seurat_obj, filter_genes,
+                                           ensembl_version = ensembl_version,
+                                           cache_file = cache_file)
+  }
+
+  # irlba throws a warning to "use a standard svd instead" when requesting more
+  # than 50% of all singular values, so use exact SVD in that case (also faster
+  # when the embedding dimension is small)
+  scale_data <- Seurat::GetAssayData(seurat_obj, assay = assay, layer = "scale.data")
+  max_dim <- min(nrow(scale_data), ncol(scale_data))
+
+  # ScaleData silently no-ops when VariableFeatures names don't match assay
+  # feature names (Seurat 5 rewrites "_" to "-" at assay creation, so a
+  # pre-rename VariableFeatures list finds nothing to scale)
+  if (nrow(scale_data) == 0L) {
+    cli::cli_abort(c(
+      "ScaleData produced an empty {.code scale.data} layer for assay {.val {assay}}.",
+      "i" = "Usually means {.fn VariableFeatures} contains names that don't \\
+             match the assay's actual feature names.",
+      "i" = "Seurat 5 rewrites {.code _} to {.code -} in feature names at \\
+             assay creation; pre-rename BCR features (e.g. \\
+             {.code gsub('_', '.', x)}) if your VariableFeatures list \\
+             contains underscores."
+    ))
+  }
+
+  # Cap num_pcs at matrix rank - 1 (RunPCA errors or hangs otherwise; common
+  # in concatenate_gex_bcr "reduced" where combined_mat has ~26 rows)
+  if (num_pcs > max_dim - 1L) {
+    if (verbose) {
+      cli::cli_warn("num_pcs ({num_pcs}) exceeds matrix rank ({max_dim}); \\
+                     capping at {max_dim - 1L}.")
+    }
+    num_pcs <- max_dim - 1L
+  }
+
+  # FindNeighbors errors if dims > computed PCs
+  if (num_dims > num_pcs) {
+    if (verbose) {
+      cli::cli_inform(c("i" = "num_dims ({num_dims}) > num_pcs ({num_pcs}); \\
+                                capping num_dims to {num_pcs}."))
+    }
+    num_dims <- num_pcs
+  }
+
+  use_approx <- num_pcs < max_dim / 2
+  seurat_obj <- RunPCA(seurat_obj, assay = assay, npcs = num_pcs,
+                       reduction.name = pca_name, reduction.key = pca_key,
+                       approx = use_approx, verbose = verbose)
+  cli::cli_inform(c("v" = "Computed PCA with {num_pcs} dimensions using \\
+                    {ifelse(use_approx, 'approximate', 'exact')} SVD."))
+
+  # SNN graph for clustering + neighbor object for UMAP and evaluation
+  seurat_obj <- FindNeighbors(seurat_obj, reduction = pca_name, dims = 1:num_dims,
+                              k.param = k_param,
+                              graph.name = str_c(assay, "_", c("", "s"), "nn"),
+                              verbose = verbose)
+  seurat_obj <- FindNeighbors(seurat_obj, reduction = pca_name, dims = 1:num_dims,
+                              k.param = k_param, return.neighbor = TRUE,
+                              graph.name = nn_name, verbose = verbose)
+
+  if (!is.null(cluster_res)) {
+    seurat_obj <- FindClusters(seurat_obj, graph.name = snn_name,
+                               resolution = cluster_res, verbose = verbose)
+
+    # fix the cluster levels (they sort alphabetically by default)
+    for (res in cluster_res) {
+      res_col <- paste0(snn_name, "_res.", res)
+      seurat_obj[[res_col]] <-
+        factor(seurat_obj[[]][[res_col]],
+               str_sort(unique(seurat_obj[[]][[res_col]]), numeric = TRUE))
+    }
+  }
+
+  seurat_obj <- RunUMAP(seurat_obj, reduction = pca_name, assay = assay,
+                        nn.name = nn_name, n.neighbors = k_param,
+                        reduction.name = umap_name, reduction.key = umap_key,
                         verbose = verbose)
 
   seurat_obj
