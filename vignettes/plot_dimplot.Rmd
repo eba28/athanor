@@ -71,7 +71,7 @@ rownames(adt_counts) <- c("CD19", "CD21", "CD27", "CD38", "IGD", "IGM")
 colnames(adt_counts) <- colnames(gex_counts)
 
 obj <- CreateSeuratObject(counts = gex_counts, project = "Example")
-obj[["ADT"]] <- CreateAssayObject(counts = adt_counts)
+obj[["ADT"]] <- CreateAssay5Object(counts = adt_counts)
 
 # TODO: show real QC
 obj <- seurat_pipeline(obj, nfeatures_RNA = 0, perc_mt = 100,

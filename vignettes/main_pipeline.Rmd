@@ -74,7 +74,7 @@ adt_counts <- Matrix(as.integer(rexp(num_proteins * num_cells, rate = 0.3)),
                      nrow = num_proteins, ncol = num_cells, sparse = TRUE)
 rownames(adt_counts) <- c("CD19", "CD21", "CD27", "CD38", "IGD", "IGM")
 colnames(adt_counts) <- Cells(obj)
-obj[["ADT"]] <- CreateAssayObject(counts = adt_counts)
+obj[["ADT"]] <- CreateAssay5Object(counts = adt_counts)
 
 # confirm that cell_id is present
 head(obj$cell_id)

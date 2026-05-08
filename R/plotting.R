@@ -238,6 +238,7 @@ plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
 #' @param idents_char If sorting idents, whether to sort them as characters or numerically (e.g. cluster 10 should be after cluster 9, not before).
 #' @param order Plot cells on top or not.
 #' @param details An optional custom subtitle.
+#' @param fix_aspect Fix the aspect ratio to 1:1 via `clean_umap`.
 #' @param ... Any other Seurat parameters.
 #'
 #' @returns A Seurat plot of the specified reduction.
@@ -248,7 +249,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
                          highlight, plot_label = FALSE, label_size = 3,
                          label_box = TRUE, include_legend = TRUE, legend_label,
                          sort_idents = TRUE, idents_char = TRUE, order = FALSE,
-                         details, ...) {
+                         details, fix_aspect = TRUE, ...) {
   # check parameters
   if (!meta_col %in% names(seurat_obj[[]])) {
     cli::cli_abort("{meta_col} is not a valid metadata column name. Please select one of: {names(seurat_obj[[]])}.")
@@ -339,7 +340,8 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
   }
 
   # standardize the labels
-  p <- p + labels_standard + clean_umap
+  p <- p + labels_standard
+  if (fix_aspect) p <- p + clean_umap
 
   return(p)
 }
@@ -369,7 +371,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 #'
 #' @returns A grid of four plots with UMAPs in the left column and bar plots in the right column.
 #' @export
-plot_doublets <- function(seurat_obj, data_source, clrs_specific,
+plot_doublets <- function(seurat_obj, data_source = "", clrs_specific,
                           use_hues = FALSE, reduc = "rna.umap",
                           meta_col = "seurat_clusters",
                           group_label = NULL, doublet_col = "scDblFinder.class",
@@ -829,7 +831,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
 #'
 #' @returns A stacked ggplot bar plot
 #' @export
-plot_pcts <- function(pcts, data_source, clrs_specific,
+plot_pcts <- function(pcts, data_source = "", clrs_specific,
                       plot_type = "All", plot_value = "Cell Type",
                       x_axis = "sample_id", x_axis_label = "Sample",
                       fill_type = "annotated_clusters", fill_label = fill_type,

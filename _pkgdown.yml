@@ -22,6 +22,7 @@ reference:
   desc: General functions for processing and analyzing single-cell data.
 - contents:
   - regen_reduc
+  - seurat_pipeline
 
 - title: Quality Control
   desc: Functions for QC and filtering.
@@ -35,7 +36,6 @@ reference:
 - contents:
   - filter_variable_features
   - get_airr_genes
-  - seurat_pipeline
 - subtitle: Cell type annotation
 - contents:
   - add_annotations
@@ -69,6 +69,8 @@ reference:
   - gex_add_airr
 - subtitle: Seurat objects
 - contents:
+  - infer_k_param
+  - infer_num_dims
   - merge_gex_bcr
 - subtitle: Concatenation
 - contents:

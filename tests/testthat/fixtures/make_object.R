@@ -29,7 +29,7 @@ colnames(adt_counts) <- paste("Cell", 1:num_cells, sep = "-")
 seurat_obj <-
   CreateSeuratObject(counts = raw_counts, project = "Manual")
 seurat_obj[["ADT"]] <-
-  CreateAssayObject(counts = adt_counts, assay = "ADT", project = "Manual")
+  CreateAssay5Object(counts = adt_counts, assay = "ADT", project = "Manual")
 
 # add metadata
 seurat_obj$cell_id <- Cells(seurat_obj)
@@ -68,7 +68,7 @@ rownames(adt_counts) <- paste("ADT", 1:num_proteins, sep = "-")
 colnames(adt_counts) <- paste("Cell", 1:num_cells, sep = "-")
 
 seurat_obj2 <- CreateSeuratObject(counts = raw_counts, project = "Manual2")
-seurat_obj2[["ADT"]] <- CreateAssayObject(counts = adt_counts)
+seurat_obj2[["ADT"]] <- CreateAssay5Object(counts = adt_counts)
 seurat_obj2$cell_id <- Cells(seurat_obj2)
 
 seurat_obj2 <- NormalizeData(seurat_obj2, verbose = FALSE)
