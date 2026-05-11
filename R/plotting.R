@@ -238,7 +238,8 @@ plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
 #' @param idents_char If sorting idents, whether to sort them as characters or numerically (e.g. cluster 10 should be after cluster 9, not before).
 #' @param order Plot cells on top or not.
 #' @param details An optional custom subtitle.
-#' @param fix_aspect Fix the aspect ratio to 1:1 via `clean_dimplot`.
+#' @param fix_aspect Fix the aspect ratio to 1:1 via `clean_dimplot2`.
+#' @param simplify_titles Whether or not to convert x and y axis titles to simplified versions e.g. "UMAP_1" instead of "bcrUMAP_1".
 #' @param ... Any other Seurat parameters.
 #'
 #' @returns A Seurat plot of the specified reduction.
@@ -249,7 +250,8 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
                          highlight, plot_label = FALSE, label_size = 3,
                          label_box = TRUE, include_legend = TRUE, legend_label,
                          sort_idents = TRUE, idents_char = TRUE, order = FALSE,
-                         details, fix_aspect = TRUE, ...) {
+                         details, fix_aspect = TRUE, simplify_titles = FALSE,
+                         ...) {
   # check parameters
   if (!meta_col %in% names(seurat_obj[[]])) {
     cli::cli_abort("{meta_col} is not a valid metadata column name. Please select one of: {names(seurat_obj[[]])}.")
@@ -341,11 +343,21 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 
   # standardize the labels
   p <- p + labels_standard
-  # TODO: return the clean umap without a fixed aspect ratio
   if (fix_aspect) {
     p <- p + clean_dimplot2
   } else {
     p <- p + clean_dimplot
+  }
+
+  # TODO: add tSNE support
+  if (simplify_titles) {
+    if ("umap" %in% reduc) {
+      p <- p + labs(x = "UMAP_1", y = "UMAP_2")
+    } else if ("pca" %in% reduc) {
+      p <- p + labs(x = "PCA_1", y = "PCA_2")
+    } else {
+      p <- p + labs(x = paste0(reduc, "_1"), y = paste0(reduc, "_2"))
+    }
   }
 
   return(p)

@@ -24,6 +24,7 @@ plot_dimplot(
   order = FALSE,
   details,
   fix_aspect = TRUE,
+  simplify_titles = FALSE,
   ...
 )
 }
@@ -64,7 +65,9 @@ plot_dimplot(
 
 \item{details}{An optional custom subtitle.}
 
-\item{fix_aspect}{Fix the aspect ratio to 1:1 via \code{clean_dimplot}.}
+\item{fix_aspect}{Fix the aspect ratio to 1:1 via \code{clean_dimplot2}.}
+
+\item{simplify_titles}{Whether or not to convert x and y axis titles to simplified versions e.g. "UMAP_1" instead of "bcrUMAP_1".}
 
 \item{...}{Any other Seurat parameters.}
 }
