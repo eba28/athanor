@@ -238,7 +238,7 @@ plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
 #' @param idents_char If sorting idents, whether to sort them as characters or numerically (e.g. cluster 10 should be after cluster 9, not before).
 #' @param order Plot cells on top or not.
 #' @param details An optional custom subtitle.
-#' @param fix_aspect Fix the aspect ratio to 1:1 via `clean_umap`.
+#' @param fix_aspect Fix the aspect ratio to 1:1 via `clean_dimplot`.
 #' @param ... Any other Seurat parameters.
 #'
 #' @returns A Seurat plot of the specified reduction.
@@ -341,7 +341,12 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 
   # standardize the labels
   p <- p + labels_standard
-  if (fix_aspect) p <- p + clean_umap
+  # TODO: return the clean umap without a fixed aspect ratio
+  if (fix_aspect) {
+    p <- p + clean_dimplot2
+  } else {
+    p <- p + clean_dimplot
+  }
 
   return(p)
 }
@@ -630,7 +635,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       #                                ncol = 1, raster = FALSE) &
       #                      labs(subtitle = details) &
       #                      scale_color_viridis_c(option = "G", direction = -1) &
-      #                      labels_standard & clean_umap)
+      #                      labels_standard & clean_dimplot)
 
       for (comparison in comparisons) {
         plots_overview[[paste0(comparison, "_", type)]] <-
@@ -640,7 +645,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
               labs(title = paste(assay_name, comparison), subtitle = details) +
               scale_color_viridis_c(name = comparison, option = "G",
                                     direction = -1) +
-              labels_standard + clean_umap
+              labels_standard + clean_dimplot
           )
       }
     } else {
@@ -972,7 +977,7 @@ plot_vln_feat <- function(seurat_obj, clrs_specific, feature, title = "RNA",
                           reduc = "umap", meta_col = NULL, rotate = FALSE, ...) {
   # TODO: pass additional parameters, make labelling optional (be careful with additional)
   # TODO: check if setting the assay is even necessary
-  # TODO: deal with how clean_umap messing up the heights
+  # TODO: deal with how clean_dimplot messing up the heights
   # TODO: give an option for how to sort the violin plot (or not)
   # TODO: include the assay to search for the feature in
 
@@ -991,7 +996,7 @@ plot_vln_feat <- function(seurat_obj, clrs_specific, feature, title = "RNA",
                     order = TRUE, min.cutoff = 0, reduction = reduc,
                     raster = FALSE, ...) +
           scale_color_viridis_c(option = "G", direction = -1) +
-          labels_standard + # clean_umap
+          labels_standard + # clean_dimplot
           theme(axis.ticks = element_blank(), axis.text = element_blank())
 
   (p1 | p2) & plot_layout(nrow = 1, widths = c(2, 1))

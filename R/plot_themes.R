@@ -50,16 +50,22 @@ labels_rotate_x <- ggplot2::theme(
   axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
 )
 
-#' Clean theme for UMAP plots
+#' Clean theme for DimPlots
 #'
 #' @export
-clean_umap <- ggplot2::theme(
-  plot.title = ggplot2::element_text(hjust = 0.5),
-  axis.text.x = ggplot2::element_blank(),
-  axis.text.y = ggplot2::element_blank(),
-  axis.ticks = ggplot2::element_blank(),
-  aspect.ratio = 1
-)
+clean_dimplot <- ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
+                                axis.text.x = ggplot2::element_blank(),
+                                axis.text.y = ggplot2::element_blank(),
+                                axis.ticks = ggplot2::element_blank(),
+                                aspect.ratio = 1)
+
+#' Clean theme for DimPlots
+#'
+#' @details
+#' Same as clean_dimplot but with a square aspect ratio.
+#'
+#' @export
+clean_dimplot2 <- clean_dimplot + ggplot2::theme(aspect.ratio = 1)
 
 #' Patchwork annotation with Roman numeral panel labels
 #'

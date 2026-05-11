@@ -133,7 +133,8 @@ reference:
   - reduce_object
 - subtitle: Themes
 - contents:
-  - clean_umap
+  - clean_dimplot
+  - clean_dimplot2
   - labels_rotate_x
   - labels_standard
   - labels_standard_vln

@@ -274,8 +274,8 @@ the feature name).
 # use CD19 as an example
 FeaturePlot(obj, features = "adt_CD19",
             reduction = "rna.umap", order = TRUE, raster = FALSE) +
-  scale_color_viridis_c(option = "G", direction = -1) # name = "CD19"
-  # clean_umap
+  scale_color_viridis_c(option = "G", direction = -1) + # name = "CD19"
+  clean_dimplot2
 ```
 
 ### Multiple markers side by side
@@ -283,10 +283,12 @@ FeaturePlot(obj, features = "adt_CD19",
 ```{r adt-panel}
 #| fig.dim = c(12, 8)
 
-FeaturePlot(obj, features = paste0("adt_", rownames(obj@assays$ADT@data)),
+adt_markers <- rownames(GetAssayData(obj, assay = "ADT", layer = "data"))
+
+FeaturePlot(obj, features = paste0("adt_", adt_markers),
             reduction = "rna.umap", order = TRUE, ncol = 3, raster = FALSE) &
-  ggplot2::scale_color_viridis_c(option = "G", direction = -1) # &
-  # clean_umap
+  ggplot2::scale_color_viridis_c(option = "G", direction = -1) &
+  clean_dimplot2
 ```
 
 ---

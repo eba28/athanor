@@ -64,7 +64,7 @@ plot_dimplot(
 
 \item{details}{An optional custom subtitle.}
 
-\item{fix_aspect}{Fix the aspect ratio to 1:1 via \code{clean_umap}.}
+\item{fix_aspect}{Fix the aspect ratio to 1:1 via \code{clean_dimplot}.}
 
 \item{...}{Any other Seurat parameters.}
 }
