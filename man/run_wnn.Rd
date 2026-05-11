@@ -11,6 +11,8 @@ run_wnn(
   pc_gex = 20,
   pc_bcr = 20,
   k_param = 20,
+  gex_reduction = "rpca",
+  bcr_reduction = "bpca",
   cluster = FALSE,
   cluster_res = list(GEX = 1, BCR = 1, WNN = 1),
   modality_weights = NULL,

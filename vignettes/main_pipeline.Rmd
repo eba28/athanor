@@ -187,7 +187,7 @@ ordered factors to ordinal scores, and one-hot encodes categoricals.
 
 ```{r concatenate}
 # keep a copy so run_wnn() below starts from the same object
-obj_cat <- concatenate_gex_bcr(obj, pca_stage = "Before",
+obj_cat <- concatenate_gex_bcr(obj, pca_stage = "raw",
                                cols_to_include =
                                  c("cdr3_aa_length", "isotype", "mu_freq"),
                                normalize = TRUE, num_dims = 10)
