@@ -17,7 +17,7 @@ plot_dimplot(
   reduc = "rna.umap",
   meta_col = "annotated_clusters",
   highlight,
-  plot_label = TRUE,
+  plot_label = FALSE,
   label_size = 3,
   label_box = TRUE,
   include_legend = TRUE,
@@ -26,6 +26,7 @@ plot_dimplot(
   idents_char = TRUE,
   order = FALSE,
   details,
+  fix_aspect = TRUE,
   ...
 )
 ```
@@ -109,6 +110,10 @@ plot_dimplot(
 - details:
 
   An optional custom subtitle.
+
+- fix_aspect:
+
+  Fix the aspect ratio to 1:1 via `clean_dimplot`.
 
 - ...:
 

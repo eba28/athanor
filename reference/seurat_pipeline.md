@@ -2,19 +2,25 @@
 
 Runs the standard Seurat pipeline (normalize, scale, PCA, neighbors,
 UMAP) on a Seurat object. Optionally filters cells by QC metrics first,
-filters IG/TR genes from variable features, and clusters.
+filters IG/TR genes from variable features, and clusters. Supports any
+assay (e.g. `"RNA"`, `"RNA_BCR"`), with reduction names derived
+automatically from the assay name.
 
 ## Usage
 
 ``` r
 seurat_pipeline(
   seurat_obj,
+  assay = "RNA",
+  pca_name = NULL,
   nfeatures_RNA,
   perc_mt,
   num_features = 2000,
   num_pcs = 50,
   num_dims = 20,
   k_param = 20,
+  normalize = TRUE,
+  find_var_features = TRUE,
   cluster_res = NULL,
   filter_genes,
   ensembl_version = NULL,
@@ -27,16 +33,27 @@ seurat_pipeline(
 
 - seurat_obj:
 
-  The Seurat object containing combined GEX data.
+  The Seurat object.
+
+- assay:
+
+  Name of the assay to run the pipeline on. Defaults to `"RNA"`.
+
+- pca_name:
+
+  Name to give the PCA reduction. If `NULL`, defaults to `"rpca"` for
+  the RNA assay, or `paste0(tolower(assay), ".pca")` for others (e.g.
+  `"rna_bcr.pca"` for `assay = "RNA_BCR"`).
 
 - nfeatures_RNA:
 
-  Minimum number of RNA features. If omitted, cell filtering is skipped.
+  Minimum number of RNA features to retain per cell. If omitted, cell
+  filtering is skipped. Only applies when `assay = "RNA"`.
 
 - perc_mt:
 
   Maximum percentage of mitochondrial genes to retain. If omitted, cell
-  filtering is skipped.
+  filtering is skipped. Only applies when `assay = "RNA"`.
 
 - num_features:
 
@@ -54,18 +71,31 @@ seurat_pipeline(
 
   Number of nearest neighbors.
 
+- normalize:
+
+  If `TRUE`, normalize the assay using LogNormalize before scaling. Set
+  to `FALSE` if the assay has already been normalized.
+
+- find_var_features:
+
+  If `TRUE`, run
+  [`Seurat::FindVariableFeatures()`](https://satijalab.org/seurat/reference/FindVariableFeatures.html)
+  before scaling. Set to `FALSE` if variable features are already set on
+  the assay (e.g. when calling this after manually setting them in
+  [`concatenate_gex_bcr()`](https://eba28.github.io/athanor/reference/concatenate_gex_bcr.md)).
+
 - cluster_res:
 
-  Clustering resolution(s). If NULL, clustering is skipped.
+  Clustering resolution(s). If `NULL`, clustering is skipped.
 
 - filter_genes:
 
-  If specified, filter out genes from this category (e.g. "IG" and/or
-  "TR").
+  If specified, filter out genes from this category (e.g. `"IG"` and/or
+  `"TR"`).
 
 - ensembl_version:
 
-  Ensembl version for gene annotations (e.g. "GRCh38.104"). If NULL,
+  Ensembl version for gene annotations (e.g. `"GRCh38.104"`). If `NULL`,
   uses the default in
   [`get_airr_genes()`](https://eba28.github.io/athanor/reference/get_airr_genes.md).
 
@@ -77,18 +107,15 @@ seurat_pipeline(
 
 - verbose:
 
-  Print out Seurat's progress messages.
+  Logical indicating whether or not to print messages.
 
 ## Value
 
-A processed Seurat object with PCA (`rpca`), neighbor graphs (`RNA_nn`,
-`RNA_snn`, `RNA.nn`), optional clusters, and UMAP (`rna.umap`).
+A processed Seurat object with PCA, neighbor graphs, optional clusters,
+and UMAP. Reduction names are derived from `assay` and `pca_name`.
 
 ## Details
 
-It is highly recommended to save the resulting object as an RDS or qs
-file. This pipeline is loosely based on [Seurat's
-pipeline](https://satijalab.org/seurat/articles/pbmc3k_tutorial). Unlike
-previous analyses, `features = rownames(obj)` was removed from the
-`ScaleData` step since the data is too large and only the top variable
-features are needed to do `RunPCA`.
+Cell filtering (`nfeatures_RNA`, `perc_mt`) and ADT normalization are
+only applied when `assay = "RNA"`. For other assays, pass
+`normalize = FALSE` if the data has already been normalized.

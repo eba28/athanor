@@ -7,7 +7,7 @@ adds gene family information.
 ## Usage
 
 ``` r
-process_airrflow(dataset_path, version_airrflow)
+process_airrflow(dataset_path, version_airrflow, verbose = TRUE)
 ```
 
 ## Arguments
@@ -19,6 +19,10 @@ process_airrflow(dataset_path, version_airrflow)
 - version_airrflow:
 
   The airrflow version (as a string).
+
+- verbose:
+
+  Logical indicating whether or not to print messages.
 
 ## Value
 

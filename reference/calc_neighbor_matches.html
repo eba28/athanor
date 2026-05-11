@@ -71,6 +71,7 @@ specified path.</p>
 <span>  permute <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  n_permutations <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  <span class="va">previous_matches</span>,</span>
+<span>  return_mean <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">path_save</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -117,6 +118,11 @@ feature before computing matches to get a random baseline.</p></dd>
 results (optional).</p></dd>
 
 
+<dt id="arg-return-mean">return_mean<a class="anchor" aria-label="anchor" href="#arg-return-mean"></a></dt>
+<dd><p>If TRUE, return the mean across all cells; else return
+per-cell values.</p></dd>
+
+
 <dt id="arg-path-save">path_save<a class="anchor" aria-label="anchor" href="#arg-path-save"></a></dt>
 <dd><p>Where to save the results.</p></dd>
 
@@ -124,7 +130,7 @@ results (optional).</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Data frame with columns: Full_Name, Category, Category_Details,
-Assay, Meta_Col, Method, Matches.</p>
+Assay, Meta_Col, Method, Matches. If <code>return_mean = TRUE</code>, <code>Matches</code> will be the mean across all cells; else it will contain per-cell values.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

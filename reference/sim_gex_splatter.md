@@ -16,7 +16,7 @@ sim_gex_splatter(
   splatter_groups = 1,
   splatter_method = "single",
   seed = 42,
-  verbose = FALSE
+  verbose = TRUE
 )
 ```
 
@@ -44,7 +44,7 @@ sim_gex_splatter(
 
 - verbose:
 
-  Whether or not to print verbose output.
+  Logical indicating whether or not to print messages.
 
 ## Value
 

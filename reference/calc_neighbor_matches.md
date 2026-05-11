@@ -21,6 +21,7 @@ calc_neighbor_matches(
   permute = FALSE,
   n_permutations = 10,
   previous_matches,
+  return_mean = TRUE,
   path_save
 )
 ```
@@ -64,6 +65,11 @@ calc_neighbor_matches(
 
   Data frame of previous matches to combine with new results (optional).
 
+- return_mean:
+
+  If TRUE, return the mean across all cells; else return per-cell
+  values.
+
 - path_save:
 
   Where to save the results.
@@ -71,7 +77,8 @@ calc_neighbor_matches(
 ## Value
 
 Data frame with columns: Full_Name, Category, Category_Details, Assay,
-Meta_Col, Method, Matches.
+Meta_Col, Method, Matches. If `return_mean = TRUE`, `Matches` will be
+the mean across all cells; else it will contain per-cell values.
 
 ## Details
 

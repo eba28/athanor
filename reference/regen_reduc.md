@@ -45,7 +45,7 @@ regen_reduc(
 
 - verbose:
 
-  Print out Seurat's progress messages.
+  Logical indicating whether or not to print messages.
 
 ## Value
 

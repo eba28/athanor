@@ -11,7 +11,7 @@ doublets across clusters or annotations.
 ``` r
 plot_doublets(
   seurat_obj,
-  data_source,
+  data_source = "",
   clrs_specific,
   use_hues = FALSE,
   reduc = "rna.umap",

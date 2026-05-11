@@ -8,7 +8,7 @@ gene expression data in a Seurat object.
 ## Usage
 
 ``` r
-process_bcr_features(bcr_features)
+process_bcr_features(bcr_features, verbose = TRUE)
 ```
 
 ## Arguments
@@ -18,6 +18,10 @@ process_bcr_features(bcr_features)
   A data frame containing BCR features (e.g. isotype, mutation
   frequency). May contain ordered factors, numeric, or categorical
   variables.
+
+- verbose:
+
+  Logical indicating whether or not to print messages.
 
 ## Value
 

@@ -36,7 +36,8 @@ gex_add_airr(
 
 - verbose:
 
-  Whether to print integration summary information.
+  Logical indicating whether or not to print integration summary
+  information.
 
 ## Value
 

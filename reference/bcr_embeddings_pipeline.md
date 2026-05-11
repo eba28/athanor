@@ -55,7 +55,7 @@ bcr_embeddings_pipeline(
 
 - verbose:
 
-  Logical indicating whether to print progress messages.
+  Logical indicating whether or not to print messages.
 
 ## Value
 

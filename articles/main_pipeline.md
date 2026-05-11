@@ -65,7 +65,7 @@ adt_counts <- Matrix(as.integer(rexp(num_proteins * num_cells, rate = 0.3)),
                      nrow = num_proteins, ncol = num_cells, sparse = TRUE)
 rownames(adt_counts) <- c("CD19", "CD21", "CD27", "CD38", "IGD", "IGM")
 colnames(adt_counts) <- Cells(obj)
-obj[["ADT"]] <- CreateAssayObject(counts = adt_counts)
+obj[["ADT"]] <- CreateAssay5Object(counts = adt_counts)
 
 # confirm that cell_id is present
 head(obj$cell_id)
@@ -177,10 +177,10 @@ obj[[]] %>%
   select(mu_freq, cdr3_aa_length, isotype) %>%
   summary()
 #>     mu_freq       cdr3_aa_length isotype  
-#>  Min.   :0.0000   Short :675     IgA:305  
-#>  1st Qu.:0.0770   Medium:667     IgD:264  
-#>  Median :0.1550   Long  :658     IgG:709  
-#>  Mean   :0.1514                  IgM:722  
+#>  Min.   :0.0000   Short :676     IgA:305  
+#>  1st Qu.:0.0770   Medium:664     IgD:265  
+#>  Median :0.1550   Long  :660     IgG:709  
+#>  Mean   :0.1513                  IgM:721  
 #>  3rd Qu.:0.2260                           
 #>  Max.   :0.3000
 ```
@@ -205,7 +205,7 @@ and one-hot encodes categoricals.
 ``` r
 
 # keep a copy so run_wnn() below starts from the same object
-obj_cat <- concatenate_gex_bcr(obj, pca_stage = "Before",
+obj_cat <- concatenate_gex_bcr(obj, pca_stage = "raw",
                                cols_to_include =
                                  c("cdr3_aa_length", "isotype", "mu_freq"),
                                normalize = TRUE, num_dims = 10)

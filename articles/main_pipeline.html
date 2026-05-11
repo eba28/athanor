@@ -135,7 +135,7 @@ cell surface protein counts) since its presence is expected by
 <span>                     nrow <span class="op">=</span> <span class="va">num_proteins</span>, ncol <span class="op">=</span> <span class="va">num_cells</span>, sparse <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">adt_counts</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD19"</span>, <span class="st">"CD21"</span>, <span class="st">"CD27"</span>, <span class="st">"CD38"</span>, <span class="st">"IGD"</span>, <span class="st">"IGM"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">adt_counts</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/Cells.html" class="external-link">Cells</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span>
-<span><span class="va">obj</span><span class="op">[[</span><span class="st">"ADT"</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/CreateAssayObject.html" class="external-link">CreateAssayObject</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">adt_counts</span><span class="op">)</span></span>
+<span><span class="va">obj</span><span class="op">[[</span><span class="st">"ADT"</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/CreateAssay5Object.html" class="external-link">CreateAssay5Object</a></span><span class="op">(</span>counts <span class="op">=</span> <span class="va">adt_counts</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># confirm that cell_id is present</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">cell_id</span><span class="op">)</span></span>
@@ -241,10 +241,10 @@ self-contained.</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">mu_freq</span>, <span class="va">cdr3_aa_length</span>, <span class="va">isotype</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     mu_freq       cdr3_aa_length isotype  </span></span>
-<span><span class="co">#&gt;  Min.   :0.0000   Short :675     IgA:305  </span></span>
-<span><span class="co">#&gt;  1st Qu.:0.0770   Medium:667     IgD:264  </span></span>
-<span><span class="co">#&gt;  Median :0.1550   Long  :658     IgG:709  </span></span>
-<span><span class="co">#&gt;  Mean   :0.1514                  IgM:722  </span></span>
+<span><span class="co">#&gt;  Min.   :0.0000   Short :676     IgA:305  </span></span>
+<span><span class="co">#&gt;  1st Qu.:0.0770   Medium:664     IgD:265  </span></span>
+<span><span class="co">#&gt;  Median :0.1550   Long  :660     IgG:709  </span></span>
+<span><span class="co">#&gt;  Mean   :0.1513                  IgM:721  </span></span>
 <span><span class="co">#&gt;  3rd Qu.:0.2260                           </span></span>
 <span><span class="co">#&gt;  Max.   :0.3000</span></span></code></pre></div>
 <hr>
@@ -264,7 +264,7 @@ normalizes numeric columns, converts ordered factors to ordinal scores,
 and one-hot encodes categoricals.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># keep a copy so run_wnn() below starts from the same object</span></span>
-<span><span class="va">obj_cat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/concatenate_gex_bcr.html">concatenate_gex_bcr</a></span><span class="op">(</span><span class="va">obj</span>, pca_stage <span class="op">=</span> <span class="st">"Before"</span>,</span>
+<span><span class="va">obj_cat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/concatenate_gex_bcr.html">concatenate_gex_bcr</a></span><span class="op">(</span><span class="va">obj</span>, pca_stage <span class="op">=</span> <span class="st">"raw"</span>,</span>
 <span>                               cols_to_include <span class="op">=</span></span>
 <span>                                 <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cdr3_aa_length"</span>, <span class="st">"isotype"</span>, <span class="st">"mu_freq"</span><span class="op">)</span>,</span>
 <span>                               normalize <span class="op">=</span> <span class="cn">TRUE</span>, num_dims <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>

@@ -19,6 +19,7 @@ plot_overview_comps(
   assay_name,
   reduction = "wnn.umap",
   use_adt = FALSE,
+  ncol,
   comparisons = c("annotated_clusters_simpler", "v_call_family", "light_chains",
     "isotype", "mu_freq"),
   ...
@@ -57,6 +58,10 @@ plot_overview_comps(
 - use_adt:
 
   Whether or not the comparisons being plotted represent ADT markers.
+
+- ncol:
+
+  The number of columns to use in the grid.
 
 - comparisons:
 

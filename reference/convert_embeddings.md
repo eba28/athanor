@@ -11,7 +11,12 @@ number of dimensions in the embeddings.
 ## Usage
 
 ``` r
-convert_embeddings(embeddings, combined_airr, combined_airr_input)
+convert_embeddings(
+  embeddings,
+  combined_airr,
+  combined_airr_input,
+  verbose = TRUE
+)
 ```
 
 ## Arguments
@@ -28,6 +33,10 @@ convert_embeddings(embeddings, combined_airr, combined_airr_input)
 - combined_airr_input:
 
   The data.frame provided to immune2vec; contains translated sequences.
+
+- verbose:
+
+  Logical indicating whether or not to print messages.
 
 ## Value
 

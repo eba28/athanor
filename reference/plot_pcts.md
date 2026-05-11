@@ -9,7 +9,7 @@ with percentages labeled and total counts on top.
 ``` r
 plot_pcts(
   pcts,
-  data_source,
+  data_source = "",
   clrs_specific,
   plot_type = "All",
   plot_value = "Cell Type",

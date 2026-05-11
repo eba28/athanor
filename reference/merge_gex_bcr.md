@@ -31,7 +31,7 @@ merge_gex_bcr(gex_obj, bcr_obj, transfer_reductions = TRUE, verbose = TRUE)
 
 - verbose:
 
-  Whether or not to print a summary of the merge.
+  Logical indicating whether or not to print a summary of the merge.
 
 ## Value
 

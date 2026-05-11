@@ -48,7 +48,7 @@ rownames(adt_counts) <- c("CD19", "CD21", "CD27", "CD38", "IGD", "IGM")
 colnames(adt_counts) <- colnames(gex_counts)
 
 obj <- CreateSeuratObject(counts = gex_counts, project = "Example")
-obj[["ADT"]] <- CreateAssayObject(counts = adt_counts)
+obj[["ADT"]] <- CreateAssay5Object(counts = adt_counts)
 
 # TODO: show real QC
 obj <- seurat_pipeline(obj, nfeatures_RNA = 0, perc_mt = 100,
@@ -270,31 +270,25 @@ prepended to the feature name).
 # use CD19 as an example
 FeaturePlot(obj, features = "adt_CD19",
             reduction = "rna.umap", order = TRUE, raster = FALSE) +
-  scale_color_viridis_c(option = "G", direction = -1) # name = "CD19"
+  scale_color_viridis_c(option = "G", direction = -1) + # name = "CD19"
+  clean_dimplot2
 ```
 
 ![](plot_dimplot_files/figure-html/adt-single-1.png)
-
-``` r
-
-  # clean_umap
-```
 
 ### Multiple markers side by side
 
 ``` r
 
-FeaturePlot(obj, features = paste0("adt_", rownames(obj@assays$ADT@data)),
+adt_markers <- rownames(GetAssayData(obj, assay = "ADT", layer = "data"))
+
+FeaturePlot(obj, features = paste0("adt_", adt_markers),
             reduction = "rna.umap", order = TRUE, ncol = 3, raster = FALSE) &
-  ggplot2::scale_color_viridis_c(option = "G", direction = -1) # &
+  ggplot2::scale_color_viridis_c(option = "G", direction = -1) &
+  clean_dimplot2
 ```
 
 ![](plot_dimplot_files/figure-html/adt-panel-1.png)
-
-``` r
-
-  # clean_umap
-```
 
 ------------------------------------------------------------------------
 

@@ -6,6 +6,8 @@ General functions for processing and analyzing single-cell data.
 
 - [`regen_reduc()`](https://eba28.github.io/athanor/reference/regen_reduc.md)
   : Regenerate neighbor graphs and UMAPs.
+- [`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md)
+  : Run Seurat's standard pipeline
 
 ## Quality Control
 
@@ -26,8 +28,6 @@ Functions for processing and analyzing gene expression data.
   : Filter AIRR genes from variable features
 - [`get_airr_genes()`](https://eba28.github.io/athanor/reference/get_airr_genes.md)
   : Get IG and TR genes from Ensembl using biomaRt
-- [`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md)
-  : Run Seurat's standard pipeline
 
 ### Cell type annotation
 
@@ -91,6 +91,11 @@ data.
 
 ### Seurat objects
 
+- [`infer_k_param()`](https://eba28.github.io/athanor/reference/infer_k_param.md)
+  : Infer k_param from existing RNA neighbors, or return a default.
+- [`infer_num_dims()`](https://eba28.github.io/athanor/reference/infer_num_dims.md)
+  : Infer num_dims (PCA dims used for neighbor finding) from existing
+  RNA neighbors.
 - [`merge_gex_bcr()`](https://eba28.github.io/athanor/reference/merge_gex_bcr.md)
   : Merge a GEX Seurat object with a BCR Seurat object
 
@@ -216,8 +221,10 @@ Utilities for various tasks.
 
 ### Themes
 
-- [`clean_umap`](https://eba28.github.io/athanor/reference/clean_umap.md)
-  : Clean theme for UMAP plots
+- [`clean_dimplot`](https://eba28.github.io/athanor/reference/clean_dimplot.md)
+  : Clean theme for DimPlots
+- [`clean_dimplot2`](https://eba28.github.io/athanor/reference/clean_dimplot2.md)
+  : Clean theme for DimPlots
 - [`labels_rotate_x`](https://eba28.github.io/athanor/reference/labels_rotate_x.md)
   : Rotate x-axis labels 45 degrees
 - [`labels_standard`](https://eba28.github.io/athanor/reference/labels_standard.md)
