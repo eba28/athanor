@@ -151,13 +151,15 @@ data.
 
 Functions for evaluating the performance of models and analyses.
 
-### ADT-based on k-nearest neighbors
+### ADT-based
 
 - [`calc_adt_correlation()`](https://eba28.github.io/athanor/reference/calc_adt_correlation.md)
   : Calculate the correlation between each cell's expression and the
   mean of its neighbors' expression
 - [`calc_adt_dists()`](https://eba28.github.io/athanor/reference/calc_adt_dists.md)
   : Compute mean ADT distance to each cell's k nearest neighbors
+- [`calc_adt_mean_absolute()`](https://eba28.github.io/athanor/reference/calc_adt_mean_absolute.md)
+  : Calculate mean absolute ADT distance to nearest neighbors
 - [`calc_adt_moran()`](https://eba28.github.io/athanor/reference/calc_adt_moran.md)
   : Calculate Moran's i
 - [`calc_adt_nn_within_range()`](https://eba28.github.io/athanor/reference/calc_adt_nn_within_range.md)
@@ -166,8 +168,18 @@ Functions for evaluating the performance of models and analyses.
 - [`calc_adt_quantile()`](https://eba28.github.io/athanor/reference/calc_adt_quantile.md)
   : Calculate the proportion of neighbors within an ADT marker's
   quantile by expression
+
+### Metadata-based
+
 - [`calc_neighbor_matches()`](https://eba28.github.io/athanor/reference/calc_neighbor_matches.md)
   : Calculate neighbor matching scores across metadata columns
+
+### Permuted baselines
+
+- [`permute_adt()`](https://eba28.github.io/athanor/reference/permute_adt.md)
+  : Compute a permuted baseline for ADT neighbor matching scores
+- [`permute_neighbor_matches()`](https://eba28.github.io/athanor/reference/permute_neighbor_matches.md)
+  : Compute a permuted baseline for neighbor matching scores
 
 ### Clustering-based
 

@@ -206,7 +206,7 @@ As with the features "embed" path, <code>num_dims</code> controls how many PCs a
 from each reduction before joining.</p>
 <p><strong><code>input_type = "features"</code>, <code>pca_stage = "embed"</code></strong> <br>
 BCR metadata features are first embedded into their own PCA space: a
-<code>BCR_meta</code> assay is created, scaled, and PCA is run to produce <code>bcr_meta.pca</code>
+<code>BCR</code> assay is created, scaled, and PCA is run to produce <code>bpca</code>
 (capped at <code>nrow(bcr_features) - 1</code> PCs). The resulting BCR PCA embeddings
 are then column-bound with the existing <code>rpca</code> embeddings to form a joint PCA
 space. This is more principled than <code>"raw"</code> for metadata features because

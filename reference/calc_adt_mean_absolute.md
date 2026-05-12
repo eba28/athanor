@@ -1,19 +1,16 @@
-# Calculate the proportion of neighbors within an ADT marker's expression range
+# Calculate mean absolute ADT distance to nearest neighbors
 
-For each cell, calculates the proportion of its nearest neighbors whose
-ADT expression falls within a symmetric relative threshold of the cell's
-own expression. For example, with `range = 0.20`, neighbors within
-+/-20% of the cell's expression are counted.
+For each cell, calculates the mean absolute difference between its ADT
+expression and that of its nearest neighbors across specified features.
 
 ## Usage
 
 ``` r
-calc_adt_nn_within_range(
+calc_adt_mean_absolute(
   seurat_obj,
   nn_names = names(seurat_obj@neighbors),
   features_adt,
   adt_assay = "ADT",
-  range = 0.2,
   return_mean = TRUE,
   verbose = FALSE
 )
@@ -38,11 +35,6 @@ calc_adt_nn_within_range(
 
   Name of the ADT assay.
 
-- range:
-
-  Relative threshold. A value of 0.20 means neighbors within +/-20% of
-  the cell's expression are counted as matches.
-
 - return_mean:
 
   If TRUE, return the mean across all cells; else return per-cell
@@ -57,3 +49,10 @@ calc_adt_nn_within_range(
 Data frame with columns: Graph, Assay, Feature, Method, Score. If
 `return_mean = TRUE`, `Score` is the mean across all cells; else it
 contains per-cell values with an additional `cell_id` column.
+
+## Details
+
+Use
+[`permute_adt()`](https://eba28.github.io/athanor/reference/permute_adt.md)
+to compute a permuted baseline. For the range-based score, see
+[`calc_adt_nn_within_range()`](https://eba28.github.io/athanor/reference/calc_adt_nn_within_range.md).

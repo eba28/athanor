@@ -177,14 +177,13 @@ before joining.
 
 **`input_type = "features"`, `pca_stage = "embed"`**  
 BCR metadata features are first embedded into their own PCA space: a
-`BCR_meta` assay is created, scaled, and PCA is run to produce
-`bcr_meta.pca` (capped at `nrow(bcr_features) - 1` PCs). The resulting
-BCR PCA embeddings are then column-bound with the existing `rpca`
-embeddings to form a joint PCA space. This is more principled than
-`"raw"` for metadata features because both modalities are in comparable
-PCA spaces before being joined, and each modality's internal variance
-structure is preserved. Use `num_dims` to control how many PCs are taken
-from each side.
+`BCR` assay is created, scaled, and PCA is run to produce `bpca` (capped
+at `nrow(bcr_features) - 1` PCs). The resulting BCR PCA embeddings are
+then column-bound with the existing `rpca` embeddings to form a joint
+PCA space. This is more principled than `"raw"` for metadata features
+because both modalities are in comparable PCA spaces before being
+joined, and each modality's internal variance structure is preserved.
+Use `num_dims` to control how many PCs are taken from each side.
 
 For the `"raw"` and `"reduced"` paths, variable features are always set
 by appending BCR features onto the existing RNA variable features rather

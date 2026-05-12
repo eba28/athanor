@@ -19,6 +19,7 @@
 <url><loc>https://eba28.github.io/athanor/reference/bin_mu_freq.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/calc_adt_correlation.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/calc_adt_dists.html</loc></url>
+<url><loc>https://eba28.github.io/athanor/reference/calc_adt_mean_absolute.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/calc_adt_moran.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/calc_adt_nn_within_range.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/calc_adt_quantile.html</loc></url>
@@ -49,6 +50,8 @@
 <url><loc>https://eba28.github.io/athanor/reference/merge_gex_bcr.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/named_colors.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/object_overview.html</loc></url>
+<url><loc>https://eba28.github.io/athanor/reference/permute_adt.html</loc></url>
+<url><loc>https://eba28.github.io/athanor/reference/permute_neighbor_matches.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/pipe.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/plot_anno.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/plot_color_scale.html</loc></url>

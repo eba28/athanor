@@ -1,28 +1,20 @@
 # Calculate neighbor matching scores across metadata columns
 
-Calculates the proportion of neighbors that match each cell's metadata
-category for specified metadata columns and ADT features. Can also
-perform permutations to generate a random baseline. Results can be saved
-to a specified path.
+For each cell, calculates the proportion of its nearest neighbors that
+share the same value for each metadata column.
 
 ## Usage
 
 ``` r
 calc_neighbor_matches(
   seurat_obj,
-  nn_name,
+  nn_names = names(seurat_obj@neighbors),
   meta_cols = c("annotated_clusters_bcr", "annotated_clusters_binary",
     "annotated_clusters_gex_bcr", "annotated_clusters_simpler", "cdr3_aa_length",
     "clone_id_unique", "isotype_stage", "locus_light", "mu_freq_bins_binary",
     "v_call_family"),
-  adt_features = NULL,
-  adt_range = 0.1,
-  adt_methods = c("mean_abs", "range"),
-  permute = FALSE,
-  n_permutations = 10,
-  previous_matches,
   return_mean = TRUE,
-  path_save
+  verbose = FALSE
 )
 ```
 
@@ -30,56 +22,34 @@ calc_neighbor_matches(
 
 - seurat_obj:
 
-  The Seurat object, with details added to the Misc() slot.
+  A Seurat object.
 
-- nn_name:
+- nn_names:
 
-  Name of the nearest neighbor graph slot.
+  Character vector of neighbor graph names to evaluate. Defaults to all
+  graphs in the object.
 
 - meta_cols:
 
   Character vector of metadata columns to evaluate.
-
-- adt_features:
-
-  Character vector of ADT feature names to evaluate.
-
-- adt_range:
-
-  Numeric vector of ADT expression range threshold(s).
-
-- adt_methods:
-
-  How to calculate the ADT metric(s).
-
-- permute:
-
-  Shuffle labels for each meta column and ADT expression per feature
-  before computing matches to get a random baseline.
-
-- n_permutations:
-
-  The number of times to permute labels.
-
-- previous_matches:
-
-  Data frame of previous matches to combine with new results (optional).
 
 - return_mean:
 
   If TRUE, return the mean across all cells; else return per-cell
   values.
 
-- path_save:
+- verbose:
 
-  Where to save the results.
+  If TRUE, print progress messages.
 
 ## Value
 
-Data frame with columns: Full_Name, Category, Category_Details, Assay,
-Meta_Col, Method, Matches. If `return_mean = TRUE`, `Matches` will be
-the mean across all cells; else it will contain per-cell values.
+Data frame with columns: Graph, Assay, Feature, Method, Score. If
+`return_mean = TRUE`, `Score` is the mean across all cells; else it
+contains per-cell values with an additional `cell_id` column.
 
 ## Details
 
-`cell_id`s are saved for subsetting later if desired.
+`cell_id`s are saved for subsetting later if desired. Use
+[`permute_neighbor_matches()`](https://eba28.github.io/athanor/reference/permute_neighbor_matches.md)
+to compute a permuted baseline.
