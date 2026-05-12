@@ -63,6 +63,7 @@ It allows for a comprehensive overview of the data across different embedding ty
 <span>  <span class="va">ncol</span>,</span>
 <span>  comparisons <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"annotated_clusters_simpler"</span>, <span class="st">"v_call_family"</span>, <span class="st">"light_chains"</span>,</span>
 <span>    <span class="st">"isotype"</span>, <span class="st">"mu_freq"</span><span class="op">)</span>,</span>
+<span>  details_col <span class="op">=</span> <span class="st">"embedding_type"</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -105,6 +106,10 @@ It allows for a comprehensive overview of the data across different embedding ty
 
 <dt id="arg-comparisons">comparisons<a class="anchor" aria-label="anchor" href="#arg-comparisons"></a></dt>
 <dd><p>Which metadata columns to plot. By default, it will plot "annotated_clusters_simpler", "v_call_family", "light_chains", "isotype", and "mu_freq". The first one is the simplified CellTypist annotations, and the rest are BCR features.</p></dd>
+
+
+<dt id="arg-details-col">details_col<a class="anchor" aria-label="anchor" href="#arg-details-col"></a></dt>
+<dd><p>Which column in <code>seurat_obj@misc</code> to use for the plot subtitles. By default, it will use "embedding_type" to show the type of embedding being plotted (e.g. "AntiBERTa2").</p></dd>
 
 </dl></div>
     <div class="section level2">

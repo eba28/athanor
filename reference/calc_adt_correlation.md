@@ -10,7 +10,8 @@ calc_adt_correlation(
   seurat_obj,
   features_adt,
   adt_assay = "ADT",
-  cor_method = "spearman"
+  cor_method = "spearman",
+  verbose = FALSE
 )
 ```
 
@@ -31,6 +32,10 @@ calc_adt_correlation(
 - cor_method:
 
   Correlation method to use (e.g. "pearson", "spearman").
+
+- verbose:
+
+  Logical indicating whether or not to print messages.
 
 ## Value
 

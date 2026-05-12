@@ -39,6 +39,8 @@ pak::pak("eba28/athanor")
 
 General functions for processing and analyzing single-cell data.
 
+- [`object_overview()`](https://eba28.github.io/athanor/reference/object_overview.md)
+  : Print an overview of a Seurat object.
 - [`regen_reduc()`](https://eba28.github.io/athanor/reference/regen_reduc.md)
   : Regenerate neighbor graphs and UMAPs.
 - [`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md)
@@ -141,8 +143,6 @@ data.
 
 ### Weighted Nearest Neighbors
 
-- [`extract_wnn_vars()`](https://eba28.github.io/athanor/reference/extract_wnn_vars.md)
-  : Give a summary of a Seurat object post-WNN
 - [`run_wnn()`](https://eba28.github.io/athanor/reference/run_wnn.md) :
   Run Weighted Nearest Neighbors (WNN) analysis on combined GEX and BCR
   data

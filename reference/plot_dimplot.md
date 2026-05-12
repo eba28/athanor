@@ -27,6 +27,7 @@ plot_dimplot(
   order = FALSE,
   details,
   fix_aspect = TRUE,
+  simplify_titles = FALSE,
   ...
 )
 ```
@@ -113,7 +114,12 @@ plot_dimplot(
 
 - fix_aspect:
 
-  Fix the aspect ratio to 1:1 via `clean_dimplot`.
+  Fix the aspect ratio to 1:1 via `clean_dimplot2`.
+
+- simplify_titles:
+
+  Whether or not to convert x and y axis titles to simplified versions
+  e.g. "UMAP_1" instead of "bcrUMAP_1".
 
 - ...:
 

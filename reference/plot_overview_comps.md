@@ -22,6 +22,7 @@ plot_overview_comps(
   ncol,
   comparisons = c("annotated_clusters_simpler", "v_call_family", "light_chains",
     "isotype", "mu_freq"),
+  details_col = "embedding_type",
   ...
 )
 ```
@@ -69,6 +70,12 @@ plot_overview_comps(
   "annotated_clusters_simpler", "v_call_family", "light_chains",
   "isotype", and "mu_freq". The first one is the simplified CellTypist
   annotations, and the rest are BCR features.
+
+- details_col:
+
+  Which column in `seurat_obj@misc` to use for the plot subtitles. By
+  default, it will use "embedding_type" to show the type of embedding
+  being plotted (e.g. "AntiBERTa2").
 
 ## Value
 

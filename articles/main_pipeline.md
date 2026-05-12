@@ -321,14 +321,13 @@ plot_mws(seurat_obj = obj_wnn, second_assay = "BCR",
 
 ### Object summary
 
-[`extract_wnn_vars()`](https://eba28.github.io/athanor/reference/extract_wnn_vars.md)
+[`object_overview()`](https://eba28.github.io/athanor/reference/object_overview.md)
 prints a brief description of the post-WNN object, including assay sizes
 and the number of PCs used per modality.
 
 ``` r
 
-extract_wnn_vars(obj_wnn, gex_pca = "rpca", other_pca = "bpca",
-                 other_type = "BCR")
+object_overview(obj_wnn)
 ```
 
 ------------------------------------------------------------------------
@@ -347,4 +346,4 @@ extract_wnn_vars(obj_wnn, gex_pca = "rpca", other_pca = "bpca",
 | Add BCR features | [`gex_add_airr()`](https://eba28.github.io/athanor/reference/gex_add_airr.md) / manual | BCR columns in metadata |
 | Concatenation | [`concatenate_gex_bcr()`](https://eba28.github.io/athanor/reference/concatenate_gex_bcr.md) | `RNA_BCR` assay, `rna_bcr.umap` |
 | WNN | [`run_wnn()`](https://eba28.github.io/athanor/reference/run_wnn.md) | `bpca`, `bcr.umap`, `wnn.umap` |
-| Describe object | [`extract_wnn_vars()`](https://eba28.github.io/athanor/reference/extract_wnn_vars.md) | printed summary |
+| Describe object | [`object_overview()`](https://eba28.github.io/athanor/reference/object_overview.md) | printed summary |
