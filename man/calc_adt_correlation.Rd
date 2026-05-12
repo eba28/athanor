@@ -9,7 +9,8 @@ calc_adt_correlation(
   seurat_obj,
   features_adt,
   adt_assay = "ADT",
-  cor_method = "spearman"
+  cor_method = "spearman",
+  verbose = FALSE
 )
 }
 \arguments{
@@ -20,6 +21,8 @@ calc_adt_correlation(
 \item{adt_assay}{Name of the assay containing ADT data.}
 
 \item{cor_method}{Correlation method to use (e.g. "pearson", "spearman").}
+
+\item{verbose}{Logical indicating whether or not to print messages.}
 }
 \value{
 A data frame with columns: Graph, Feature, Score.

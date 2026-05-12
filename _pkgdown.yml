@@ -77,7 +77,6 @@ reference:
   - concatenate_gex_bcr
 - subtitle: Weighted Nearest Neighbors
 - contents:
-  - extract_wnn_vars
   - run_wnn
 
 - title: Evaluation

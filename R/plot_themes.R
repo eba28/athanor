@@ -26,7 +26,6 @@ labels_standard <- ggplot2::theme(
 #' @details
 #' Removes "Identity".
 #'
-#'
 #' @export
 labels_standard_vln <- ggplot2::theme(
   plot.title = ggplot2::element_text(size = 14, hjust = 0.5),
@@ -103,6 +102,7 @@ named_colors <- list()
 named_colors$datatype <- c("ADT" = "#00853C", "BCR" = "#00826e",
                            "GEX" = "#38d77f", "TCR" = "#004036",
                            "WNN" = "#00c7d9", "GEX_BCR" = "#2276a3") # shades of green/teal
+
 named_colors$weight_assay <- c("RNA" = named_colors$datatype[["GEX"]],
                                "BCR" = named_colors$datatype[["BCR"]],
                                "Tie" = named_colors$datatype[["GEX_BCR"]])
@@ -160,6 +160,7 @@ named_colors$j_call_family <-
 named_colors$doublet <- c("singlet" = "#cbcae3", "doublet" = "#807DBA")
 
 # for plotting cell types
+# TODO: make sure these don't conflict
 named_colors$cell_types_celltypist <-
   c("Age-associated B cells" = "#a83ab8",
     "C1 non-classical monocytes" = "#6b4c93",
@@ -168,17 +169,17 @@ named_colors$cell_types_celltypist <-
     "Classical monocytes" = "#6b1650",
     "Cycling immune mix" = "#05b58c",
     "DC1" = "#f4a261",
-    "DC2" ="#E39C37",
+    "DC2" = "#E39C37",
     "gdT" = "#99e9ff",
     "HSC/MPP" = "#e76f51",
     "MAIT cells" = "#0b607c",
     "Megakaryocytes/platelets" = "#f07fb0",
-    "Memory B cells" = "#2d5f3f",
-    "Naive B cells" = "#93cc3d",
+    "Memory B cells" = "#d95f4b",
+    "Naive B cells" = "#ffd3b6",
     "Non-classical monocytes" = "#8f1468",
     "Non-switched memory B cells" = "#0b8546",
     "pDC" = "#bf7e21",
-    "Plasma cells" = "#cc095d",
+    "Plasma cells" = "#6b2342",
     "Regulatory T cells" = "#264653",
     "Switched memory B cells" = "#054d27",
     # these are similar but it doesn't matter since we're focused on B cells

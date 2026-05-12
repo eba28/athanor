@@ -351,12 +351,12 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 
   # TODO: add tSNE support
   if (simplify_titles) {
-    if ("umap" %in% reduc) {
-      p <- p + labs(x = "UMAP_1", y = "UMAP_2")
-    } else if ("pca" %in% reduc) {
-      p <- p + labs(x = "PCA_1", y = "PCA_2")
+    if (grepl("umap", tolower(reduc))) {
+      p <- p + labs(x = "UMAP1", y = "UMAP2")
+    } else if (grepl("pca", tolower(reduc))) {
+      p <- p + labs(x = "PCA1", y = "PCA2")
     } else {
-      p <- p + labs(x = paste0(reduc, "_1"), y = paste0(reduc, "_2"))
+      p <- p + labs(x = paste0(reduc, "1"), y = paste0(reduc, "2"))
     }
   }
 
@@ -589,6 +589,7 @@ plot_mws <- function(seurat_obj, data_source = "", second_assay = "BCR",
 #' @param use_adt Whether or not the comparisons being plotted represent ADT markers.
 #' @param ncol The number of columns to use in the grid.
 #' @param comparisons Which metadata columns to plot. By default, it will plot "annotated_clusters_simpler", "v_call_family", "light_chains", "isotype", and "mu_freq". The first one is the simplified CellTypist annotations, and the rest are BCR features.
+#' @param details_col Which column in `seurat_obj@misc` to use for the plot subtitles. By default, it will use "embedding_type" to show the type of embedding being plotted (e.g. "AntiBERTa2").
 #'
 #' @return A patchwork object with overview plots in a grid.
 #' @export
@@ -597,11 +598,13 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                                 reduction = "wnn.umap", use_adt = FALSE, ncol,
                                 comparisons = c("annotated_clusters_simpler",
                                                 "v_call_family", "light_chains",
-                                                "isotype", "mu_freq"), ...) {
+                                                "isotype", "mu_freq"),
+                                details_col = "embedding_type", ...) {
   # TODO: plot the comparisons in the order that they were given
 
-  possible_comps <- c("annotated_clusters", "annotated_clusters_simpler",
-                     "v_call_family", "light_chains", "isotype", "mu_freq")
+  possible_comps <- c("annotated_clusters_simpler", "annotated_clusters",
+                      "c_call", "cdr3_aa_length", "isotype", "light_chains",
+                      "mu_freq", "v_call_family", "weight_assay")
 
   # validate inputs
   # if (!reduction %in% c("rna.umap", "adt.umap", "bcr.umap", "wnn.umap")) {
@@ -631,24 +634,15 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       cli::cli_abort("Reduction {reduction} not found in Seurat object {type}. Please make sure it is present and try again.")
     }
 
-    # don't require using the embeddings approach
-    if (!"embedding_type" %in% names(seurat_obj@misc) |
-        reduction == "rna.umap") {
+    # plot an informative subtitle if possible
+    if (!details_col %in% names(seurat_obj@misc) | reduction == "rna.umap") {
       details <- NULL
     } else {
-      details <- embedding_types[[seurat_obj@misc$embedding_type]]
+      details <- seurat_obj@misc[[details_col]]
+      details <- str_replace_all(details, "_", " ") # make it look nicer
     }
 
     if (use_adt) {
-      # plots_overview[[type]] <-
-      #   # plot them together so that the scales are consistent
-      #   suppressMessages(FeaturePlot(seurat_obj, features = str_c("adt_", comparisons),
-      #                                order = TRUE, reduction = reduction, # keep.scale = "all",
-      #                                ncol = 1, raster = FALSE) &
-      #                      labs(subtitle = details) &
-      #                      scale_color_viridis_c(option = "G", direction = -1) &
-      #                      labels_standard & clean_dimplot)
-
       for (comparison in comparisons) {
         plots_overview[[paste0(comparison, "_", type)]] <-
           suppressMessages(

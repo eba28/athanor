@@ -10,14 +10,14 @@
 #' @param features_adt Name of the ADT features to evaluate (e.g. "CD27.1").
 #' @param adt_assay Name of the assay containing ADT data.
 #' @param cor_method Correlation method to use (e.g. "pearson", "spearman").
+#' @param verbose Logical indicating whether or not to print messages.
 #'
 #' @returns A data frame with columns: Graph, Feature, Score.
 #' @export
 calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
-                                 cor_method = "spearman") {
+                                 cor_method = "spearman", verbose = FALSE) {
   # TODO: only calculate on a subset of the neighbors if desired
   # TODO: print a list of graphs used
-  # TODO: add a verbose parameter
   # TODO: include the airrflow version?
 
   if (rlang::is_missing(features_adt)) {
@@ -36,16 +36,16 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
     unavailable_features <- paste(sort(unavailable_features), collapse = ", ")
 
     # pass the pre-formatted strings to cli_inform
-    cli::cli_inform(c(
-      "i" = "Available features: {available_features}",
-      "i" = "Unavailable features: {unavailable_features}",
-      "v" = "Proceeding with: {features_adt}\n"
-    ))
-    # TODO: make having a print-out optional?
+    if (verbose) {
+      cli::cli_inform(c("i" = "Available features: {available_features}",
+                        "i" = "Unavailable features: {unavailable_features}",
+                        "v" = "Proceeding with: {features_adt}\n"))
+    }
   }
 
   if (length(seurat_obj@neighbors) == 0) {
-    cli::cli_abort("No neighbor graphs found in object. Please run `FindNeighbors()` first.")
+    cli::cli_abort("No neighbor graphs found in object. \\
+                   Please run `FindNeighbors()` first.")
   }
 
   # TODO: throw an error if no RNA graph is found
@@ -68,6 +68,15 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
                               data.frame(Graph = nn_name, Feature = feat,
                                          Score = correlation))
     }
+  }
+
+  if (verbose) {
+    cli::cli_inform("Calculated {cor_method} correlation for the \\
+                    {names(seurat_obj@neighbors)} neighbor graphs.")
+    # cli::cli_inform("Calculated {cor_method} correlation between each cell's \\
+    #                 ADT expression and the mean of its neighbors' expression for \\
+    #                 {length(features_adt)} features across \\
+    #                 {length(seurat_obj@neighbors)} neighbor graphs.")
   }
 
   # TODO: return with a column for Type = "Correlation" # spearman too

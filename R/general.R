@@ -1,3 +1,87 @@
+
+object_overview <- function(seurat_obj) {
+  cli::cli_h1("Seurat object overview")
+
+  # --- Cells & Assays ---
+  cli::cli_h2("Cells & Assays")
+  cli::cli_inform("{ncol(seurat_obj)} cells")
+
+  for (assay_name in names(seurat_obj@assays)) {
+    assay_obj <- seurat_obj@assays[[assay_name]]
+    n_feats <- nrow(assay_obj)
+
+    if (assay_name == "RNA") {
+      n_var <- length(VariableFeatures(seurat_obj))
+      cli::cli_inform("RNA: {n_feats} genes, {n_var} variable features")
+    } else if (assay_name == "ADT") {
+      markers <- rownames(assay_obj)
+      cli::cli_inform("ADT: {n_feats} markers ({toString(stringr::str_sort(markers, numeric = TRUE))})")
+    } else {
+      cli::cli_inform("{assay_name}: {n_feats} features")
+    }
+  }
+
+  # --- Reductions ---
+  if (length(seurat_obj@reductions) > 0) {
+    cli::cli_h2("Reductions")
+    for (reduc_name in names(seurat_obj@reductions)) {
+      n_dims <- ncol(seurat_obj@reductions[[reduc_name]])
+      cli::cli_inform("{reduc_name}: {n_dims} dimensions")
+    }
+  }
+
+  # --- Neighbors ---
+  if (length(seurat_obj@neighbors) > 0) {
+    cli::cli_h2("Neighbors")
+    for (nn_name in names(seurat_obj@neighbors)) {
+      nn <- seurat_obj@neighbors[[nn_name]]
+      k <- ncol(nn@nn.idx)
+      cli::cli_inform("{nn_name}: k = {k}")
+    }
+  }
+
+  # --- Graphs ---
+  if (length(seurat_obj@graphs) > 0) {
+    cli::cli_h2("Graphs")
+    cli::cli_inform("{toString(names(seurat_obj@graphs))}")
+  }
+
+  # --- WNN (if present) ---
+  wnn_cmd_name <- "Seurat..FindMultiModalNeighbors"
+  if ("w.nn" %in% names(seurat_obj@neighbors) &&
+      wnn_cmd_name %in% names(seurat_obj@commands)) {
+    cli::cli_h2("WNN")
+    dims_list <- seurat_obj@commands[[wnn_cmd_name]]@params$dims.list
+    reduction_list <- seurat_obj@commands[[wnn_cmd_name]]@params$reduction.list
+    for (i in seq_along(dims_list)) {
+      reduc <- if (!is.null(reduction_list)) reduction_list[[i]] else paste("modality", i)
+      n_dims <- length(dims_list[[i]])
+      cli::cli_inform("{reduc}: {n_dims} dimensions")
+    }
+  }
+
+  # --- Misc ---
+  misc <- Seurat::Misc(seurat_obj)
+  if (length(misc) > 0) {
+    cli::cli_h2("Misc")
+    for (slot_name in names(misc)) {
+      val <- misc[[slot_name]]
+      if (is.atomic(val) && length(val) <= 10) {
+        cli::cli_inform("{slot_name}: {toString(val)}")
+      } else if (is.atomic(val)) {
+        cli::cli_inform("{slot_name}: [{length(val)}-length {class(val)} vector]")
+      } else {
+        cli::cli_inform("{slot_name}: [{class(val)[1]}]")
+      }
+    }
+  }
+
+  invisible(seurat_obj)
+}
+
+
+
+
 #' Regenerate neighbor graphs and UMAPs.
 #'
 #' @description

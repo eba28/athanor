@@ -288,12 +288,11 @@ plot_mws(seurat_obj = obj_wnn, second_assay = "BCR",
 
 ### Object summary
 
-`extract_wnn_vars()` prints a brief description of the post-WNN object,
+`object_overview()` prints a brief description of the post-WNN object,
 including assay sizes and the number of PCs used per modality.
 
 ```{r wnn-summary}
-extract_wnn_vars(obj_wnn, gex_pca = "rpca", other_pca = "bpca",
-                 other_type = "BCR")
+object_overview(obj_wnn)
 ```
 
 ---
@@ -312,4 +311,4 @@ extract_wnn_vars(obj_wnn, gex_pca = "rpca", other_pca = "bpca",
 | Add BCR features | `gex_add_airr()` / manual | BCR columns in metadata |
 | Concatenation | `concatenate_gex_bcr()` | `RNA_BCR` assay, `rna_bcr.umap` |
 | WNN | `run_wnn()` | `bpca`, `bcr.umap`, `wnn.umap` |
-| Describe object | `extract_wnn_vars()` | printed summary |
+| Describe object | `object_overview()` | printed summary |

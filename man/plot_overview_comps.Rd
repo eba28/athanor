@@ -15,6 +15,7 @@ plot_overview_comps(
   ncol,
   comparisons = c("annotated_clusters_simpler", "v_call_family", "light_chains",
     "isotype", "mu_freq"),
+  details_col = "embedding_type",
   ...
 )
 }
@@ -36,6 +37,8 @@ plot_overview_comps(
 \item{ncol}{The number of columns to use in the grid.}
 
 \item{comparisons}{Which metadata columns to plot. By default, it will plot "annotated_clusters_simpler", "v_call_family", "light_chains", "isotype", and "mu_freq". The first one is the simplified CellTypist annotations, and the rest are BCR features.}
+
+\item{details_col}{Which column in \code{seurat_obj@misc} to use for the plot subtitles. By default, it will use "embedding_type" to show the type of embedding being plotted (e.g. "AntiBERTa2").}
 }
 \value{
 A patchwork object with overview plots in a grid.
