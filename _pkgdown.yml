@@ -21,6 +21,7 @@ reference:
 - title: General
   desc: General functions for processing and analyzing single-cell data.
 - contents:
+  - object_overview
   - regen_reduc
   - seurat_pipeline
 

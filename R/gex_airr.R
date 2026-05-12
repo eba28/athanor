@@ -826,10 +826,14 @@ concatenate_gex_bcr <- function(seurat_obj,
       seurat_obj <- ScaleData(seurat_obj, assay = "BCR_meta", verbose = verbose)
       scale_bcr <- GetAssayData(seurat_obj, assay = "BCR_meta", layer = "scale.data")
       use_approx <- n_bcr_pcs < min(nrow(scale_bcr), ncol(scale_bcr)) / 2
-      seurat_obj <- RunPCA(seurat_obj, assay = "BCR_meta", npcs = n_bcr_pcs,
-                           reduction.name = "bcr_meta.pca",
+      seurat_obj <- RunPCA(object = seurat_obj, assay = "BCR_meta",
+                           npcs = n_bcr_pcs, reduction.name = "bcr_meta.pca",
                            reduction.key = "bcrmetapca_",
                            approx = use_approx, verbose = verbose)
+      seurat_obj <- regen_reduc(seurat_obj, pca_name = "bcr_meta.pca",
+                                assay = "BCR_meta", num_dims = n_bcr_pcs,
+                                k_param = k_param, verbose = verbose)
+
       bcr_reduc <- "bcr_meta.pca"
     } else {
       # embeddings: use existing bpca from merge_gex_bcr
@@ -1213,4 +1217,3 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
 
   return(seurat_obj)
 }
-

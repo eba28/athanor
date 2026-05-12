@@ -1,4 +1,24 @@
-
+#' Print an overview of a Seurat object.
+#'
+#' @description
+#' Prints a structured summary of a Seurat object, covering its assays,
+#' reductions, neighbor graphs, graphs, WNN configuration (if present), and
+#' Misc slot contents.
+#'
+#' @details
+#' Each section is only printed if the corresponding slot is non-empty, so the
+#' output degrades gracefully on minimal objects.
+#' For RNA, the number of variable features is shown.
+#' For ADT, all marker names are listed.
+#' The WNN section is printed only when a `w.nn` neighbor graph is detected and the
+#' `FindMultiModalNeighbors` command is recorded in the object.
+#' Misc slot values are printed inline for short atomic vectors and summarized by type
+#' for larger or complex objects.
+#'
+#' @param seurat_obj The Seurat object.
+#'
+#' @returns A overview of the Seurat object, and invisibly returns the input object for piping if desired.
+#' @export
 object_overview <- function(seurat_obj) {
   cli::cli_h1("Seurat object overview")
 
@@ -78,8 +98,6 @@ object_overview <- function(seurat_obj) {
 
   invisible(seurat_obj)
 }
-
-
 
 
 #' Regenerate neighbor graphs and UMAPs.
