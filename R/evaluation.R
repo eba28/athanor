@@ -383,9 +383,10 @@ calc_neighbor_matches <- function(seurat_obj, nn_name,
                                   adt_features = NULL, adt_range = 0.1,
                                   adt_methods = c("mean_abs", "range"),
                                   permute = FALSE, n_permutations = 10,
-                                  previous_matches, return_mean = TRUE, path_save) {
+                                  previous_matches, return_mean = TRUE,
+                                  path_save) {
   # TODO: improve the assay that is returned
-  # TODO: don't require category and category details
+  # TODO: get rid of using category and category_details??
   # TODO: rename matches to score for consistency
 
   # input validation
@@ -398,7 +399,10 @@ calc_neighbor_matches <- function(seurat_obj, nn_name,
   }
 
   if (!all(c("category", "category_details") %in% names(seurat_obj@misc))) {
-    cli::cli_abort("Please fill the 'category' and 'category_details' miscellaneous slots.")
+    seurat_obj@misc$category <- ""
+    seurat_obj@misc$category_details <- ""
+    cli::cli_inform(c("i" = "The 'category' and 'category_details' fields were not found in the Seurat object's Misc() slot.",
+                      "i" = "Filling with empty strings. Please populate these fields for better organization of results."))
   }
 
   neighbors <- seurat_obj@neighbors[[nn_name]]
@@ -558,6 +562,9 @@ calc_neighbor_matches <- function(seurat_obj, nn_name,
                Method) %>%
       summarize(Matches = mean(Matches, na.rm = TRUE), .groups = "drop")
   }
+
+  # don't need the rownames
+  neighbor_matches <- neighbor_matches %>% tibble::remove_rownames()
 
   # TODO: add the graphs too, or calculate on all graphs
   cli::cli_inform("Scores calculated on {k} neighbors for \\

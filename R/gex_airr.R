@@ -524,7 +524,7 @@ infer_num_dims <- function(seurat_obj, default = 20, verbose = TRUE) {
 #'
 #' **`input_type = "features"`, `pca_stage = "embed"`** \cr
 #' BCR metadata features are first embedded into their own PCA space: a
-#' `BCR_meta` assay is created, scaled, and PCA is run to produce `bcr_meta.pca`
+#' `BCR` assay is created, scaled, and PCA is run to produce `bpca`
 #' (capped at `nrow(bcr_features) - 1` PCs). The resulting BCR PCA embeddings
 #' are then column-bound with the existing `rpca` embeddings to form a joint PCA
 #' space. This is more principled than `"raw"` for metadata features because
@@ -817,24 +817,23 @@ concatenate_gex_bcr <- function(seurat_obj,
       }
       # BCR metadata is already on a sane scale; write to data so ScaleData
       # doesn't need a counts layer
-      # TODO: call this RNA_BCR for consistency??
       colnames(bcr_features) <- Cells(seurat_obj)
-      seurat_obj[["BCR_meta"]] <- CreateAssay5Object(counts = bcr_features)
-      LayerData(seurat_obj, assay = "BCR_meta", layer = "data") <-
-        LayerData(seurat_obj, assay = "BCR_meta", layer = "counts")
-      VariableFeatures(seurat_obj, assay = "BCR_meta") <- rownames(bcr_features)
-      seurat_obj <- ScaleData(seurat_obj, assay = "BCR_meta", verbose = verbose)
-      scale_bcr <- GetAssayData(seurat_obj, assay = "BCR_meta", layer = "scale.data")
+      seurat_obj[["BCR"]] <- CreateAssay5Object(counts = bcr_features)
+      LayerData(seurat_obj, assay = "BCR", layer = "data") <-
+        LayerData(seurat_obj, assay = "BCR", layer = "counts")
+      VariableFeatures(seurat_obj, assay = "BCR") <- rownames(bcr_features)
+      seurat_obj <- ScaleData(seurat_obj, assay = "BCR", verbose = verbose)
+      scale_bcr <- GetAssayData(seurat_obj, assay = "BCR", layer = "scale.data")
       use_approx <- n_bcr_pcs < min(nrow(scale_bcr), ncol(scale_bcr)) / 2
-      seurat_obj <- RunPCA(object = seurat_obj, assay = "BCR_meta",
-                           npcs = n_bcr_pcs, reduction.name = "bcr_meta.pca",
-                           reduction.key = "bcrmetapca_",
+      seurat_obj <- RunPCA(object = seurat_obj, assay = "BCR",
+                           npcs = n_bcr_pcs, reduction.name = "bpca",
+                           reduction.key = "bpca_",
                            approx = use_approx, verbose = verbose)
-      seurat_obj <- regen_reduc(seurat_obj, pca_name = "bcr_meta.pca",
-                                assay = "BCR_meta", num_dims = n_bcr_pcs,
+      seurat_obj <- regen_reduc(seurat_obj, pca_name = "bpca",
+                                assay = "BCR", num_dims = n_bcr_pcs,
                                 k_param = k_param, verbose = verbose)
 
-      bcr_reduc <- "bcr_meta.pca"
+      bcr_reduc <- "bpca"
     } else {
       # embeddings: use existing bpca from merge_gex_bcr
       if (!is_merged) {

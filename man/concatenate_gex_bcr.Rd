@@ -134,7 +134,7 @@ from each reduction before joining.
 
 \strong{\code{input_type = "features"}, \code{pca_stage = "embed"}} \cr
 BCR metadata features are first embedded into their own PCA space: a
-\code{BCR_meta} assay is created, scaled, and PCA is run to produce \code{bcr_meta.pca}
+\code{BCR} assay is created, scaled, and PCA is run to produce \code{bpca}
 (capped at \code{nrow(bcr_features) - 1} PCs). The resulting BCR PCA embeddings
 are then column-bound with the existing \code{rpca} embeddings to form a joint PCA
 space. This is more principled than \code{"raw"} for metadata features because
