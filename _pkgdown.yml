@@ -82,14 +82,21 @@ reference:
 
 - title: Evaluation
   desc: Functions for evaluating the performance of models and analyses.
-- subtitle: ADT-based on k-nearest neighbors
+- subtitle: ADT-based
 - contents:
   - calc_adt_correlation
   - calc_adt_dists
+  - calc_adt_mean_absolute
   - calc_adt_moran
   - calc_adt_nn_within_range
   - calc_adt_quantile
+- subtitle: Metadata-based
+- contents:
   - calc_neighbor_matches
+- subtitle: Permuted baselines
+- contents:
+  - permute_adt
+  - permute_neighbor_matches
 - subtitle: Clustering-based
 - contents:
   - calc_distances

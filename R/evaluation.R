@@ -132,6 +132,88 @@ calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
 }
 
 
+#' Calculate mean absolute ADT distance to nearest neighbors
+#'
+#' @description
+#' For each cell, calculates the mean absolute difference between its ADT
+#' expression and that of its nearest neighbors across specified features.
+#'
+#' @details
+#' Use `permute_adt()` to compute a permuted baseline. For
+#' the range-based score, see `calc_adt_nn_within_range()`.
+#'
+#' @param seurat_obj A Seurat object.
+#' @param nn_names Character vector of neighbor graph names to evaluate.
+#'   Defaults to all graphs in the object.
+#' @param features_adt Character vector of ADT feature names to evaluate.
+#' @param adt_assay Name of the ADT assay.
+#' @param return_mean If TRUE, return the mean across all cells; else return
+#'   per-cell values.
+#' @param verbose If TRUE, print progress messages.
+#'
+#' @return Data frame with columns: Graph, Assay, Feature, Method, Score.
+#'   If `return_mean = TRUE`, `Score` is the mean across all cells; else it
+#'   contains per-cell values with an additional `cell_id` column.
+#' @export
+calc_adt_mean_absolute <- function(seurat_obj,
+                                   nn_names = names(seurat_obj@neighbors),
+                                   features_adt, adt_assay = "ADT",
+                                   return_mean = TRUE, verbose = FALSE) {
+  if (length(seurat_obj@neighbors) == 0) {
+    cli::cli_abort("No neighbor graphs found in object. \\
+                   Please run `FindNeighbors()` first.")
+  }
+
+  invalid_nn <- setdiff(nn_names, names(seurat_obj@neighbors))
+  if (length(invalid_nn) > 0) {
+    cli::cli_abort("Neighbor graph(s) not found in object: {invalid_nn}")
+  }
+
+  features_adt <- intersect(features_adt, rownames(seurat_obj@assays[[adt_assay]]))
+
+  all_graph_results <- vector("list", length(nn_names))
+  names(all_graph_results) <- nn_names
+
+  for (nn_name in nn_names) {
+    nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
+    k <- ncol(nn_idx)
+    assay_name <- substr(nn_name, 1, nchar(nn_name) - 3)
+    results_list <- vector("list", length(features_adt))
+
+    for (i in seq_along(features_adt)) {
+      feat <- features_adt[[i]]
+      scores_adt <-
+        calc_adt_dists(seurat_obj = seurat_obj,
+                       base_assay = assay_name, adt_assay = adt_assay,
+                       features_adt = feat, k = k,
+                       distance_metric = "mean_abs",
+                       return_mean = FALSE)
+
+      results_list[[i]] <-
+        data.frame(cell_id = seurat_obj$cell_id, Graph = nn_name,
+                   Assay = adt_assay, Feature = feat,
+                   Method = "Mean_Absolute", Score = scores_adt)
+    }
+
+    all_graph_results[[nn_name]] <- do.call(rbind, results_list)
+  }
+
+  result <- do.call(rbind, all_graph_results)
+
+  if (return_mean) {
+    result <- result %>%
+      group_by(Graph, Assay, Feature, Method) %>%
+      summarize(Score = mean(Score, na.rm = TRUE), .groups = "drop")
+  }
+
+  if (verbose) {
+    cli::cli_inform("Calculated ADT neighbor matching scores for {nn_names}.")
+  }
+
+  result
+}
+
+
 #' Calculate Moran's i
 #'
 #' @description
@@ -181,54 +263,86 @@ calc_adt_moran <- function(seurat_obj, features_adt, adt_assay = "ADT",
 #' range
 #'
 #' @description
-#' For each cell in a Seurat object, calculates how many of its k nearest
-#' neighbors have ADT expression within a specified threshold (default 20%) of
-#' the cell's own ADT expression for a given feature.
+#' For each cell, calculates the proportion of its nearest neighbors whose ADT
+#' expression falls within a symmetric relative threshold of the cell's own
+#' expression. For example, with `range = 0.20`, neighbors within +/-20% of
+#' the cell's expression are counted.
 #'
-#' @details
-#' The range is symmetric around the cell's expression value. For example,
-#' with range = 0.20:
-#' \itemize{
-#'   \item Lower bound = cell_expr * 0.80
-#'   \item Upper bound = cell_expr * 1.20
-#' }
+#' @param seurat_obj A Seurat object.
+#' @param nn_names Character vector of neighbor graph names to evaluate.
+#'   Defaults to all graphs in the object.
+#' @param features_adt Character vector of ADT feature names to evaluate.
+#' @param adt_assay Name of the ADT assay.
+#' @param range Relative threshold. A value of 0.20 means neighbors within
+#'   +/-20% of the cell's expression are counted as matches.
+#' @param return_mean If TRUE, return the mean across all cells; else return
+#'   per-cell values.
+#' @param verbose If TRUE, print progress messages.
 #'
-#' @param seurat_obj A Seurat object containing ADT data and computed neighbor
-#'   graphs.
-#' @param adt_assay Name of the assay containing ADT data.
-#' @param features_adt Name of the ADT feature to evaluate (e.g. "CD27.1").
-#' @param base_assay The assay used to compute neighbors. One of
-#'   "RNA", "GEX", "BCR", or "WNN".
-#' @param k Number of nearest neighbors to evaluate. Must match the k used
-#'   when computing the neighbor graph.
-#' @param range The relative threshold for considering neighbors similar. A
-#'   value of 0.20 means neighbors within +/-20% of the cell's expression are
-#'   counted.
-#' @param return_counts If TRUE, returns the count of neighbors within range.
-#'   If FALSE, returns the proportion (count/k).
-#'
-#' @return A named numeric vector with one value per cell in the Seurat object.
+#' @return Data frame with columns: Graph, Assay, Feature, Method, Score.
+#'   If `return_mean = TRUE`, `Score` is the mean across all cells; else it
+#'   contains per-cell values with an additional `cell_id` column.
 #' @export
-calc_adt_nn_within_range <- function(seurat_obj, adt_assay = "ADT",
-                                     features_adt, base_assay, k = 20,
-                                     range = 0.20, return_counts = FALSE) {
-  if (rlang::is_missing(base_assay)) base_assay <- DefaultAssay(seurat_obj)
-  nn_idx <- resolve_neighbors(seurat_obj, base_assay)
+calc_adt_nn_within_range <- function(seurat_obj,
+                                     nn_names = names(seurat_obj@neighbors),
+                                     features_adt,
+                                     adt_assay = "ADT",
+                                     range = 0.20,
+                                     return_mean = TRUE, verbose = FALSE) {
+  if (length(seurat_obj@neighbors) == 0) {
+    cli::cli_abort("No neighbor graphs found in object. \\
+                   Please run `FindNeighbors()` first.")
+  }
 
-  adt_expr <- seurat_obj@assays[[adt_assay]]@data[features_adt, ]
+  invalid_nn <- setdiff(nn_names, names(seurat_obj@neighbors))
+  if (length(invalid_nn) > 0) {
+    cli::cli_abort("Neighbor graph(s) not found in object: {invalid_nn}")
+  }
 
-  results <- vapply(seq_len(nrow(nn_idx)), function(i) {
-    cell_expr <- adt_expr[i]
-    neighbor_expr <- adt_expr[nn_idx[i, ]]
-    lower_bound <- cell_expr * (1 - range)
-    upper_bound <- cell_expr * (1 + range)
-    within_range <- sum(neighbor_expr >= lower_bound &
-                          neighbor_expr <= upper_bound)
-    if (return_counts) within_range else within_range / k
-  }, FUN.VALUE = numeric(1))
+  features_adt <- intersect(features_adt, rownames(seurat_obj@assays[[adt_assay]]))
 
-  names(results) <- Cells(seurat_obj)
-  results
+  all_graph_results <- vector("list", length(nn_names))
+  names(all_graph_results) <- nn_names
+
+  for (nn_name in nn_names) {
+    nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
+    n_cells <- nrow(nn_idx)
+    k <- ncol(nn_idx)
+    results_list <- vector("list", length(features_adt))
+
+    for (i in seq_along(features_adt)) {
+      feat <- features_adt[[i]]
+      adt_expr <- seurat_obj@assays[[adt_assay]]@data[feat, ]
+
+      scores <- vapply(seq_len(n_cells), function(j) {
+        cell_expr <- adt_expr[[j]]
+        neighbor_expr <- adt_expr[nn_idx[j, ]]
+        sum(neighbor_expr >= cell_expr * (1 - range) &
+              neighbor_expr <= cell_expr * (1 + range)) / k
+      }, FUN.VALUE = numeric(1))
+
+      results_list[[i]] <-
+        data.frame(cell_id = seurat_obj$cell_id, Graph = nn_name,
+                   Assay = adt_assay, Feature = feat, Method = "Range",
+                   Score = scores)
+    }
+
+    all_graph_results[[nn_name]] <- do.call(rbind, results_list)
+  }
+
+  result <- do.call(rbind, all_graph_results)
+
+  if (return_mean) {
+    result <- result %>%
+      group_by(Graph, Assay, Feature, Method) %>%
+      summarize(Score = mean(Score, na.rm = TRUE), .groups = "drop")
+  }
+
+  if (verbose) {
+    cli::cli_inform("Calculated ADT range scores for {nn_names}.")
+  }
+
+  result
 }
 
 
@@ -345,33 +459,27 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
 #' Calculate neighbor matching scores across metadata columns
 #'
 #' @description
-#' Calculates the proportion of neighbors that match each cell's metadata
-#' category for specified metadata columns and ADT features. Can also perform
-#' permutations to generate a random baseline. Results can be saved to a
-#' specified path.
+#' For each cell, calculates the proportion of its nearest neighbors that share
+#' the same value for each metadata column.
 #'
 #' @details
-#' `cell_id`s are saved for subsetting later if desired.
+#' `cell_id`s are saved for subsetting later if desired. Use
+#' `permute_neighbor_matches()` to compute a permuted baseline.
 #'
-#' @param seurat_obj The Seurat object, with details added to the Misc() slot.
-#' @param nn_name Name of the nearest neighbor graph slot.
+#' @param seurat_obj A Seurat object.
+#' @param nn_names Character vector of neighbor graph names to evaluate.
+#'   Defaults to all graphs in the object.
 #' @param meta_cols Character vector of metadata columns to evaluate.
-#' @param adt_features Character vector of ADT feature names to evaluate.
-#' @param adt_range Numeric vector of ADT expression range threshold(s).
-#' @param adt_methods How to calculate the ADT metric(s).
-#' @param permute Shuffle labels for each meta column and ADT expression per
-#'   feature before computing matches to get a random baseline.
-#' @param n_permutations The number of times to permute labels.
-#' @param previous_matches Data frame of previous matches to combine with new
-#'   results (optional).
 #' @param return_mean If TRUE, return the mean across all cells; else return
 #'   per-cell values.
-#' @param path_save Where to save the results.
+#' @param verbose If TRUE, print progress messages.
 #'
-#' @return Data frame with columns: Full_Name, Category, Category_Details,
-#'   Assay, Meta_Col, Method, Matches. If `return_mean = TRUE`, `Matches` will be the mean across all cells; else it will contain per-cell values.
+#' @return Data frame with columns: Graph, Assay, Feature, Method, Score.
+#'   If `return_mean = TRUE`, `Score` is the mean across all cells; else it
+#'   contains per-cell values with an additional `cell_id` column.
 #' @export
-calc_neighbor_matches <- function(seurat_obj, nn_name,
+calc_neighbor_matches <- function(seurat_obj,
+                                  nn_names = names(seurat_obj@neighbors),
                                   meta_cols =
                                     c("annotated_clusters_bcr",
                                       "annotated_clusters_binary",
@@ -380,204 +488,273 @@ calc_neighbor_matches <- function(seurat_obj, nn_name,
                                       "cdr3_aa_length", "clone_id_unique",
                                       "isotype_stage", "locus_light",
                                       "mu_freq_bins_binary", "v_call_family"),
-                                  adt_features = NULL, adt_range = 0.1,
-                                  adt_methods = c("mean_abs", "range"),
-                                  permute = FALSE, n_permutations = 10,
-                                  previous_matches, return_mean = TRUE,
-                                  path_save) {
-  # TODO: improve the assay that is returned
-  # TODO: get rid of using category and category_details??
-  # TODO: rename matches to score for consistency
-
-  # input validation
-  if (!rlang::is_missing(path_save)) {
-    if (!dir.exists(path_save)) dir.create(path_save, recursive = TRUE)
+                                  return_mean = TRUE, verbose = FALSE) {
+  if (length(seurat_obj@neighbors) == 0) {
+    cli::cli_abort("No neighbor graphs found in object. \\
+                   Please run `FindNeighbors()` first.")
   }
 
-  if (!is.null(adt_features)) {
-    adt_features <- intersect(adt_features, rownames(seurat_obj@assays$ADT))
+  invalid_nn <- setdiff(nn_names, names(seurat_obj@neighbors))
+  if (length(invalid_nn) > 0) {
+    cli::cli_abort("Neighbor graph(s) not found in object: {invalid_nn}")
   }
 
-  if (!all(c("category", "category_details") %in% names(seurat_obj@misc))) {
-    seurat_obj@misc$category <- ""
-    seurat_obj@misc$category_details <- ""
-    cli::cli_inform(c("i" = "The 'category' and 'category_details' fields were not found in the Seurat object's Misc() slot.",
-                      "i" = "Filling with empty strings. Please populate these fields for better organization of results."))
-  }
+  all_graph_results <- vector("list", length(nn_names))
+  names(all_graph_results) <- nn_names
 
-  neighbors <- seurat_obj@neighbors[[nn_name]]
-  nn_idx <- neighbors@nn.idx
-  n_cells <- nrow(nn_idx)
-  k <- ncol(nn_idx)
+  for (nn_name in nn_names) {
+    nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
+    n_cells <- nrow(nn_idx)
+    k <- ncol(nn_idx)
+    results_list <- vector("list", length(meta_cols))
 
-  n_perm <- if (permute) n_permutations else 1
-  all_permutation_results <- vector("list", n_perm)
-
-  for (perm_idx in seq_len(n_perm)) {
-    results_list <- vector("list", length(meta_cols) +
-                             length(adt_features) * length(adt_methods))
-    i <- 1
-
-    # calculate matches for categorical/discrete metadata
-    for (meta_col in meta_cols) {
+    for (i in seq_along(meta_cols)) {
+      meta_col <- meta_cols[[i]]
       meta_group <- seurat_obj@meta.data[[meta_col]]
       assay <- ifelse(meta_col %in% str_c("annotated_clusters_",
                                           c("binary", "gex_bcr", "simpler")),
                       "GEX", "BCR")
 
-      if (permute) {
-        meta_group <- meta_group[sample(n_cells, replace = FALSE)]
-      }
-
       scores_mixing <- vapply(seq_len(n_cells), function(j) {
-        current_group <- meta_group[j]
-        neighbor_groups <- meta_group[nn_idx[j, ]]
-        score <- sum(neighbor_groups == current_group, na.rm = TRUE) / k
+        score <- sum(meta_group[nn_idx[j, ]] == meta_group[j], na.rm = TRUE) / k
         if (is.na(score)) NA_real_ else score
       }, FUN.VALUE = numeric(1))
 
-      valid_cells <- !is.na(scores_mixing)
-
       if (any(scores_mixing > 1, na.rm = TRUE)) {
-        cli::cli_abort(paste0("The non-ADT scores are too high, please check the ",
-                    "calculation (the detected k is ", k, ")"))
+        cli::cli_abort("Scores are too high, please check the \\
+                       calculation (the detected k is {k})")
       }
 
+      valid_cells <- !is.na(scores_mixing)
       results_list[[i]] <-
-        data.frame(cell_id = seurat_obj$cell_id[valid_cells], Assay = assay,
-                   Meta_Col = meta_col, Method = "Exact",
-                   Matches = scores_mixing[valid_cells])
-      i <- i + 1
+        data.frame(cell_id = seurat_obj$cell_id[valid_cells], Graph = nn_name,
+                   Assay = assay, Feature = meta_col, Method = "Exact",
+                   Score = scores_mixing[valid_cells])
     }
 
-    # calculate matches for ADT features (if provided)
-    if (!is.null(adt_features)) {
-      assay_name <- substr(nn_name, 1, nchar(nn_name) - 3)
-      adt_features <- intersect(adt_features, rownames(seurat_obj@assays$ADT))
-
-      for (feat in adt_features) {
-        if ("mean_abs" %in% adt_methods) {
-          if (permute) {
-            adt_expr <- as.numeric(seurat_obj@assays$ADT@data[feat, ])
-            adt_expr <- adt_expr[sample(n_cells, replace = FALSE)]
-
-            scores_adt <- vapply(seq_len(n_cells), function(j) {
-              idx <- nn_idx[j, ]
-              idx <- idx[idx != j]
-              if (length(idx) == 0) return(NA_real_)
-              mean(abs(adt_expr[idx] - adt_expr[j]))
-            }, FUN.VALUE = numeric(1))
-          } else {
-            scores_adt <-
-              calc_adt_dists(seurat_obj = seurat_obj,
-                             base_assay = assay_name, adt_assay = "ADT",
-                             features_adt = feat, k = k,
-                             distance_metric = "mean_abs",
-                             return_mean = FALSE)
-          }
-
-          results_list[[i]] <-
-            data.frame(cell_id = seurat_obj$cell_id, Assay = "ADT",
-                       Meta_Col = feat, Method = "Mean_Absolute",
-                       Matches = scores_adt)
-          i <- i + 1
-        }
-
-        if ("range" %in% adt_methods) {
-          if (permute) {
-            adt_expr <- as.numeric(seurat_obj@assays$ADT@data[feat, ])
-            adt_expr <- adt_expr[sample(n_cells, replace = FALSE)]
-
-            scores_adt <- vapply(seq_len(n_cells), function(j) {
-              idx <- nn_idx[j, ]
-              idx <- idx[idx != j]
-              if (length(idx) == 0) return(NA_real_)
-              lower_bound <- adt_expr[j] * (1 - adt_range)
-              upper_bound <- adt_expr[j] * (1 + adt_range)
-              sum(adt_expr[idx] >= lower_bound &
-                    adt_expr[idx] <= upper_bound) / k
-            }, FUN.VALUE = numeric(1))
-          } else {
-            scores_adt <-
-              calc_adt_nn_within_range(seurat_obj = seurat_obj,
-                                       features_adt = feat,
-                                       base_assay = assay_name, k = k,
-                                       range = adt_range)
-          }
-
-          results_list[[i]] <-
-            data.frame(cell_id = seurat_obj$cell_id, Assay = "ADT",
-                       Meta_Col = feat, Method = "Range", Matches = scores_adt)
-          i <- i + 1
-        }
-      }
-    }
-
-    all_permutation_results[[perm_idx]] <-
-      do.call(rbind, results_list[seq_len(i - 1)])
+    all_graph_results[[nn_name]] <- do.call(rbind, results_list)
   }
 
-  neighbor_matches <- do.call(rbind, all_permutation_results)
-
-  if (permute) {
-    neighbor_matches <- neighbor_matches %>%
-      group_by(cell_id, Assay, Meta_Col, Method) %>%
-      summarize(Matches = mean(Matches, na.rm = TRUE), .groups = "drop")
-  }
-
-  if (!rlang::is_missing(previous_matches)) {
-    neighbor_matches <- bind_rows(previous_matches, neighbor_matches) %>%
-      arrange(Meta_Col)
-  }
-
-  # TODO: make sure it is always a character (could be double)
-  category <- seurat_obj@misc$category
-  category_details <- seurat_obj@misc$category_details
-
-  neighbor_matches <- neighbor_matches %>%
-    mutate(Category = category, Category_Details = category_details,
-           .before = Assay) %>%
-    mutate(Full_Name = str_c(Category, Category_Details, sep = "_"),
-           .before = Category)
-
-  neighbor_matches <- neighbor_matches %>%
-    mutate(Full_Name =
-             str_replace_all(Full_Name, c("Concatenated_" = "", "_" = " ")),
-           Meta_Col = str_replace_all(Meta_Col, c("_" = " ")),
-           Category = case_when(str_detect(Category_Details, "Before_PCA") ~
-                                  paste0(Category, "_Before_PCA"),
-                                str_detect(Category_Details, "After_PCA") ~
-                                  paste0(Category, "_After_PCA"),
-                                TRUE ~ Category),
-           Category = str_replace_all(Category, "_", " "))
-
-  neighbor_matches <-
-    neighbor_matches %>%
-    mutate(Meta_Col = ifelse(Assay == "ADT", toupper(Meta_Col), Meta_Col))
+  result <- do.call(rbind, all_graph_results)
 
   if (return_mean) {
-    neighbor_matches <-
-      neighbor_matches %>%
-      group_by(Full_Name, Category, Category_Details, Assay, Meta_Col,
-               Method) %>%
-      summarize(Matches = mean(Matches, na.rm = TRUE), .groups = "drop")
+    result <- result %>%
+      group_by(Graph, Assay, Feature, Method) %>%
+      summarize(Score = mean(Score, na.rm = TRUE), .groups = "drop")
   }
 
-  # don't need the rownames
-  neighbor_matches <- neighbor_matches %>% tibble::remove_rownames()
-
-  # TODO: add the graphs too, or calculate on all graphs
-  cli::cli_inform("Scores calculated on {k} neighbors for \\
-                  {str_replace_all(seurat_obj@misc$category, '_', ' ')} \\
-                  {str_replace_all(seurat_obj@misc$category_details, '_', ' ')}.")
-
-  if (!rlang::is_missing(path_save)) {
-    file_name <- tolower(str_c(category, category_details, sep = "_"))
-    path_save <- file.path(path_save, paste0(file_name, ".qdata"))
-    qd_save(neighbor_matches, path_save)
-
-    cli::cli_inform(c("v" = "Saved neighbor matches to {path_save}"))
-  } else {
-    return(neighbor_matches)
+  if (verbose) {
+    cli::cli_inform("Calculated neighbor matching scores for {nn_names}.")
   }
+
+  result
+}
+
+
+#' Compute a permuted baseline for ADT neighbor matching scores
+#'
+#' @description
+#' Runs ADT neighbor matching `n_permutations` times with shuffled expression
+#' values and returns the mean score across permutations as a random baseline.
+#' Supports both the mean absolute and range methods.
+#'
+#' @param seurat_obj A Seurat object.
+#' @param nn_names Character vector of neighbor graph names to evaluate.
+#'   Defaults to all graphs in the object.
+#' @param features_adt Character vector of ADT feature names to evaluate.
+#' @param adt_assay Name of the ADT assay.
+#' @param adt_range Relative threshold for the range method.
+#' @param methods Character vector of methods. One or both of `"mean_abs"` and
+#'   `"range"`.
+#' @param n_permutations Number of permutations to run.
+#' @param return_mean If TRUE, return the mean across all cells; else return
+#'   per-cell values (averaged across permutations).
+#' @param verbose If TRUE, print progress messages.
+#'
+#' @return Data frame in the same format as `calc_adt_mean_absolute()` and
+#'   `calc_adt_nn_within_range()`.
+#' @export
+permute_adt <- function(seurat_obj, nn_names = names(seurat_obj@neighbors),
+                        features_adt, adt_assay = "ADT", adt_range = 0.1,
+                        methods = c("mean_abs", "range"),
+                        n_permutations = 10, return_mean = TRUE,
+                        verbose = FALSE) {
+  if (length(seurat_obj@neighbors) == 0) {
+    cli::cli_abort("No neighbor graphs found in object. \\
+                   Please run `FindNeighbors()` first.")
+  }
+
+  invalid_nn <- setdiff(nn_names, names(seurat_obj@neighbors))
+  if (length(invalid_nn) > 0) {
+    cli::cli_abort("Neighbor graph(s) not found in object: {invalid_nn}")
+  }
+
+  features_adt <- intersect(features_adt, rownames(seurat_obj@assays[[adt_assay]]))
+
+  all_graph_results <- vector("list", length(nn_names))
+  names(all_graph_results) <- nn_names
+
+  for (nn_name in nn_names) {
+    nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
+    n_cells <- nrow(nn_idx)
+    k <- ncol(nn_idx)
+
+    perm_results <- vector("list", n_permutations)
+
+    for (perm_idx in seq_len(n_permutations)) {
+      results_list <- vector("list", length(features_adt) * length(methods))
+      i <- 1
+
+      for (feat in features_adt) {
+        adt_expr <- as.numeric(seurat_obj@assays[[adt_assay]]@data[feat, ])
+        adt_expr <- adt_expr[sample(n_cells)]
+
+        if ("mean_abs" %in% methods) {
+          scores_adt <- vapply(seq_len(n_cells), function(j) {
+            idx <- nn_idx[j, nn_idx[j, ] != j]
+            if (length(idx) == 0) return(NA_real_)
+            mean(abs(adt_expr[idx] - adt_expr[j]))
+          }, FUN.VALUE = numeric(1))
+
+          results_list[[i]] <-
+            data.frame(cell_id = seurat_obj$cell_id, Graph = nn_name,
+                       Assay = adt_assay, Feature = feat,
+                       Method = "Mean_Absolute", Score = scores_adt)
+          i <- i + 1
+        }
+
+        if ("range" %in% methods) {
+          scores_adt <- vapply(seq_len(n_cells), function(j) {
+            idx <- nn_idx[j, nn_idx[j, ] != j]
+            if (length(idx) == 0) return(NA_real_)
+            sum(adt_expr[idx] >= adt_expr[j] * (1 - adt_range) &
+                  adt_expr[idx] <= adt_expr[j] * (1 + adt_range)) / k
+          }, FUN.VALUE = numeric(1))
+
+          results_list[[i]] <-
+            data.frame(cell_id = seurat_obj$cell_id, Graph = nn_name,
+                       Assay = adt_assay, Feature = feat, Method = "Range",
+                       Score = scores_adt)
+          i <- i + 1
+        }
+      }
+
+      perm_results[[perm_idx]] <- do.call(rbind, results_list[seq_len(i - 1)])
+    }
+
+    all_graph_results[[nn_name]] <- do.call(rbind, perm_results)
+  }
+
+  result <- do.call(rbind, all_graph_results) %>%
+    group_by(cell_id, Graph, Assay, Feature, Method) %>%
+    summarize(Score = mean(Score, na.rm = TRUE), .groups = "drop")
+
+  if (return_mean) {
+    result <- result %>%
+      group_by(Graph, Assay, Feature, Method) %>%
+      summarize(Score = mean(Score, na.rm = TRUE), .groups = "drop")
+  }
+
+  if (verbose) {
+    cli::cli_inform("Computed permuted baseline ({n_permutations} permutations) \\
+                    for {nn_names}.")
+  }
+
+  result
+}
+
+
+#' Compute a permuted baseline for neighbor matching scores
+#'
+#' @description
+#' Runs `calc_neighbor_matches()` `n_permutations` times with shuffled metadata
+#' labels and returns the mean score across permutations as a random baseline.
+#'
+#' @param seurat_obj A Seurat object.
+#' @param nn_names Character vector of neighbor graph names to evaluate.
+#'   Defaults to all graphs in the object.
+#' @param meta_cols Character vector of metadata columns to evaluate.
+#' @param n_permutations Number of permutations to run.
+#' @param return_mean If TRUE, return the mean across all cells; else return
+#'   per-cell values (averaged across permutations).
+#' @param verbose If TRUE, print progress messages.
+#'
+#' @return Data frame in the same format as `calc_neighbor_matches()`.
+#' @export
+permute_neighbor_matches <- function(seurat_obj,
+                                     nn_names = names(seurat_obj@neighbors),
+                                     meta_cols =
+                                       c("annotated_clusters_bcr",
+                                         "annotated_clusters_binary",
+                                         "annotated_clusters_gex_bcr",
+                                         "annotated_clusters_simpler",
+                                         "cdr3_aa_length", "clone_id_unique",
+                                         "isotype_stage", "locus_light",
+                                         "mu_freq_bins_binary", "v_call_family"),
+                                     n_permutations = 10,
+                                     return_mean = TRUE, verbose = FALSE) {
+  if (length(seurat_obj@neighbors) == 0) {
+    cli::cli_abort("No neighbor graphs found in object. \\
+                   Please run `FindNeighbors()` first.")
+  }
+
+  invalid_nn <- setdiff(nn_names, names(seurat_obj@neighbors))
+  if (length(invalid_nn) > 0) {
+    cli::cli_abort("Neighbor graph(s) not found in object: {invalid_nn}")
+  }
+
+  all_graph_results <- vector("list", length(nn_names))
+  names(all_graph_results) <- nn_names
+
+  for (nn_name in nn_names) {
+    nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
+    n_cells <- nrow(nn_idx)
+    k <- ncol(nn_idx)
+
+    perm_results <- vector("list", n_permutations)
+
+    for (perm_idx in seq_len(n_permutations)) {
+      results_list <- vector("list", length(meta_cols))
+
+      for (i in seq_along(meta_cols)) {
+        meta_col <- meta_cols[[i]]
+        meta_group <- seurat_obj@meta.data[[meta_col]][sample(n_cells)]
+        assay <- ifelse(meta_col %in% str_c("annotated_clusters_",
+                                            c("binary", "gex_bcr", "simpler")),
+                        "GEX", "BCR")
+
+        scores_mixing <- vapply(seq_len(n_cells), function(j) {
+          score <- sum(meta_group[nn_idx[j, ]] == meta_group[j], na.rm = TRUE) / k
+          if (is.na(score)) NA_real_ else score
+        }, FUN.VALUE = numeric(1))
+
+        valid_cells <- !is.na(scores_mixing)
+        results_list[[i]] <-
+          data.frame(cell_id = seurat_obj$cell_id[valid_cells], Graph = nn_name,
+                     Assay = assay, Feature = meta_col, Method = "Exact",
+                     Score = scores_mixing[valid_cells])
+      }
+
+      perm_results[[perm_idx]] <- do.call(rbind, results_list)
+    }
+
+    all_graph_results[[nn_name]] <- do.call(rbind, perm_results)
+  }
+
+  result <- do.call(rbind, all_graph_results) %>%
+    group_by(cell_id, Graph, Assay, Feature, Method) %>%
+    summarize(Score = mean(Score, na.rm = TRUE), .groups = "drop")
+
+  if (return_mean) {
+    result <- result %>%
+      group_by(Graph, Assay, Feature, Method) %>%
+      summarize(Score = mean(Score, na.rm = TRUE), .groups = "drop")
+  }
+
+  if (verbose) {
+    cli::cli_inform("Computed permuted baseline ({n_permutations} permutations) \\
+                    for {nn_names}.")
+  }
+
+  result
 }
