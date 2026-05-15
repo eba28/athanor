@@ -174,7 +174,7 @@ bcr_embeddings_pipeline_dedup <- function(embeddings, embedding_type,
   }
 
   # build per-cell string keys from the sparse structure
-  cli::cli_inform(c("i" = "Scanning {ncol(embeddings)} cells for identical embeddings — this may take a moment for large datasets."))
+  cli::cli_inform(c("i" = "Scanning {ncol(embeddings)} cells for identical embeddings; this may take a moment for large datasets."))
   emb_keys <- vapply(seq_len(ncol(embeddings)), function(j) {
     start <- embeddings@p[j] + 1L
     end   <- embeddings@p[j + 1L]

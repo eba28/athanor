@@ -64,6 +64,7 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
       cell_expr <- adt_data[feat, ]
       neighbor_expr <- neighbor_adt_mean[feat, ]
       correlation <- cor(cell_expr, neighbor_expr, method = cor_method)
+      # TODO: include Method?
       metrics_df <- bind_rows(metrics_df,
                               data.frame(Graph = nn_name, Feature = feat,
                                          Score = correlation))
@@ -207,8 +208,10 @@ calc_adt_mean_absolute <- function(seurat_obj,
   }
 
   if (verbose) {
-    cli::cli_inform("Calculated ADT neighbor matching scores for {nn_names}.")
+    cli::cli_inform("Calculated ADT mean absolute difference scores for {nn_names}.")
   }
+
+  result <- result %>% remove_rownames()
 
   result
 }
@@ -312,7 +315,7 @@ calc_adt_nn_within_range <- function(seurat_obj,
 
     for (i in seq_along(features_adt)) {
       feat <- features_adt[[i]]
-      adt_expr <- seurat_obj@assays[[adt_assay]]@data[feat, ]
+      adt_expr <- GetAssayData(seurat_obj, assay = adt_assay, layer = "data")[feat, ]
 
       scores <- vapply(seq_len(n_cells), function(j) {
         cell_expr <- adt_expr[[j]]
@@ -408,7 +411,7 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
   if (rlang::is_missing(base_assay)) base_assay <- DefaultAssay(seurat_obj)
   nn_idx <- resolve_neighbors(seurat_obj, base_assay)
 
-  adt_expr <- seurat_obj@assays[[adt_assay]]@data[features_adt, ]
+  adt_expr <- GetAssayData(seurat_obj, assay = adt_assay, layer = "data")[features_adt, ]
   adt_expr <- as.numeric(adt_expr)
 
   if (method == "quantile") {
@@ -489,10 +492,14 @@ calc_neighbor_matches <- function(seurat_obj,
                                       "isotype_stage", "locus_light",
                                       "mu_freq_bins_binary", "v_call_family"),
                                   return_mean = TRUE, verbose = FALSE) {
+  # input validation
   if (length(seurat_obj@neighbors) == 0) {
     cli::cli_abort("No neighbor graphs found in object. \\
                    Please run `FindNeighbors()` first.")
   }
+
+  # only use metadata columns available in the object
+  meta_cols <- intersect(meta_cols, colnames(seurat_obj[[]]))
 
   invalid_nn <- setdiff(nn_names, names(seurat_obj@neighbors))
   if (length(invalid_nn) > 0) {
@@ -536,6 +543,7 @@ calc_neighbor_matches <- function(seurat_obj,
   }
 
   result <- do.call(rbind, all_graph_results)
+  result <- result %>% remove_rownames()
 
   if (return_mean) {
     result <- result %>%
@@ -606,7 +614,7 @@ permute_adt <- function(seurat_obj, nn_names = names(seurat_obj@neighbors),
       i <- 1
 
       for (feat in features_adt) {
-        adt_expr <- as.numeric(seurat_obj@assays[[adt_assay]]@data[feat, ])
+        adt_expr <- as.numeric(GetAssayData(seurat_obj, assay = adt_assay, layer = "data")[feat, ])
         adt_expr <- adt_expr[sample(n_cells)]
 
         if ("mean_abs" %in% methods) {

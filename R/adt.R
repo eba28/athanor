@@ -76,9 +76,10 @@ get_adt_matrix <- function(seurat_obj, adt_assay = "ADT", layer = "data",
     cli::cli_abort("Assay '", adt_assay, "' not found in Seurat object. Available assays: ",
          paste(names(seurat_obj@assays), collapse = ", "))
   }
-  if (!layer %in% names(seurat_obj@assays[[adt_assay]]@data)) {
+  available_layers <- SeuratObject::Layers(seurat_obj[[adt_assay]])
+  if (!layer %in% available_layers) {
     cli::cli_abort("Layer '", layer, "' not found in assay '", adt_assay, "'. Available layers: ",
-         paste(names(seurat_obj@assays[[adt_assay]]@data), collapse = ", "))
+         paste(available_layers, collapse = ", "))
   }
 
   mat <- GetAssayData(seurat_obj, assay = adt_assay, layer = layer)

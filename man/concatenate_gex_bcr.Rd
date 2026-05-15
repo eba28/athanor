@@ -85,7 +85,7 @@ A Seurat object with:
 \description{
 Creates a combined representation of gene expression (GEX) and B-cell
 receptor (BCR) data, then runs the standard Seurat pipeline on the result.
-Supports two input types and two PCA stages — see Details.
+Supports two input types and two PCA stages (see Details).
 }
 \details{
 This would typically be used after \code{\link[=seurat_pipeline]{seurat_pipeline()}} and \code{\link[=gex_add_airr]{gex_add_airr()}}.

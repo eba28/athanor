@@ -475,7 +475,7 @@ infer_num_dims <- function(seurat_obj, default = 20, verbose = TRUE) {
 #' @description
 #' Creates a combined representation of gene expression (GEX) and B-cell
 #' receptor (BCR) data, then runs the standard Seurat pipeline on the result.
-#' Supports two input types and two PCA stages — see Details.
+#' Supports two input types and two PCA stages (see Details).
 #'
 #' @details
 #' This would typically be used after [seurat_pipeline()] and [gex_add_airr()].
@@ -596,6 +596,7 @@ concatenate_gex_bcr <- function(seurat_obj,
                                 num_pcs = 50, num_dims = 20, k_param = 20,
                                 verbose = TRUE) {
   # TODO: add an option to do weighting to influence the effect of the BCRs (post-normalization)
+  # TODO: add separate num_dims for the GEX and for the BCR
 
   pca_stage  <- match.arg(pca_stage)
   input_type <- match.arg(input_type)
@@ -625,7 +626,7 @@ concatenate_gex_bcr <- function(seurat_obj,
 
   # detect merged object (has BCR assay + bpca from merge_gex_bcr)
   is_merged <- "BCR" %in% names(seurat_obj@assays) &&
-    "bpca" %in% names(seurat_obj@reductions)
+               "bpca" %in% names(seurat_obj@reductions)
 
   # for non-merged embeddings, subset to shared cells before any branch logic
   if (input_type == "embeddings" && !is_merged && !is.null(embeddings)) {
@@ -640,22 +641,22 @@ concatenate_gex_bcr <- function(seurat_obj,
   }
 
   if (pca_stage == "raw") {
-    # warn loudly if normalizing embeddings — log1p of PLM values is meaningless
+    # warn if normalizing embeddings (since log1p of PLM values is meaningless)
     if (input_type == "embeddings" && normalize) {
       cli::cli_warn(c(
         "!" = "{.code normalize = TRUE} with {.code input_type = 'embeddings'} \\
                will log-normalize embedding values alongside RNA counts.",
-        "i" = "For pretrained embeddings, prefer {.code normalize = FALSE}."
+        "i" = "For pretrained embeddings, we suggest {.code normalize = FALSE}."
       ))
     }
 
-    # --- resolve BCR data (features x cells matrix) ---
+    # resolve BCR data (features x cells matrix)
     if (input_type == "embeddings") {
       if (is_merged) {
         bcr_features <- GetAssayData(seurat_obj, assay = "BCR", layer = "data")
         if (verbose) {
           cli::cli_inform(c("i" = "Using BCR assay ({nrow(bcr_features)} dimensions) \\
-                                   from merged object."))
+                                   from the provided merged object."))
         }
       } else if (!is.null(embeddings)) {
         bcr_features <- embeddings[, Cells(seurat_obj), drop = FALSE]
@@ -675,28 +676,33 @@ concatenate_gex_bcr <- function(seurat_obj,
       bcr_features <- process_bcr_features(bcr_features, verbose = verbose)
     }
 
-    # Seurat 5 silently rewrites "_" to "-" in feature names at assay creation,
+    # Seurat v5 rewrites "_" to "-" in feature names at assay creation,
     # de-syncing the assay names from the VariableFeatures list and causing
     # ScaleData to find nothing to scale. Using "." avoids the rewrite.
     rownames(bcr_features) <- gsub("_", ".", rownames(bcr_features))
+    # This shouldn't affect embeddings, which will typically be in the format "Dim1", "Dim2", etc.
 
     # write to counts when normalizing (seurat_pipeline will call NormalizeData
     # which populates data), or directly to data when already normalized
     if (normalize) {
-      seurat_obj[["RNA_BCR"]] <- CreateAssay5Object(
-        counts = rbind(GetAssayData(seurat_obj, assay = "RNA", layer = "counts"),
-                       bcr_features))
+      seurat_obj[["RNA_BCR"]] <-
+        CreateAssay5Object(counts = rbind(GetAssayData(seurat_obj, assay = "RNA",
+                                                       layer = "counts"),
+                                          bcr_features))
     } else {
-      seurat_obj[["RNA_BCR"]] <- CreateAssay5Object(
-        data = rbind(GetAssayData(seurat_obj, assay = "RNA", layer = "data"),
-                     bcr_features))
+      # TODO: include counts too??
+      seurat_obj[["RNA_BCR"]] <-
+        CreateAssay5Object(data = rbind(GetAssayData(seurat_obj, assay = "RNA",
+                                                     layer = "data"),
+                                        bcr_features))
+      ## Warning: No layers found matching search pattern provided
     }
     DefaultAssay(seurat_obj) <- "RNA_BCR"
 
     # always append BCR features onto existing RNA variable features rather than
     # re-running FindVariableFeatures, which would drop BCR features from the
-    # selection and trigger Seurat warnings about underscores in feature names
-    # and about the count layer being missing when normalize = FALSE
+    # selection (and trigger Seurat warnings about underscores in feature names
+    # and about the count layer being missing when normalize = FALSE)
     collisions <- intersect(VariableFeatures(seurat_obj, assay = "RNA"),
                             rownames(bcr_features))
     if (length(collisions) > 0) {
@@ -715,6 +721,8 @@ concatenate_gex_bcr <- function(seurat_obj,
                                {nrow(bcr_features)} BCR = {n_total} total."))
     }
 
+    # TODO: test if this is necessary
+    # could maybe check a new Misc slot to see if this was already done?
     if (!missing(filter_genes)) {
       seurat_obj <- filter_variable_features(seurat_obj, filter_genes,
                                              ensembl_version = ensembl_version,
@@ -722,6 +730,7 @@ concatenate_gex_bcr <- function(seurat_obj,
                                              bcr_features = bcr_features)
     }
 
+    # TODO: remove the previous command and just use this one
     seurat_obj <- seurat_pipeline(seurat_obj, assay = "RNA_BCR",
                                   pca_name = "rna_bcr.pca",
                                   normalize = normalize,
@@ -738,7 +747,7 @@ concatenate_gex_bcr <- function(seurat_obj,
       ))
     }
 
-    # resolve BCR data — same logic as "raw"
+    # resolve BCR data (same logic as "raw")
     if (input_type == "embeddings") {
       if (is_merged) {
         bcr_features <- GetAssayData(seurat_obj, assay = "BCR", layer = "data")
@@ -768,7 +777,7 @@ concatenate_gex_bcr <- function(seurat_obj,
     n_gex_dims <- min(num_dims, ncol(Embeddings(seurat_obj, gex_reduction)))
     gex_pca_mat <- t(Embeddings(seurat_obj, gex_reduction)[, seq_len(n_gex_dims), drop = FALSE])
 
-    # same "_" → "." rename as "raw" branch — avoids Seurat 5's silent rewrite
+    # same "_" → "." rename as "raw" branch (avoids Seurat 5's silent rewrite)
     rownames(gex_pca_mat)  <- gsub("_", ".", rownames(gex_pca_mat))
     rownames(bcr_features) <- gsub("_", ".", rownames(bcr_features))
 
@@ -779,8 +788,8 @@ concatenate_gex_bcr <- function(seurat_obj,
                                {nrow(combined_mat)} rows."))
     }
 
-    # write to counts then copy to data — ScaleData reads from data, not counts,
-    # but CreateAssay5Object requires at least one of counts/data to be provided
+    # write to counts then copy to data (ScaleData reads from data, not counts,
+    # but CreateAssay5Object requires at least one of counts/data to be provided)
     seurat_obj[["RNA_BCR"]] <- CreateAssay5Object(counts = combined_mat)
     LayerData(seurat_obj, assay = "RNA_BCR", layer = "data") <-
       LayerData(seurat_obj, assay = "RNA_BCR", layer = "counts")

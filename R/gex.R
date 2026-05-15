@@ -174,10 +174,10 @@ filter_variable_features <- function(seurat_obj, filter_genes,
       n_gex <- length(setdiff(VariableFeatures(seurat_obj),
                               str_replace_all(rownames(bcr_features), "_", "-")))
       cli::cli_inform(c("i" = "After removing {str_c(filter_genes, collapse = '/')} genes: \\
-{n_remaining} variable features ({n_gex} GEX-only)."))
+{n_remaining} variable features ({n_gex} GEX-only) remain."))
    } else {
       cli::cli_inform(c("i" = "After removing {str_c(filter_genes, collapse = '/')} genes: \\
-{n_remaining} variable features."))
+{n_remaining} variable features remain."))
    }
 
    seurat_obj

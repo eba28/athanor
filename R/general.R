@@ -248,11 +248,11 @@ seurat_pipeline <- function(seurat_obj, assay = "RNA", pca_name = NULL,
   if (is.null(pca_name)) {
     pca_name <- if (assay == "RNA") "rpca" else paste0(tolower(assay), ".pca")
   }
-  pca_key   <- paste0(gsub("[._]", "", tolower(pca_name)), "_")
+  pca_key <- paste0(gsub("[._]", "", tolower(pca_name)), "_")
   umap_name <- paste0(tolower(assay), ".umap")
-  umap_key  <- paste0(gsub("_", "", tolower(assay)), "UMAP_")
-  nn_name   <- paste0(assay, ".nn")
-  snn_name  <- paste0(assay, "_snn")
+  umap_key <- paste0(gsub("_", "", tolower(assay)), "UMAP_")
+  nn_name <- paste0(assay, ".nn")
+  snn_name <- paste0(assay, "_snn")
 
   # cell filtering - RNA only
   if (assay == "RNA" && !rlang::is_missing(nfeatures_RNA) && !rlang::is_missing(perc_mt)) {
