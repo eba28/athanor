@@ -129,7 +129,7 @@ named_colors$c_call <- c("IGHA" = alakazam::IG_COLORS[["IGHA"]],
                          "IGLC1" = "#ffd208", "IGLC2" = "#e0b700")
 named_colors$isotype_stage <-
   c("Unswitched" = "#aaaaff", "Switched" = "#51518a")
-named_colors$light <- c("IGK" = "#61b498", "IGL" = pals::ocean.dense(n = 4)[2],
+named_colors$locus_light <- c("IGK" = "#61b498", "IGL" = pals::ocean.dense(n = 4)[2],
                         "IGK, IGL" = "#fcce00")
 
 # gene family colors

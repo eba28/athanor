@@ -102,7 +102,7 @@ show_palette(named_colors$isotype_stage, "Isotype switching stage")
 ```{r light-palette}
 #| fig.dim = c(4, 2)
 
-show_palette(named_colors$light, "Light chain loci")
+show_palette(named_colors$locus_light, "Light chain loci")
 ```
 
 ### Somatic hypermutation frequency bins

@@ -695,7 +695,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
         plots_overview[[paste0("light_chain_", type)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = "", pt_size = pt_size,
-                       clrs_specific = named_colors$light,
+                       clrs_specific = named_colors$locus_light,
                        title = paste(assay_name, "Light Chain Types"),
                        reduc = reduction, plot_label = FALSE,
                        meta_col = "locus_light",
