@@ -20,8 +20,6 @@
 #' @returns A overview of the Seurat object, and invisibly returns the input object for piping if desired.
 #' @export
 object_overview <- function(seurat_obj) {
-  cli::cli_h1("Seurat object overview")
-
   # --- Cells & Assays ---
   cli::cli_h2("Cells & Assays")
   cli::cli_inform("{ncol(seurat_obj)} cells")
@@ -46,7 +44,24 @@ object_overview <- function(seurat_obj) {
     cli::cli_h2("Reductions")
     for (reduc_name in names(seurat_obj@reductions)) {
       n_dims <- ncol(seurat_obj@reductions[[reduc_name]])
-      cli::cli_inform("{reduc_name}: {n_dims} dimensions")
+      pc_info <- ""
+      if (grepl("umap", tolower(reduc_name))) {
+        for (cmd_name in names(seurat_obj@commands)) {
+          if (!startsWith(cmd_name, "RunUMAP")) next
+          cmd <- seurat_obj@commands[[cmd_name]]
+          if (!identical(cmd@params$reduction.name, reduc_name)) next
+          nn_ref <- cmd@params$nn.name
+          if (!is.null(nn_ref) && nn_ref %in% names(seurat_obj@neighbors)) {
+            nn_dims <- seurat_obj@neighbors[[nn_ref]]@alg.info$ndim
+            if (!is.null(nn_dims)) pc_info <- paste0(" (", nn_dims, " PCs)")
+          } else if (!is.null(cmd@params$dims)) {
+            nn_dims <- length(cmd@params$dims)
+            pc_info <- paste0(" (", nn_dims, " PCs)")
+          }
+          break
+        }
+      }
+      cli::cli_inform("{reduc_name}: {n_dims} dimensions{pc_info}")
     }
   }
 
@@ -56,14 +71,33 @@ object_overview <- function(seurat_obj) {
     for (nn_name in names(seurat_obj@neighbors)) {
       nn <- seurat_obj@neighbors[[nn_name]]
       k <- ncol(nn@nn.idx)
-      cli::cli_inform("{nn_name}: k = {k}")
+      n_dims <- nn@alg.info$ndim
+      if (!is.null(n_dims)) {
+        cli::cli_inform("{nn_name}: k = {k}, {n_dims} PCs")
+      } else {
+        cli::cli_inform("{nn_name}: k = {k}")
+      }
     }
   }
 
   # --- Graphs ---
   if (length(seurat_obj@graphs) > 0) {
     cli::cli_h2("Graphs")
-    cli::cli_inform("{toString(names(seurat_obj@graphs))}")
+    fnn_cmds <- Filter(function(nm) startsWith(nm, "FindNeighbors"),
+                       names(seurat_obj@commands))
+    graph_dims <- NULL
+    for (cmd_name in fnn_cmds) {
+      cmd <- seurat_obj@commands[[cmd_name]]
+      if (!is.null(cmd@params$dims) && !isTRUE(cmd@params$return.neighbor)) {
+        graph_dims <- length(cmd@params$dims)
+        break
+      }
+    }
+    if (!is.null(graph_dims)) {
+      cli::cli_inform("{toString(names(seurat_obj@graphs))} ({graph_dims} PCs)")
+    } else {
+      cli::cli_inform("{toString(names(seurat_obj@graphs))}")
+    }
   }
 
   # --- WNN (if present) ---

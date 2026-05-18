@@ -11,6 +11,7 @@ calc_neighbor_matches(
     "annotated_clusters_gex_bcr", "annotated_clusters_simpler", "cdr3_aa_length",
     "clone_id_unique", "isotype_stage", "locus_light", "mu_freq_bins_binary",
     "v_call_family"),
+  cdr3_length_range = 1,
   return_mean = TRUE,
   verbose = FALSE
 )
@@ -22,6 +23,10 @@ calc_neighbor_matches(
 Defaults to all graphs in the object.}
 
 \item{meta_cols}{Character vector of metadata columns to evaluate.}
+
+\item{cdr3_length_range}{Integer range for \code{cdr3_aa_length} matching.
+Neighbors within this many amino acids of the query cell are counted as
+matches. Defaults to 1.}
 
 \item{return_mean}{If TRUE, return the mean across all cells; else return
 per-cell values.}

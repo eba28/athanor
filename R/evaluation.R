@@ -473,6 +473,9 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
 #' @param nn_names Character vector of neighbor graph names to evaluate.
 #'   Defaults to all graphs in the object.
 #' @param meta_cols Character vector of metadata columns to evaluate.
+#' @param cdr3_length_range Integer range for `cdr3_aa_length` matching.
+#'   Neighbors within this many amino acids of the query cell are counted as
+#'   matches. Defaults to 1.
 #' @param return_mean If TRUE, return the mean across all cells; else return
 #'   per-cell values.
 #' @param verbose If TRUE, print progress messages.
@@ -491,6 +494,7 @@ calc_neighbor_matches <- function(seurat_obj,
                                       "cdr3_aa_length", "clone_id_unique",
                                       "isotype_stage", "locus_light",
                                       "mu_freq_bins_binary", "v_call_family"),
+                                  cdr3_length_range = 1,
                                   return_mean = TRUE, verbose = FALSE) {
   # input validation
   if (length(seurat_obj@neighbors) == 0) {
@@ -522,9 +526,15 @@ calc_neighbor_matches <- function(seurat_obj,
                                           c("binary", "gex_bcr", "simpler")),
                       "GEX", "BCR")
 
+      is_length_col <- meta_col == "cdr3_aa_length"
       scores_mixing <- vapply(seq_len(n_cells), function(j) {
-        score <- sum(meta_group[nn_idx[j, ]] == meta_group[j], na.rm = TRUE) / k
-        if (is.na(score)) NA_real_ else score
+        if (is_length_col) {
+          score <- sum(abs(meta_group[nn_idx[j, ]] - meta_group[j]) <=
+                         cdr3_length_range, na.rm = TRUE) / k
+        } else {
+          score <- sum(meta_group[nn_idx[j, ]] == meta_group[j], na.rm = TRUE) / k
+        }
+        if (is.na(score)) NA else score
       }, FUN.VALUE = numeric(1))
 
       if (any(scores_mixing > 1, na.rm = TRUE)) {
@@ -532,10 +542,11 @@ calc_neighbor_matches <- function(seurat_obj,
                        calculation (the detected k is {k})")
       }
 
+      method <- if (is_length_col) paste0("Tol", cdr3_length_range) else "Exact"
       valid_cells <- !is.na(scores_mixing)
       results_list[[i]] <-
         data.frame(cell_id = seurat_obj$cell_id[valid_cells], Graph = nn_name,
-                   Assay = assay, Feature = meta_col, Method = "Exact",
+                   Assay = assay, Feature = meta_col, Method = method,
                    Score = scores_mixing[valid_cells])
     }
 
