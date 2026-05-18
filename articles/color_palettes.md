@@ -58,7 +58,7 @@ sort(names(named_colors))
 #>  [4] "cell_types_simpler"    "d_call_family"         "datatype"             
 #>  [7] "doublet"               "embeddings"            "isotype"              
 #> [10] "isotype_stage"         "j_call_family"         "j_call_igh_family"    
-#> [13] "j_call_igk_family"     "j_call_igl_family"     "light"                
+#> [13] "j_call_igk_family"     "j_call_igl_family"     "locus_light"          
 #> [16] "mu_freq_bins"          "mu_freq_bins_binary"   "mu_freq_bins_fewer"   
 #> [19] "mu_freq_iso"           "v_call_family"         "v_call_igh_family"    
 #> [22] "v_call_igk_family"     "v_call_igl_family"     "weight_assay"         
@@ -98,7 +98,7 @@ show_palette(named_colors$isotype_stage, "Isotype switching stage")
 
 ``` r
 
-show_palette(named_colors$light, "Light chain loci")
+show_palette(named_colors$locus_light, "Light chain loci")
 ```
 
 ![](color_palettes_files/figure-html/light-palette-1.png)

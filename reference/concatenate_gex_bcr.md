@@ -2,7 +2,7 @@
 
 Creates a combined representation of gene expression (GEX) and B-cell
 receptor (BCR) data, then runs the standard Seurat pipeline on the
-result. Supports two input types and two PCA stages — see Details.
+result. Supports two input types and two PCA stages (see Details).
 
 ## Usage
 
