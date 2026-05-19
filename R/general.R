@@ -205,6 +205,7 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
     }
   }
 
+
   # fill in the "graphs" slot
   seurat_obj <- FindNeighbors(seurat_obj, reduction = pca_name,
                               dims = 1:num_dims, k.param = k_param,
@@ -219,12 +220,11 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
   # fill in the "reductions" slot
   # the function won't use assay since we are providing the nn graph, but we provide it
   # so that the command is recorded properly (it will use the default assay otherwise)
+  umap_name <- paste0(tolower(assay), ".umap")
+  umap_key <- paste0(gsub("_", "", tolower(assay)), "UMAP_")
   seurat_obj <- RunUMAP(seurat_obj, reduction = pca_name, assay = assay,
                         nn.name = nn_name, n.neighbors = k_param,
-                        reduction.name = stringr::str_c(tolower(assay), ".umap"),
-                        # note that if assay has any underscores in it, Seurat
-                        # will remove them when making the key
-                        reduction.key = stringr::str_c(tolower(assay), "UMAP_"),
+                        reduction.name = umap_name, reduction.key = umap_key,
                         verbose = verbose)
 
   seurat_obj
@@ -283,9 +283,6 @@ seurat_pipeline <- function(seurat_obj, assay = "RNA", pca_name = NULL,
     pca_name <- if (assay == "RNA") "rpca" else paste0(tolower(assay), ".pca")
   }
   pca_key <- paste0(gsub("[._]", "", tolower(pca_name)), "_")
-  umap_name <- paste0(tolower(assay), ".umap")
-  umap_key <- paste0(gsub("_", "", tolower(assay)), "UMAP_")
-  nn_name <- paste0(assay, ".nn")
   snn_name <- paste0(assay, "_snn")
 
   # cell filtering - RNA only
@@ -375,13 +372,9 @@ seurat_pipeline <- function(seurat_obj, assay = "RNA", pca_name = NULL,
                     {ifelse(use_approx, 'approximate', 'exact')} SVD."))
 
   # SNN graph for clustering + neighbor object for UMAP and evaluation
-  seurat_obj <- FindNeighbors(seurat_obj, reduction = pca_name, dims = 1:num_dims,
-                              k.param = k_param,
-                              graph.name = str_c(assay, "_", c("", "s"), "nn"),
-                              verbose = verbose)
-  seurat_obj <- FindNeighbors(seurat_obj, reduction = pca_name, dims = 1:num_dims,
-                              k.param = k_param, return.neighbor = TRUE,
-                              graph.name = nn_name, verbose = verbose)
+  seurat_obj <- regen_reduc(seurat_obj, pca_name = pca_name, assay = assay,
+                            num_dims = num_dims, k_param = k_param,
+                            verbose = verbose)
 
   if (!is.null(cluster_res)) {
     seurat_obj <- FindClusters(seurat_obj, graph.name = snn_name,
@@ -395,11 +388,6 @@ seurat_pipeline <- function(seurat_obj, assay = "RNA", pca_name = NULL,
                str_sort(unique(seurat_obj[[]][[res_col]]), numeric = TRUE))
     }
   }
-
-  seurat_obj <- RunUMAP(seurat_obj, reduction = pca_name, assay = assay,
-                        nn.name = nn_name, n.neighbors = k_param,
-                        reduction.name = umap_name, reduction.key = umap_key,
-                        verbose = verbose)
 
   seurat_obj
 }

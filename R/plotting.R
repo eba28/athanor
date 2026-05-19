@@ -691,6 +691,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       }
 
       # light chain types
+      # TODO: switch to locus_light for consistency
       if ("light_chains" %in% comparisons) {
         plots_overview[[paste0("light_chain_", type)]] <-
           plot_dimplot(seurat_obj = seurat_obj,

@@ -119,21 +119,9 @@ bcr_embeddings_pipeline <- function(embeddings, embedding_type,
   # visual check for how many PCs to keep (aka num_dims)
   # ElbowPlot(seurat_obj, reduction = "bpca", ndims = num_pcs)
 
-  seurat_obj <- Seurat::FindNeighbors(object = seurat_obj, reduction = "bpca",
-                                      dims = 1:num_dims, k.param = k_param,
-                                      return.neighbor = TRUE,
-                                      graph.name = "BCR.nn", verbose = verbose)
-  seurat_obj <- Seurat::FindNeighbors(object = seurat_obj, reduction = "bpca",
-                                      dims = 1:num_dims, k.param = k_param,
-                                      compute.SNN = TRUE,
-                                      graph.name =
-                                        str_c("BCR_", c("", "s"), "nn"),
-                                      verbose = verbose)
-  seurat_obj <- Seurat::RunUMAP(object = seurat_obj, reduction = "bpca",
-                                nn.name = "BCR.nn", n.neighbors = k_param,
-                                reduction.name = "bcr.umap",
-                                reduction.key = "bcrUMAP_",
-                                verbose = verbose)
+  seurat_obj <- regen_reduc(seurat_obj = seurat_obj, pca_name = "bpca",
+                            assay = "BCR", num_dims = num_dims,
+                            k_param = k_param, verbose = verbose)
 
   # add useful information to the Miscellaneous slot
   Seurat::Misc(seurat_obj, slot = "embedding_type") <- embedding_type

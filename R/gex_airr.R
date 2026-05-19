@@ -277,6 +277,8 @@ and {count_no_alpha} have no paired alpha chain."))
 #' @export
 merge_gex_bcr <- function(gex_obj, bcr_obj, transfer_reductions = TRUE,
                           verbose = TRUE) {
+  # TODO: add a transfer metadata parameter
+
   # argument checks
   if (!inherits(gex_obj, "Seurat")) cli::cli_abort("gex_obj must be a Seurat object.")
   if (!inherits(bcr_obj, "Seurat")) cli::cli_abort("bcr_obj must be a Seurat object.")
@@ -321,7 +323,8 @@ merge_gex_bcr <- function(gex_obj, bcr_obj, transfer_reductions = TRUE,
   seurat_obj[["BCR"]] <- bcr_obj[["BCR"]]
 
   # transfer over some of the BCR-specific metadata
-  # all of the other column should already be present in the GEX object
+  # all of the other columns should already be present in the GEX object
+  # TODO: check if these following BCR columns already exist?
   seurat_obj@meta.data <-
     left_join(seurat_obj[[]],
               bcr_obj[[]] %>% select(cell_id, nCount_BCR, nFeature_BCR),
