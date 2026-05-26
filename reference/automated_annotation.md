@@ -5,7 +5,12 @@ This function runs automated cell type annotation using `CellTypist`.
 ## Usage
 
 ``` r
-automated_annotation(seurat_obj, annotation_method, reference = "pbmcref")
+automated_annotation(
+  seurat_obj,
+  annotation_method,
+  reference = "pbmcref",
+  majority_voting = FALSE
+)
 ```
 
 ## Arguments
@@ -17,7 +22,7 @@ automated_annotation(seurat_obj, annotation_method, reference = "pbmcref")
 
 - annotation_method:
 
-  Which method to use: CellTypist"
+  Which method to use: CellTypist
 
 - reference:
 
@@ -34,3 +39,13 @@ Supports CellTypist annotation methods. Assumes that the `Cells()` of
 assumes the H5AD file and predictions have already been generated. This
 would typically be used after
 [`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md).
+
+"Majority voting refines the prediction result in a local cell cluster
+by choosing the dominant cell type label but may increase the runtime
+especially for a large dataset due to the over-clustering step. This
+approach usually improves the cell annotation, as voting is conducted in
+small subclusters derived from over-clustering (cells belonging to a
+given cell type will be assigned the same label regardless of potential
+batch effects separating them)."
+
+- https://www.celltypist.org/tutorials/onlineguide

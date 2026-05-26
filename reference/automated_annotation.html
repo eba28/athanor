@@ -49,7 +49,12 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">automated_annotation</span><span class="op">(</span><span class="va">seurat_obj</span>, <span class="va">annotation_method</span>, reference <span class="op">=</span> <span class="st">"pbmcref"</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">automated_annotation</span><span class="op">(</span></span>
+<span>  <span class="va">seurat_obj</span>,</span>
+<span>  <span class="va">annotation_method</span>,</span>
+<span>  reference <span class="op">=</span> <span class="st">"pbmcref"</span>,</span>
+<span>  majority_voting <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -61,7 +66,7 @@
 
 
 <dt id="arg-annotation-method">annotation_method<a class="anchor" aria-label="anchor" href="#arg-annotation-method"></a></dt>
-<dd><p>Which method to use: CellTypist"</p></dd>
+<dd><p>Which method to use: CellTypist</p></dd>
 
 
 <dt id="arg-reference">reference<a class="anchor" aria-label="anchor" href="#arg-reference"></a></dt>
@@ -78,7 +83,13 @@
 Assumes that the <code>Cells()</code> of <code>seurat_obj</code> are properly formatted (i.e. unique).
 For <code>CellTypist</code>, assumes the H5AD file and predictions have already been generated.
 This would typically be used after <code><a href="seurat_pipeline.html">seurat_pipeline()</a></code>.</p>
-    </div>
+<p>"Majority voting refines the prediction result in a local cell cluster by
+choosing the dominant cell type label but may increase the runtime especially
+for a large dataset due to the over-clustering step. This approach usually
+improves the cell annotation, as voting is conducted in small subclusters
+derived from over-clustering (cells belonging to a given cell type will be
+assigned the same label regardless of potential batch effects separating them)."</p><ul><li><p>https://www.celltypist.org/tutorials/onlineguide</p></li>
+</ul></div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
