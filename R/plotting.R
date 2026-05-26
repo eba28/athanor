@@ -600,8 +600,6 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                                                 "v_call_family", "light_chains",
                                                 "isotype", "mu_freq"),
                                 details_col = "embedding_type", ...) {
-  # TODO: plot the comparisons in the order that they were given
-
   possible_comps <- c("annotated_clusters_simpler", "annotated_clusters",
                       "c_call", "cdr3_aa_length", "isotype", "light_chains",
                       "mu_freq", "v_call_family", "weight_assay")
@@ -613,6 +611,9 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
   if (typeof(seurat_objs) == "S4") {
     # make a temp list so the rest of the code works
     seurat_objs <- list("obj" = seurat_objs)
+  }
+  if (is.null(names(seurat_objs))) {
+    names(seurat_objs) <- paste("Object", seq_along(seurat_objs))
   }
 
   # set assay name by the reduction
@@ -627,11 +628,11 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
   }
 
   plots_overview <- list()
-  for (type in names(seurat_objs)) {
-    seurat_obj <- seurat_objs[[type]]
+  for (obj_name in names(seurat_objs)) {
+    seurat_obj <- seurat_objs[[obj_name]]
 
     if (!reduction %in% names(seurat_obj@reductions)) {
-      cli::cli_abort("Reduction {reduction} not found in Seurat object {type}. Please make sure it is present and try again.")
+      cli::cli_abort("Reduction {reduction} not found in Seurat object {obj_name}. Please make sure it is present and try again.")
     }
 
     # plot an informative subtitle if possible
@@ -644,7 +645,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
 
     if (use_adt) {
       for (comparison in comparisons) {
-        plots_overview[[paste0(comparison, "_", type)]] <-
+        plots_overview[[paste0(comparison, "_", obj_name)]] <-
           suppressMessages(
             FeaturePlot(seurat_obj, features = str_c("adt_", comparison),
                         order = TRUE, reduction = reduction, raster = FALSE) +
@@ -655,9 +656,25 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
           )
       }
     } else {
-      # CellTypist
+      # use colors from the seurat obj instead of named_colors because the
+      # schemes (and therefore the cell type names) could vary by annotation method
+      if (is.null(seurat_obj@misc$colors_annotated)) {
+        cli::cli_inform("colors_annotated not found in seurat_obj@misc for {obj_name}. Using generated colors instead.")
+
+        cell_types <- unique(seurat_obj[[]]$annotated_clusters)
+
+        # if using CellTypist, use our color definitions
+        if (all(cell_types %in% names(named_colors$cell_types_celltypist))) {
+          seurat_obj@misc$colors_annotated <-
+            named_colors$cell_types_celltypist
+        } else {
+          seurat_obj@misc$colors_annotated <-
+            setNames(hues::iwanthue(length(cell_types)), cell_types)
+        }
+      }
+
       if ("annotated_clusters" %in% comparisons) {
-        plots_overview[[paste0("CellType_", type)]] <-
+        plots_overview[[paste0("annotated_clusters_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = data_source, pt_size = pt_size,
                        clrs_specific = seurat_obj@misc$colors_annotated,
@@ -668,10 +685,11 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       }
 
       if ("annotated_clusters_simpler" %in% comparisons) {
-        plots_overview[[paste0("CellTypeSimpler_", type)]] <-
+        plots_overview[[paste0("annotated_clusters_simpler_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = data_source, pt_size = pt_size,
-                       clrs_specific = named_colors$cell_types_celltypist,
+                       clrs_specific = seurat_obj@misc$colors_annotated,
+                       # clrs_specific = named_colors$cell_types_celltypist,
                        title = paste(assay_name, "Cell Types"),
                        reduc = reduction, plot_label = FALSE,
                        meta_col = "annotated_clusters_simpler",
@@ -680,7 +698,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
 
       # V call families
       if ("v_call_family" %in% comparisons) {
-        plots_overview[[paste0("v_call_", type)]] <-
+        plots_overview[[paste0("v_call_family_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = "", pt_size = pt_size,
                        clrs_specific = named_colors$v_call_family,
@@ -693,7 +711,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       # light chain types
       # TODO: switch to locus_light for consistency
       if ("light_chains" %in% comparisons) {
-        plots_overview[[paste0("light_chain_", type)]] <-
+        plots_overview[[paste0("light_chains_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = "", pt_size = pt_size,
                        clrs_specific = named_colors$locus_light,
@@ -705,7 +723,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
 
       # isotypes
       if ("isotype" %in% comparisons) {
-        plots_overview[[paste0("isotype_", type)]] <-
+        plots_overview[[paste0("isotype_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = "", pt_size = pt_size,
                        clrs_specific = named_colors$isotype,
@@ -717,7 +735,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
 
       # subisotypes
       if ("c_call" %in% comparisons) {
-        plots_overview[[paste0("c_call_", type)]] <-
+        plots_overview[[paste0("c_call_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = "", pt_size = pt_size,
                        clrs_specific = named_colors$c_call,
@@ -729,7 +747,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
 
       # SHM frequencies
       if ("mu_freq" %in% comparisons) {
-        plots_overview[[paste0("mu_freq_", type)]] <-
+        plots_overview[[paste0("mu_freq_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = "", pt_size = pt_size,
                        clrs_specific = named_colors$mu_freq_bins,
@@ -742,7 +760,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
 
       # CDR3 amino acid length
       if ("cdr3_aa_length" %in% comparisons) {
-        plots_overview[[paste0("cdr3_aa_length_", type)]] <-
+        plots_overview[[paste0("cdr3_aa_length_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = "", pt_size = pt_size,
                        clrs_specific = named_colors$cdr3,
@@ -754,7 +772,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       }
 
       if ("weight_assay" %in% comparisons) {
-        plots_overview[[paste0("weight_assay_", type)]] <-
+        plots_overview[[paste0("weight_assay_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = "", pt_size = pt_size,
                        clrs_specific = named_colors$weight_assay,
@@ -774,7 +792,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
           title <- stringr::str_to_title(stringr::str_replace_all(comp, "_", " "))
 
           if (comp %in% names(named_colors)) {
-            plots_overview[[paste0(comp, "_", type)]] <-
+            plots_overview[[paste0(comp, "_", obj_name)]] <-
               plot_dimplot(seurat_obj = seurat_obj,
                            data_source = "", clrs_specific = named_colors[[comp]],
                            pt_size = pt_size,
@@ -782,7 +800,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                            meta_col = comp, plot_label = FALSE,
                            details = details, ...)
           } else {
-            plots_overview[[paste0(comp, "_", type)]] <-
+            plots_overview[[paste0(comp, "_", obj_name)]] <-
               plot_dimplot(seurat_obj = seurat_obj,
                            data_source = "", use_hues = TRUE,
                            pt_size = pt_size,
@@ -790,12 +808,17 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                            meta_col = comp, plot_label = FALSE,
                            details = details, ...)
           }
-
-
         }
       }
     }
   }
+
+  # reorder plots to match the order of comparisons given
+  plot_order <- unlist(lapply(comparisons, function(comp) {
+                  paste0(comp, "_", names(seurat_objs))
+                }))
+  plot_order <- plot_order[plot_order %in% names(plots_overview)]
+  plots_overview <- plots_overview[plot_order]
 
   # combine all of the plots
   if (!missing(ncol)) {

@@ -31,9 +31,15 @@ map_assay_name <- function(base_assay) {
 #'
 #' @returns A reduced Seurat object with specified reductions kept.
 #' @export
-reduce_object <- function(seurat_obj, dim_reducs = "rna.umap", meta_cols,
+reduce_object <- function(seurat_obj, dim_reducs, meta_cols,
                           remove_neighbors = TRUE, print_size = TRUE, ...) {
   cli::cli_inform("Currently reducing: {deparse(substitute(seurat_obj))}")
+
+  # check parameters
+  if (missing(dim_reducs)) {
+    cli::cli_inform("No dimensionality reductions specified, keeping all.")
+    dim_reducs <- names(seurat_obj@reductions)
+  }
 
   # modify this as desired
   obj_reduced <- DietSeurat(object = seurat_obj, dimreducs = dim_reducs, ...)

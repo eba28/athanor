@@ -6,7 +6,7 @@
 \usage{
 reduce_object(
   seurat_obj,
-  dim_reducs = "rna.umap",
+  dim_reducs,
   meta_cols,
   remove_neighbors = TRUE,
   print_size = TRUE,
