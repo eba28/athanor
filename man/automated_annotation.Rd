@@ -4,12 +4,17 @@
 \alias{automated_annotation}
 \title{Run automated cell type annotation}
 \usage{
-automated_annotation(seurat_obj, annotation_method, reference = "pbmcref")
+automated_annotation(
+  seurat_obj,
+  annotation_method,
+  reference = "pbmcref",
+  majority_voting = FALSE
+)
 }
 \arguments{
 \item{seurat_obj}{The Seurat object. Must be the path to a H5AD object if using CellTypist.}
 
-\item{annotation_method}{Which method to use: CellTypist"}
+\item{annotation_method}{Which method to use: CellTypist}
 
 \item{reference}{Reference or model to use for prediction.}
 }
@@ -24,4 +29,14 @@ Supports CellTypist annotation methods.
 Assumes that the \code{Cells()} of \code{seurat_obj} are properly formatted (i.e. unique).
 For \code{CellTypist}, assumes the H5AD file and predictions have already been generated.
 This would typically be used after \code{\link[=seurat_pipeline]{seurat_pipeline()}}.
+
+"Majority voting refines the prediction result in a local cell cluster by
+choosing the dominant cell type label but may increase the runtime especially
+for a large dataset due to the over-clustering step. This approach usually
+improves the cell annotation, as voting is conducted in small subclusters
+derived from over-clustering (cells belonging to a given cell type will be
+assigned the same label regardless of potential batch effects separating them)."
+\itemize{
+\item https://www.celltypist.org/tutorials/onlineguide
+}
 }

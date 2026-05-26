@@ -70,25 +70,38 @@ add_annotations <- function(seurat_obj, annotations_df,
 #' For `CellTypist`, assumes the H5AD file and predictions have already been generated.
 #' This would typically be used after [seurat_pipeline()].
 #'
+#' "Majority voting refines the prediction result in a local cell cluster by
+#' choosing the dominant cell type label but may increase the runtime especially
+#' for a large dataset due to the over-clustering step. This approach usually
+#' improves the cell annotation, as voting is conducted in small subclusters
+#' derived from over-clustering (cells belonging to a given cell type will be
+#' assigned the same label regardless of potential batch effects separating them)."
+#' - https://www.celltypist.org/tutorials/onlineguide
+#'
 #' @param seurat_obj The Seurat object. Must be the path to a H5AD object if using CellTypist.
-#' @param annotation_method Which method to use: CellTypist"
+#' @param annotation_method Which method to use: CellTypist
 #' @param reference Reference or model to use for prediction.
 #'
 #' @returns A data.frame with the annotations for each cell
 #' @export
 automated_annotation <- function(seurat_obj, annotation_method,
-                                 reference = "pbmcref") {
+                                 reference = "pbmcref",
+                                 majority_voting = FALSE) {
+   # TODO: Rename seurat_obj since it can be scanpy too
+
    # validate input
-   valid_methods <- c("CellTypist")
+   valid_methods <- c("CellTypist") # for now
    if (!any(annotation_method %in% valid_methods)) {
       cli::cli_abort("Method must be one of: ", paste(valid_methods, collapse = ", "))
    }
+
    # run CellTypist annotation
    if (annotation_method == "CellTypist") {
       cli::cli_inform("Processing CellTypist annotation...")
 
       if (!requireNamespace("reticulate", quietly = TRUE)) {
-         cli::cli_abort("reticulate package is required for running CellTypist predictions")
+         cli::cli_abort("The `reticulate` package is required for running \\
+                        CellTypist predictions through R.")
       }
 
       # load model and data
@@ -96,14 +109,28 @@ automated_annotation <- function(seurat_obj, annotation_method,
       obj_h5ad <- scanpy$read_h5ad(filename = seurat_obj)
 
       # run predictions (on a per cell level)
+      if (majority_voting) {
+         cli::cli_inform("Majority voting enabled: predictions will be refined based on local cluster information, which may increase runtime.")
+      } else {
+         cli::cli_inform("Majority voting not enabled: predictions will be made on a per cell basis without refinement.")
+      }
       predictions <- celltypist$annotate(filename = obj_h5ad, model = model,
-                                         majority_voting = FALSE)
+                                         majority_voting = majority_voting)
 
       # get the predicted cell types and the confidence score
       annotations <- predictions$to_adata()
-      annotations <- annotations$obs %>%
-         select(cell_id, predicted_labels, conf_score) %>%
-         remove_rownames()
+      if (majority_voting) {
+         annotations <- annotations$obs %>%
+                           select(cell_id, majority_voting, conf_score) %>%
+                           # for consistency with the non-majority voting output, rename the majority_voting column to predicted_labels
+                           rename(predicted_labels = majority_voting) %>%
+                           remove_rownames()
+      } else {
+         annotations <- annotations$obs %>%
+                           select(cell_id, predicted_labels, conf_score) %>%
+                           remove_rownames()
+      }
+
    }
 
    return(annotations)
@@ -249,9 +276,23 @@ get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
       return(readRDS(cache_file))
    }
 
+   retry_ensembl <- function(expr, attempts = 3) {
+      for (i in seq_len(attempts)) {
+         result <- tryCatch(expr, error = function(e) {
+            if (i < attempts) {
+               cli::cli_warn("Ensembl query failed (attempt {i}/{attempts}), retrying...")
+               NULL
+            } else {
+               cli::cli_abort("Ensembl query failed after {attempts} attempts: {conditionMessage(e)}")
+            }
+         })
+         if (!is.null(result)) return(result)
+      }
+   }
+
    # if the Ensembl version isn't specified, use the current version
    current_version <-
-      biomaRt::listEnsemblArchives() %>%
+      retry_ensembl(biomaRt::listEnsemblArchives()) %>%
       dplyr::filter(current_release == "*") %>%
       dplyr::pull(name)
    # just the number
@@ -263,18 +304,18 @@ get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
 
    # `version` routes to a versioned archive (e.g. e114.ensembl.org) instead of
    # www.ensembl.org, so the two can have different availability
-   ensembl <- biomaRt::useEnsembl(biomart = "genes")
+   ensembl <- retry_ensembl(biomaRt::useEnsembl(biomart = "genes"))
    dataset <- biomaRt::searchDatasets(mart = ensembl, pattern = genome)$dataset
    ensembl <- tryCatch(
-      biomaRt::useEnsembl(biomart = "genes", dataset = dataset,
-                          version = ensembl_version),
+      retry_ensembl(biomaRt::useEnsembl(biomart = "genes", dataset = dataset,
+                                        version = ensembl_version)),
       error = function(e) {
          cli::cli_inform(c(
             "Ensembl archive v{ensembl_version} is unreachable; falling back to the current live release (v{current_version}).",
             "i" = "Use {.arg cache_file} to avoid this in future runs."
          ))
          ensembl_version <<- current_version
-         biomaRt::useEnsembl(biomart = "genes", dataset = dataset)
+         retry_ensembl(biomaRt::useEnsembl(biomart = "genes", dataset = dataset))
       }
    )
 
@@ -296,9 +337,9 @@ get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
    biotypes <- as.character(unlist(biotypes[category]))
    biotype_pattern <- str_c("^", category, "_", collapse = "|")
 
-   features_meta <- biomaRt::getBM(attributes = attribute_names,
-                                   filters = "biotype", values = biotypes,
-                                   mart = ensembl)
+   features_meta <- retry_ensembl(biomaRt::getBM(attributes = attribute_names,
+                                                  filters = "biotype", values = biotypes,
+                                                  mart = ensembl))
 
    # define the genes to be excluded
    biotypes_excl <- unique(features_meta$gene_biotype)
