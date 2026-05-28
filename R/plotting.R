@@ -746,6 +746,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       }
 
       # SHM frequencies
+      # TODO: switch this to actual mutation frequency
       if ("mu_freq" %in% comparisons) {
         plots_overview[[paste0("mu_freq_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
@@ -822,12 +823,12 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
 
   # combine all of the plots
   if (!missing(ncol)) {
-    wrap_plots(plots_overview, ncol = ncol, byrow = FALSE) +
+    wrap_plots(plots_overview, ncol = ncol, byrow = TRUE) +
       plot_anno + plot_layout(guides = "collect")
   } else if (length(seurat_objs) == 1) {
     wrap_plots(plots_overview, ncol = min(length(comparisons), 5)) + plot_anno
   } else {
-    wrap_plots(plots_overview, nrow = length(comparisons), byrow = FALSE) +
+    wrap_plots(plots_overview, nrow = length(comparisons), byrow = TRUE) +
       plot_anno + plot_layout(guides = "collect")
   }
 }
