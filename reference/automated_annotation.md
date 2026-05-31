@@ -9,7 +9,8 @@ automated_annotation(
   seurat_obj,
   annotation_method,
   reference = "pbmcref",
-  majority_voting = FALSE
+  majority_voting = FALSE,
+  over_clustering = NULL
 )
 ```
 
@@ -27,6 +28,12 @@ automated_annotation(
 - reference:
 
   Reference or model to use for prediction.
+
+- majority_voting:
+
+  Whether to enable majority voting for CellTypist predictions, which
+  refines predictions based on local cluster information but may
+  increase runtime.
 
 ## Value
 

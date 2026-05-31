@@ -64,3 +64,7 @@ A Seurat object with added annotation information.
 
 This would typically be used after
 [`seurat_pipeline()`](https://eba28.github.io/athanor/reference/seurat_pipeline.md).
+This assumes that cell typing was done on a cluster level, so the
+annotations_df should have one row per cluster. If you have cell-level
+annotations, you can skip the relabeling and just add the metadata
+column to the Seurat object.

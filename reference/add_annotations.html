@@ -76,8 +76,7 @@ and adding annotation columns to the metadata.</p>
 
 
 <dt id="arg-annotations-df">annotations_df<a class="anchor" aria-label="anchor" href="#arg-annotations-df"></a></dt>
-<dd><p>Data frame containing cluster-to-cell-type mappings, typically
-with "Cluster" and "CellType" columns.</p></dd>
+<dd><p>Data frame containing cluster-to-cell-type mappings, typically with "Cluster" and "CellType" columns.</p></dd>
 
 
 <dt id="arg-cell-types-col">cell_types_col<a class="anchor" aria-label="anchor" href="#arg-cell-types-col"></a></dt>
@@ -85,8 +84,7 @@ with "Cluster" and "CellType" columns.</p></dd>
 
 
 <dt id="arg-relabel">relabel<a class="anchor" aria-label="anchor" href="#arg-relabel"></a></dt>
-<dd><p>Whether to update the Seurat object's active identities. Sometimes
-you just want to add the metadata.</p></dd>
+<dd><p>Whether to update the Seurat object's active identities. Sometimes you just want to add the metadata.</p></dd>
 
 
 <dt id="arg-relocate">relocate<a class="anchor" aria-label="anchor" href="#arg-relocate"></a></dt>
@@ -111,7 +109,8 @@ you just want to add the metadata.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>This would typically be used after <code><a href="seurat_pipeline.html">seurat_pipeline()</a></code>.</p>
+    <p>This would typically be used after <code><a href="seurat_pipeline.html">seurat_pipeline()</a></code>.
+This assumes that cell typing was done on a cluster level, so the annotations_df should have one row per cluster. If you have cell-level annotations, you can skip the relabeling and just add the metadata column to the Seurat object.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
