@@ -18,13 +18,11 @@ add_annotations(
 \arguments{
 \item{seurat_obj}{The Seurat object to annotate.}
 
-\item{annotations_df}{Data frame containing cluster-to-cell-type mappings, typically
-with "Cluster" and "CellType" columns.}
+\item{annotations_df}{Data frame containing cluster-to-cell-type mappings, typically with "Cluster" and "CellType" columns.}
 
 \item{cell_types_col}{The name of the column containing the cell type annotations.}
 
-\item{relabel}{Whether to update the Seurat object's active identities. Sometimes
-you just want to add the metadata.}
+\item{relabel}{Whether to update the Seurat object's active identities. Sometimes you just want to add the metadata.}
 
 \item{relocate}{Whether to relocate the annotation column in metadata.}
 
@@ -44,4 +42,5 @@ and adding annotation columns to the metadata.
 }
 \details{
 This would typically be used after \code{\link[=seurat_pipeline]{seurat_pipeline()}}.
+This assumes that cell typing was done on a cluster level, so the annotations_df should have one row per cluster. If you have cell-level annotations, you can skip the relabeling and just add the metadata column to the Seurat object.
 }

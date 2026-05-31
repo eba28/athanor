@@ -7,13 +7,12 @@
 #'
 #' @details
 #' This would typically be used after [seurat_pipeline()].
+#' This assumes that cell typing was done on a cluster level, so the annotations_df should have one row per cluster. If you have cell-level annotations, you can skip the relabeling and just add the metadata column to the Seurat object.
 #'
 #' @param seurat_obj The Seurat object to annotate.
-#' @param annotations_df Data frame containing cluster-to-cell-type mappings, typically
-#'   with "Cluster" and "CellType" columns.
+#' @param annotations_df Data frame containing cluster-to-cell-type mappings, typically with "Cluster" and "CellType" columns.
 #' @param cell_types_col The name of the column containing the cell type annotations.
-#' @param relabel Whether to update the Seurat object's active identities. Sometimes
-#'   you just want to add the metadata.
+#' @param relabel Whether to update the Seurat object's active identities. Sometimes you just want to add the metadata.
 #' @param relocate Whether to relocate the annotation column in metadata.
 #' @param alphabetize Whether to alphabetize the cell types.
 #' @param clusters_col The name of the column containing cluster IDs.
@@ -26,34 +25,34 @@ add_annotations <- function(seurat_obj, annotations_df,
                             relabel = TRUE, relocate = TRUE, alphabetize = TRUE,
                             clusters_col = "seurat_clusters",
                             annotations_col = "annotated_clusters") {
-   # TODO: annotated on a cell level?
+   # prepare the annotation mapping: cluster -> cell type
+   annotations <- annotations_df[[cell_types_col]]
+   if (!is.factor(seurat_obj[[]][[clusters_col]])) {
+      seurat_obj[[clusters_col]] <-
+         factor(seurat_obj[[]][[clusters_col]],
+                levels = str_sort(unique(seurat_obj[[]][[clusters_col]])))
+   }
+   names(annotations) <- levels(seurat_obj[[]][[clusters_col]])
 
-   # prepare the annotation information
-   annotations <- annotations_df[[cell_types_col]] # you only need the cell type information
-   names(annotations) <- levels(seurat_obj[[clusters_col]] %>% pull())
-
-   # relabel the Seurat clusters
+   # TODO: simplify the renaming logic
    current_idents <- Idents(seurat_obj)
-   Idents(seurat_obj) <- clusters_col # reset to original clusters
+   Idents(seurat_obj) <- clusters_col
    seurat_obj <- RenameIdents(seurat_obj, annotations)
 
-   # alphabetize the cell types
    if (alphabetize) {
       Idents(seurat_obj) <- factor(Idents(seurat_obj),
                                    levels = sort(levels(seurat_obj)))
    }
 
-   # useful metadata (e.g. if you want to have multiple annotation sets)
    seurat_obj[[annotations_col]] <- Idents(seurat_obj)
+
+   if (!relabel) Idents(seurat_obj) <- current_idents
 
    if (relocate) {
       seurat_obj@meta.data <-
          seurat_obj[[]] %>%
          relocate(!!sym(annotations_col), .after = !!sym(clusters_col))
    }
-
-   # if you just wanted to add the metadata
-   if (!relabel) Idents(seurat_obj) <- current_idents
 
    return(seurat_obj)
 }
@@ -81,18 +80,20 @@ add_annotations <- function(seurat_obj, annotations_df,
 #' @param seurat_obj The Seurat object. Must be the path to a H5AD object if using CellTypist.
 #' @param annotation_method Which method to use: CellTypist
 #' @param reference Reference or model to use for prediction.
+#' @param majority_voting Whether to enable majority voting for CellTypist predictions, which refines predictions based on local cluster information but may increase runtime.
 #'
 #' @returns A data.frame with the annotations for each cell
 #' @export
 automated_annotation <- function(seurat_obj, annotation_method,
                                  reference = "pbmcref",
-                                 majority_voting = FALSE) {
+                                 majority_voting = FALSE,
+                                 over_clustering = NULL) {
    # TODO: Rename seurat_obj since it can be scanpy too
 
    # validate input
    valid_methods <- c("CellTypist") # for now
    if (!any(annotation_method %in% valid_methods)) {
-      cli::cli_abort("Method must be one of: ", paste(valid_methods, collapse = ", "))
+     cli::cli_abort("Method must be one of: {paste(valid_methods, collapse = ', ')}")
    }
 
    # run CellTypist annotation
@@ -115,7 +116,8 @@ automated_annotation <- function(seurat_obj, annotation_method,
          cli::cli_inform("Majority voting not enabled: predictions will be made on a per cell basis without refinement.")
       }
       predictions <- celltypist$annotate(filename = obj_h5ad, model = model,
-                                         majority_voting = majority_voting)
+                                         majority_voting = majority_voting,
+                                         over_clustering = over_clustering)
 
       # get the predicted cell types and the confidence score
       annotations <- predictions$to_adata()
@@ -229,9 +231,9 @@ filter_variable_features <- function(seurat_obj, filter_genes,
 #' @export
 find_k_clusters <- function(seurat_obj, graph_name = "RNA_snn", desired_k) {
    # TODO: increase this range
-   cli::cli_inform("Checking resolution {res}...")
-
    for (res in seq(0.1, 2, by = 0.1)) {
+      cli::cli_inform("Checking resolution {res}...")
+
       seurat_obj <-
          suppressWarnings(FindClusters(seurat_obj, resolution = res,
                                        graph.name = graph_name, algorithm = 1, # 4
@@ -249,6 +251,7 @@ find_k_clusters <- function(seurat_obj, graph_name = "RNA_snn", desired_k) {
          seurat_obj[[paste0(graph_name, "_res.", res)]] <- c()
       }
    }
+
    cli::cli_abort("Could not find resolution to match desired clusters.")
 }
 

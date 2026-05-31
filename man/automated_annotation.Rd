@@ -8,7 +8,8 @@ automated_annotation(
   seurat_obj,
   annotation_method,
   reference = "pbmcref",
-  majority_voting = FALSE
+  majority_voting = FALSE,
+  over_clustering = NULL
 )
 }
 \arguments{
@@ -17,6 +18,8 @@ automated_annotation(
 \item{annotation_method}{Which method to use: CellTypist}
 
 \item{reference}{Reference or model to use for prediction.}
+
+\item{majority_voting}{Whether to enable majority voting for CellTypist predictions, which refines predictions based on local cluster information but may increase runtime.}
 }
 \value{
 A data.frame with the annotations for each cell
