@@ -109,6 +109,21 @@ automated_annotation <- function(seurat_obj, annotation_method,
       model <- celltypist$models$Model$load(model = reference)
       obj_h5ad <- scanpy$read_h5ad(filename = seurat_obj)
 
+      # CellTypist requires log1p-normalized counts in .X (not scaled data).
+      # If .X contains scaled data (values < 0 or max >> 15), normalize from raw counts.
+      if (min(obj_h5ad$X) < 0) {
+         cli::cli_inform("Detected scaled data in .X; normalizing from raw counts for CellTypist.")
+         if (!is.null(obj_h5ad$raw)) {
+            reticulate::py_set_attr(obj_h5ad, "X", obj_h5ad$raw$X)
+         } else {
+            cli::cli_abort("CellTypist requires log1p-normalized counts in .X, but .X contains \\
+                           scaled data and no raw counts slot is available. \\
+                           Re-export the H5AD before scaling (e.g. before ScaleData()).")
+         }
+         scanpy$pp$normalize_total(obj_h5ad, target_sum = 1e4)
+         scanpy$pp$log1p(obj_h5ad)
+      }
+
       # run predictions (on a per cell level)
       if (majority_voting) {
          cli::cli_inform("Majority voting enabled: predictions will be refined based on local cluster information, which may increase runtime.")
@@ -279,9 +294,9 @@ get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
       return(readRDS(cache_file))
    }
 
-   retry_ensembl <- function(expr, attempts = 3) {
+   retry_ensembl <- function(fn, attempts = 3) {
       for (i in seq_len(attempts)) {
-         result <- tryCatch(expr, error = function(e) {
+         result <- tryCatch(fn(), error = function(e) {
             if (i < attempts) {
                cli::cli_warn("Ensembl query failed (attempt {i}/{attempts}), retrying...")
                NULL
@@ -295,7 +310,7 @@ get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
 
    # if the Ensembl version isn't specified, use the current version
    current_version <-
-      retry_ensembl(biomaRt::listEnsemblArchives()) %>%
+      retry_ensembl(function() biomaRt::listEnsemblArchives()) %>%
       dplyr::filter(current_release == "*") %>%
       dplyr::pull(name)
    # just the number
@@ -307,18 +322,18 @@ get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
 
    # `version` routes to a versioned archive (e.g. e114.ensembl.org) instead of
    # www.ensembl.org, so the two can have different availability
-   ensembl <- retry_ensembl(biomaRt::useEnsembl(biomart = "genes"))
+   ensembl <- retry_ensembl(function() biomaRt::useEnsembl(biomart = "genes"))
    dataset <- biomaRt::searchDatasets(mart = ensembl, pattern = genome)$dataset
    ensembl <- tryCatch(
-      retry_ensembl(biomaRt::useEnsembl(biomart = "genes", dataset = dataset,
-                                        version = ensembl_version)),
+      retry_ensembl(function() biomaRt::useEnsembl(biomart = "genes", dataset = dataset,
+                                                    version = ensembl_version)),
       error = function(e) {
          cli::cli_inform(c(
             "Ensembl archive v{ensembl_version} is unreachable; falling back to the current live release (v{current_version}).",
             "i" = "Use {.arg cache_file} to avoid this in future runs."
          ))
          ensembl_version <<- current_version
-         retry_ensembl(biomaRt::useEnsembl(biomart = "genes", dataset = dataset))
+         retry_ensembl(function() biomaRt::useEnsembl(biomart = "genes", dataset = dataset))
       }
    )
 
@@ -340,9 +355,11 @@ get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
    biotypes <- as.character(unlist(biotypes[category]))
    biotype_pattern <- str_c("^", category, "_", collapse = "|")
 
-   features_meta <- retry_ensembl(biomaRt::getBM(attributes = attribute_names,
-                                                  filters = "biotype", values = biotypes,
-                                                  mart = ensembl))
+   features_meta <- retry_ensembl(function() biomaRt::getBM(attributes = attribute_names,
+                                                             filters = "biotype", values = biotypes,
+                                                             mart = ensembl))
+
+   # "biotypes_excl is just unique(features_meta$gene_biotype), which is already exactly biotypes from the BioMart filter. The subsequent filter(gene_biotype %in% biotypes_excl) is a no-op. The commented-out line below suggests the intent was to filter down further — worth revisiting what that logic should be."
 
    # define the genes to be excluded
    biotypes_excl <- unique(features_meta$gene_biotype)
