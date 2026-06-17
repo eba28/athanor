@@ -959,6 +959,9 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
   if (!"cell_id" %in% colnames(seurat_obj[[]])) {
     cli::cli_abort("Cell ID column not found in metadata.")
   }
+
+  # TODO: just use the top PCs used for nn instead?
+  # seurat_obj@neighbors$RNA.nn@alg.info$ndim
   if (missing(pc_gex)) {
     pc_gex <- if (gex_reduction %in% names(seurat_obj@reductions)) {
       ncol(seurat_obj@reductions[[gex_reduction]])

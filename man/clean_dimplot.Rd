@@ -5,7 +5,7 @@
 \alias{clean_dimplot}
 \title{Clean theme for DimPlots}
 \format{
-An object of class \code{theme} (inherits from \code{ggplot2::theme}, \code{gg}, \code{S7_object}) of length 5.
+An object of class \code{theme} (inherits from \code{ggplot2::theme}, \code{gg}, \code{S7_object}) of length 4.
 }
 \usage{
 clean_dimplot

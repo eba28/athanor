@@ -616,6 +616,12 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
     names(seurat_objs) <- paste("Object", seq_along(seurat_objs))
   }
 
+  # resolve per-object titles (used as the data_source/subtitle for each object's plots)
+  obj_titles <- setNames(
+    lapply(names(seurat_objs), function(nm) if (nm == "obj") data_source else nm),
+    names(seurat_objs)
+  )
+
   # set assay name by the reduction
   # technically you could just look at the axis titles but people don't often
   # think to do that
@@ -630,6 +636,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
   plots_overview <- list()
   for (obj_name in names(seurat_objs)) {
     seurat_obj <- seurat_objs[[obj_name]]
+    obj_data_source <- obj_titles[[obj_name]]
 
     if (!reduction %in% names(seurat_obj@reductions)) {
       cli::cli_abort("Reduction {reduction} not found in Seurat object {obj_name}. Please make sure it is present and try again.")
@@ -676,7 +683,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       if ("annotated_clusters" %in% comparisons) {
         plots_overview[[paste0("annotated_clusters_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
-                       data_source = data_source, pt_size = pt_size,
+                       data_source = obj_data_source, pt_size = pt_size,
                        clrs_specific = seurat_obj@misc$colors_annotated,
                        title = paste(assay_name, "Cell Types"),
                        reduc = reduction, plot_label = FALSE,
@@ -687,7 +694,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       if ("annotated_clusters_simpler" %in% comparisons) {
         plots_overview[[paste0("annotated_clusters_simpler_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
-                       data_source = data_source, pt_size = pt_size,
+                       data_source = obj_data_source, pt_size = pt_size,
                        clrs_specific = seurat_obj@misc$colors_annotated,
                        # clrs_specific = named_colors$cell_types_celltypist,
                        title = paste(assay_name, "Cell Types"),
@@ -700,7 +707,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       if ("v_call_family" %in% comparisons) {
         plots_overview[[paste0("v_call_family_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
-                       data_source = "", pt_size = pt_size,
+                       data_source = obj_data_source, pt_size = pt_size,
                        clrs_specific = named_colors$v_call_family,
                        title = paste(assay_name, "V Call Families"),
                        reduc = reduction, plot_label = FALSE,
@@ -713,7 +720,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       if ("light_chains" %in% comparisons) {
         plots_overview[[paste0("light_chains_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
-                       data_source = "", pt_size = pt_size,
+                       data_source = obj_data_source, pt_size = pt_size,
                        clrs_specific = named_colors$locus_light,
                        title = paste(assay_name, "Light Chain Types"),
                        reduc = reduction, plot_label = FALSE,
@@ -725,7 +732,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       if ("isotype" %in% comparisons) {
         plots_overview[[paste0("isotype_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
-                       data_source = "", pt_size = pt_size,
+                       data_source = obj_data_source, pt_size = pt_size,
                        clrs_specific = named_colors$isotype,
                        title = paste(assay_name, "Isotypes"),
                        reduc = reduction, plot_label = FALSE,
@@ -737,7 +744,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       if ("c_call" %in% comparisons) {
         plots_overview[[paste0("c_call_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
-                       data_source = "", pt_size = pt_size,
+                       data_source = obj_data_source, pt_size = pt_size,
                        clrs_specific = named_colors$c_call,
                        title = paste(assay_name, "Subisotypes"),
                        reduc = reduction, plot_label = FALSE,
@@ -750,7 +757,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       if ("mu_freq" %in% comparisons) {
         plots_overview[[paste0("mu_freq_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
-                       data_source = "", pt_size = pt_size,
+                       data_source = obj_data_source, pt_size = pt_size,
                        clrs_specific = named_colors$mu_freq_bins,
                        title = paste(assay_name, "SHM Frequencies (Binned)"),
                        reduc = reduction,
@@ -763,7 +770,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       if ("cdr3_aa_length" %in% comparisons) {
         plots_overview[[paste0("cdr3_aa_length_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
-                       data_source = "", pt_size = pt_size,
+                       data_source = obj_data_source, pt_size = pt_size,
                        clrs_specific = named_colors$cdr3,
                        title = paste(assay_name, "CDR3 Length"),
                        reduc = reduction, plot_label = FALSE,
@@ -775,7 +782,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
       if ("weight_assay" %in% comparisons) {
         plots_overview[[paste0("weight_assay_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
-                       data_source = "", pt_size = pt_size,
+                       data_source = obj_data_source, pt_size = pt_size,
                        clrs_specific = named_colors$weight_assay,
                        title = paste(assay_name, "Modality Weights"),
                        reduc = reduction, plot_label = FALSE,
@@ -795,7 +802,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
           if (comp %in% names(named_colors)) {
             plots_overview[[paste0(comp, "_", obj_name)]] <-
               plot_dimplot(seurat_obj = seurat_obj,
-                           data_source = "", clrs_specific = named_colors[[comp]],
+                           data_source = obj_data_source,
+                           clrs_specific = named_colors[[comp]],
                            pt_size = pt_size,
                            title = paste(assay_name, title), reduc = reduction,
                            meta_col = comp, plot_label = FALSE,
@@ -803,7 +811,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
           } else {
             plots_overview[[paste0(comp, "_", obj_name)]] <-
               plot_dimplot(seurat_obj = seurat_obj,
-                           data_source = "", use_hues = TRUE,
+                           data_source = obj_data_source, use_hues = TRUE,
                            pt_size = pt_size,
                            title = paste(assay_name, title), reduc = reduction,
                            meta_col = comp, plot_label = FALSE,
@@ -859,6 +867,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
 #' @param perc_min The minimum percentage to show in the plot.
 #' @param label_size The size of the percentage labels.
 #' @param label_fill Add a white background for clarity.
+#' @param label_counts Show raw counts instead of percentages as bar segment labels.
 #' @param include_counts Plot the counts on top/bottom.
 #' @param drop_zeroes Remove percentages of zeroes.
 #' @param reverse_order Change the fill order for a stacked plot.
@@ -872,9 +881,9 @@ plot_pcts <- function(pcts, data_source = "", clrs_specific,
                       x_axis = "sample_id", x_axis_label = "Sample",
                       fill_type = "annotated_clusters", fill_label = fill_type,
                       perc_min = 3, label_size = 3, label_fill = FALSE,
-                      include_counts = TRUE, drop_zeroes = TRUE,
+                      label_counts = FALSE, include_counts = TRUE, drop_zeroes = TRUE,
                       reverse_order = FALSE, total_order = FALSE,
-                      details = NULL) {
+                      horizontal = FALSE, details = NULL) {
   # if you want to use the default ggplot2 colors
   if (rlang::is_missing(clrs_specific) || is.null(clrs_specific)) {
     clrs_specific <- hue_pal()(n_distinct(pcts %>%
@@ -919,56 +928,74 @@ plot_pcts <- function(pcts, data_source = "", clrs_specific,
   # set up the plot
   p <- ggplot(data = pcts,
               aes(x = !!sym(x_axis), y = Percent, fill = !!sym(fill_type))) +
-    geom_bar(stat = "identity", color = "black", linewidth = 0.2) +
-    labs(title = paste(data_source, "Percent of",
-                       plot_value, "per", x_axis_label),
-         subtitle = details,
-         x = x_axis_label, y = paste(plot_value, "Percentage"),
-         fill = fill_label)
+        geom_bar(stat = "identity", color = "black", linewidth = 0.2) +
+        labs(title = paste(data_source, "Percent of",
+                           plot_value, "per", x_axis_label),
+             subtitle = details,
+             x = x_axis_label, y = paste(plot_value, "Percentage"),
+             fill = fill_label)
 
   # add aesthetics
   p <- p + scale_fill_manual(values = clrs_specific, limits = force) +
-    scale_y_continuous(labels = scales::label_percent(scale = 1),
-                       expand = expansion(mult = 0.05))
+           scale_y_continuous(labels = scales::label_percent(scale = 1),
+                              expand = expansion(mult = 0.05))
 
   # add labels
-  if (!label_fill) {
-    p <- p + geom_text(aes(label = scales::label_percent(accuracy = 1, scale = 1)(ifelse(Percent > perc_min, Percent, NA)),
-                           group = !!sym(fill_type)),
-                       size = label_size,
-                       position = position_stack(vjust = 0.5))
+  bar_labels <- if (label_counts) {
+    aes(label = ifelse(Percent > perc_min, Count, NA), group = !!sym(fill_type))
   } else {
-    p <- p + geom_label(aes(label = scales::label_percent(accuracy = 1, scale = 1)(ifelse(Percent > perc_min, Percent, NA)),
-                            group = !!sym(fill_type)),
-                        color = "black", fill = "white", size = label_size,
+    aes(label = scales::label_percent(accuracy = 1, scale = 1)(ifelse(Percent > perc_min, Percent, NA)),
+        group = !!sym(fill_type))
+  }
+  if (!label_fill) {
+    p <- p + geom_text(bar_labels, size = label_size, position = position_stack(vjust = 0.5))
+  } else {
+    p <- p + geom_label(bar_labels, color = "black", fill = "white", size = label_size,
                         position = position_stack(vjust = 0.5))
   }
 
   if (include_counts) {
     # actually add in the total counts
     if (plot_type == "All") {
+      # TODO: rotate the text if horizontal?
       p <- p + geom_text(mapping = aes(x = !!sym(x_axis), y = 100,
                                        label = Total, fill = NULL),
-                         vjust = -0.5, color = "black", size = label_size)
+                         hjust = if (horizontal) 0 else 0.5,
+                         vjust = if (horizontal) -0.5 else -0.5,
+                         position = if (horizontal) position_nudge(y = 0.2) else position_nudge(y = -0.2),
+                         color = "black", size = label_size)
     } else if (plot_type == "Binary") { # just for TRUE v FALSE plots
-      p <- p +
-        # counts on top
-        geom_text(mapping = aes(label = ifelse(!!sym(fill_type) == TRUE,
-                                               Count, "")),
-                  position = position_stack(), vjust = -0.5,
-                  color = "black", size = label_size) +
-        # counts on bottom
-        geom_text(mapping = aes(label = ifelse(!!sym(fill_type) == FALSE,
-                                               Count, ""), y = -1),
-                  color = "black", size = label_size)
+      if (horizontal) {
+        # place each count just past the right end of its segment
+        p <- p +
+          geom_text(mapping = aes(label = Count),
+                    position = position_stack(), hjust = -0.2, vjust = 0.5,
+                    color = "black", size = label_size)
+      } else {
+        p <- p +
+          # counts on top
+          geom_text(mapping = aes(label = ifelse(!!sym(fill_type) == TRUE,
+                                                 Count, "")),
+                    position = position_stack(), vjust = -0.5,
+                    color = "black", size = label_size) +
+          # counts on bottom
+          geom_text(mapping = aes(label = ifelse(!!sym(fill_type) == FALSE,
+                                                 Count, ""), y = -1),
+                    color = "black", size = label_size)
+      }
     }
   }
 
   # add remaining styling
   p <- p + theme_bw_custom + labels_standard
 
-  # remove horizontal gridlines
-  p <- p + theme(panel.grid.major.y = element_blank())
+  # remove gridlines parallel to bars
+  if (horizontal) {
+    p <- p + coord_flip()
+    p <- p + theme(panel.grid.major.x = element_blank())
+  } else {
+    p <- p + theme(panel.grid.major.y = element_blank())
+  }
 
   # fix the legend if needed
   if (reverse_order) {
@@ -976,8 +1003,8 @@ plot_pcts <- function(pcts, data_source = "", clrs_specific,
   }
 
   # rotate (typically) long names
-  if (x_axis %in% c("sample_id", "annotated_clusters",
-                    "annotated_subclusters")) {
+  if (!horizontal && x_axis %in% c("sample_id", "annotated_clusters",
+                                   "annotated_subclusters")) {
     p <- p + labels_rotate_x
   }
 

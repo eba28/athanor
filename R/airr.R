@@ -156,6 +156,8 @@ bcr_embeddings_pipeline_dedup <- function(embeddings, embedding_type,
                                           combined_airr = NULL, new_cols = NULL,
                                           num_pcs = 50, num_dims = 20, k_param = 20,
                                           verbose = TRUE) {
+  # TODO: use https://easystats.github.io/datawizard/reference/remove_empty.html?
+
   if (!is(embeddings, "dgCMatrix")) {
     embeddings <- as(embeddings, "dgCMatrix")
     cli::cli_inform(c("v" = "Converted embeddings to sparse matrix format."))
@@ -274,6 +276,8 @@ bcr_embeddings_pipeline_dedup <- function(embeddings, embedding_type,
 #' @returns The provided Seurat object with a new binned mu_freq column.
 #' @export
 bin_mu_freq <- function(seurat_obj, num_bins = c(2, 3, 5)) {
+  # TODO: use easystats instead (https://easystats.github.io/datawizard/reference/categorize.html)?
+
   # get the current mutation frequencies
   mu_freqs <- seurat_obj$mu_freq
   mu_freqs[is.na(mu_freqs)] <- -1

@@ -17,10 +17,12 @@ plot_pcts(
   perc_min = 3,
   label_size = 3,
   label_fill = FALSE,
+  label_counts = FALSE,
   include_counts = TRUE,
   drop_zeroes = TRUE,
   reverse_order = FALSE,
   total_order = FALSE,
+  horizontal = FALSE,
   details = NULL
 )
 }
@@ -48,6 +50,8 @@ plot_pcts(
 \item{label_size}{The size of the percentage labels.}
 
 \item{label_fill}{Add a white background for clarity.}
+
+\item{label_counts}{Show raw counts instead of percentages as bar segment labels.}
 
 \item{include_counts}{Plot the counts on top/bottom.}
 
