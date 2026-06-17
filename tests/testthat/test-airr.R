@@ -36,8 +36,8 @@ make_bcr_row <- function(cell_id, locus, c_call,
   junction <- "TGTGCGAGAGATTACGGTATGGACTACTGGGGCCAAGGAACCCTGGTCACCGTCTCCTCA"
 
   data.frame(sequence_id = paste0(cell_id, "_", locus),
-             cell_id = cell_id, locus = locus, c_call  = c_call,
-             sample_id = sample_id, subject_id  = subject_id, sex = sex,
+             cell_id = cell_id, locus = locus, c_call = c_call,
+             sample_id = sample_id, subject_id = subject_id, sex = sex,
              clone_id = clone_id, junction = junction,
              v_call = v_call, d_call = d_call, j_call = j_call)
 }

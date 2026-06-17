@@ -386,6 +386,8 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
                               method = c("quantile", "percentile_diff"),
                               return_counts = FALSE) {
   # TODO: update this to match the style and output of adt_correlation
+  # TODO: use easystats instead (https://easystats.github.io/datawizard/reference/categorize.html)?
+
   method <- match.arg(method)
 
   if (any(!(features_adt %in% rownames(seurat_obj@assays[[adt_assay]])))) {
@@ -475,7 +477,7 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
 #' @param meta_cols Character vector of metadata columns to evaluate.
 #' @param cdr3_length_range Integer range for `cdr3_aa_length` matching.
 #'   Neighbors within this many amino acids of the query cell are counted as
-#'   matches. Defaults to 1.
+#'   matches.
 #' @param return_mean If TRUE, return the mean across all cells; else return
 #'   per-cell values.
 #' @param verbose If TRUE, print progress messages.
@@ -494,7 +496,7 @@ calc_neighbor_matches <- function(seurat_obj,
                                       "cdr3_aa_length", "clone_id_unique",
                                       "isotype_stage", "locus_light",
                                       "mu_freq_bins_binary", "v_call_family"),
-                                  cdr3_length_range = 1,
+                                  cdr3_length_range = 0,
                                   return_mean = TRUE, verbose = FALSE) {
   # input validation
   if (length(seurat_obj@neighbors) == 0) {
@@ -567,6 +569,74 @@ calc_neighbor_matches <- function(seurat_obj,
   }
 
   result
+}
+
+
+#' Calculate shared neighbors between two neighbor graphs
+#'
+#' @description
+#' For each cell in a Seurat object, counts how many of its nearest neighbors
+#' are shared between two specified neighbor graphs.
+#'
+#' @param seurat_obj A Seurat object.
+#' @param nn1 Name of the first neighbor graph (e.g. "RNA.nn").
+#' @param nn2 Name of the second neighbor graph (e.g. "BCR.nn").
+#' @param exclude_self If TRUE, remove the cell's own index from each
+#'   neighbor list before counting shared neighbors.
+#' @param return_mean If TRUE, return the mean shared neighbor count across all
+#'   cells; else return a named numeric vector of per-cell counts.
+#' @param verbose If TRUE, print a summary message.
+#'
+#' @return A single numeric value if `return_mean = TRUE`, or a named numeric
+#'   vector of per-cell shared neighbor counts if `return_mean = FALSE`.
+#' @export
+calc_neighbor_overlap <- function(seurat_obj, nn1, nn2, exclude_self = FALSE,
+                                  return_mean = TRUE, verbose = FALSE) {
+  if (length(seurat_obj@neighbors) == 0) {
+    cli::cli_abort("No neighbor graphs found in object. \\
+                   Please run `FindNeighbors()` first.")
+  }
+
+  missing_nn <- setdiff(c(nn1, nn2), names(seurat_obj@neighbors))
+  if (length(missing_nn) > 0) {
+    cli::cli_abort("Neighbor graph(s) not found in object: {missing_nn}")
+  }
+
+  # get who the neighbors are
+  nn_idx1 <- seurat_obj@neighbors[[nn1]]@nn.idx
+  nn_idx2 <- seurat_obj@neighbors[[nn2]]@nn.idx
+
+  # they should always be in the same order, but check just in case
+  cells1 <- seurat_obj@neighbors[[nn1]]@cell.names
+  cells2 <- seurat_obj@neighbors[[nn2]]@cell.names
+  if (!identical(cells1, cells2)) {
+    cli::cli_abort("Cell order differs between {nn1} and {nn2}. \
+                   Ensure both neighbor graphs were computed on the same object \
+                   without reordering cells.")
+  }
+
+  # this should never happen
+  if (nrow(nn_idx1) != nrow(nn_idx2)) {
+    cli::cli_abort("Neighbor graphs have different numbers of cells \\
+                   ({nrow(nn_idx1)} vs {nrow(nn_idx2)}).")
+  }
+
+  shared_counts <- vapply(seq_len(ncol(seurat_obj)), function(i) {
+    n1 <- nn_idx1[i, ]
+    n2 <- nn_idx2[i, ]
+    if (exclude_self) {
+      n1 <- n1[n1 != i]
+      n2 <- n2[n2 != i]
+    }
+    length(intersect(n1, n2))
+  }, FUN.VALUE = numeric(1))
+  names(shared_counts) <- Cells(seurat_obj)
+
+  if (verbose) {
+    cli::cli_inform("Calculated shared neighbor counts between {nn1} and {nn2}.")
+  }
+
+  if (return_mean) mean(shared_counts, na.rm = TRUE) else shared_counts
 }
 
 

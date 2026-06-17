@@ -220,9 +220,9 @@ had no matching GEX cell IDs and were excluded.",
     if (airr_type == "BCRs") {
       has_igk <- !is.na(combined_airr_select$v_call_family_IGK)
       has_igl <- !is.na(combined_airr_select$v_call_family_IGL)
-      count_one_light  <- sum(xor(has_igk, has_igl))
+      count_one_light <- sum(xor(has_igk, has_igl))
       count_multi_light <- sum(has_igk & has_igl)
-      count_no_light   <- sum(!has_igk & !has_igl)
+      count_no_light <- sum(!has_igk & !has_igl)
       cli::cli_inform(c(
         "i" = "Of the {count_gex_airr} heavy chains: {count_one_light} have one paired \\
 light chain, {count_multi_light} have multiple paired light chains, \\
@@ -230,11 +230,11 @@ and {count_no_light} have no paired light chain."))
     } else if (airr_type == "TCRs" &&
                "v_call_family_TRA" %in% names(combined_airr_select)) {
       has_tra <- !is.na(combined_airr_select$v_call_family_TRA)
-      count_one_alpha   <- sum(has_tra & !str_detect(combined_airr_select$v_call_family_TRA,
+      count_one_alpha <- sum(has_tra & !str_detect(combined_airr_select$v_call_family_TRA,
                                                      ", ", negate = FALSE))
       count_multi_alpha <- sum(has_tra & str_detect(combined_airr_select$v_call_family_TRA,
                                                     ", "))
-      count_no_alpha    <- sum(!has_tra)
+      count_no_alpha <- sum(!has_tra)
       cli::cli_inform(c(
         "i" = "Of the {count_gex_airr} beta chains: {count_one_alpha} have one paired \\
 alpha chain, {count_multi_alpha} have multiple paired alpha chains, \\
@@ -601,7 +601,7 @@ concatenate_gex_bcr <- function(seurat_obj,
   # TODO: add an option to do weighting to influence the effect of the BCRs (post-normalization)
   # TODO: add separate num_dims for the GEX and for the BCR
 
-  pca_stage  <- match.arg(pca_stage)
+  pca_stage <- match.arg(pca_stage)
   input_type <- match.arg(input_type)
 
   if (!inherits(seurat_obj, "Seurat")) {
@@ -781,7 +781,7 @@ concatenate_gex_bcr <- function(seurat_obj,
     gex_pca_mat <- t(Embeddings(seurat_obj, gex_reduction)[, seq_len(n_gex_dims), drop = FALSE])
 
     # same "_" → "." rename as "raw" branch (avoids Seurat 5's silent rewrite)
-    rownames(gex_pca_mat)  <- gsub("_", ".", rownames(gex_pca_mat))
+    rownames(gex_pca_mat) <- gsub("_", ".", rownames(gex_pca_mat))
     rownames(bcr_features) <- gsub("_", ".", rownames(bcr_features))
 
     combined_mat <- rbind(gex_pca_mat, bcr_features)
@@ -894,7 +894,7 @@ concatenate_gex_bcr <- function(seurat_obj,
                           reduction.key = "rnabcrUMAP_", verbose = verbose)
   }
 
-  Misc(seurat_obj, slot = "concat_pca_stage")  <- pca_stage
+  Misc(seurat_obj, slot = "concat_pca_stage") <- pca_stage
   Misc(seurat_obj, slot = "concat_input_type") <- input_type
 
   if (verbose) {
@@ -977,6 +977,8 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
     }
     cli::cli_inform(c("i" = "Using pc_bcr = {pc_bcr} from existing reductions."))
   }
+
+
   if (missing(k_param)) {
     k_param <- infer_k_param(seurat_obj, verbose = verbose)
   }
@@ -1080,22 +1082,22 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                          is.na(seurat_obj[[]][["RNA.weight"]]) ~ NA,
                          .default = "Tie"))
 
-    wnn_nn_name    <- "w.nn"
+    wnn_nn_name <- "w.nn"
     rna_weight_col <- "RNA.weight"
-    wnn_umap_name  <- "wnn.umap"
-    wnn_umap_key   <- "wnnUMAP_"
+    wnn_umap_name <- "wnn.umap"
+    wnn_umap_key <- "wnnUMAP_"
   } else {
     # custom weights: "equal" or a length-2 numeric vector c(gex_wt, bcr_wt)
     if (identical(modality_weights, "equal")) {
-      gex_wt    <- 0.5
-      bcr_wt    <- 0.5
+      gex_wt <- 0.5
+      bcr_wt <- 0.5
       mw_suffix <- "equal"
     } else if (is.numeric(modality_weights) && length(modality_weights) == 2) {
       if (abs(sum(modality_weights) - 1) > 1e-6) {
         cli::cli_abort("{.arg modality_weights} values must sum to 1.")
       }
-      gex_wt    <- modality_weights[[1]]
-      bcr_wt    <- modality_weights[[2]]
+      gex_wt <- modality_weights[[1]]
+      bcr_wt <- modality_weights[[2]]
       mw_suffix <- paste0(gex_wt, "_", bcr_wt)
     } else {
       cli::cli_abort(c(
@@ -1114,17 +1116,17 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
       ))
     }
 
-    mw_mod      <- seurat_obj@misc$modality.weight
+    mw_mod <- seurat_obj@misc$modality.weight
     mw_mod_names <- Cells(seurat_obj)
     mw_mod@modality.weight.list[[gex_reduction]] <-
       setNames(rep(gex_wt, ncol(seurat_obj)), mw_mod_names)
     mw_mod@modality.weight.list[[bcr_reduction]] <-
       setNames(rep(bcr_wt, ncol(seurat_obj)), mw_mod_names)
 
-    wnn_nn_name    <- paste0("w_", mw_suffix, ".nn")
+    wnn_nn_name <- paste0("w_", mw_suffix, ".nn")
     rna_weight_col <- paste0("RNA_", mw_suffix, ".weight")
-    wnn_umap_name  <- paste0("wnn_", mw_suffix, ".umap")
-    wnn_umap_key   <- paste0("wnn", mw_suffix, "UMAP_")
+    wnn_umap_name <- paste0("wnn_", mw_suffix, ".umap")
+    wnn_umap_key <- paste0("wnn", mw_suffix, "UMAP_")
 
     seurat_obj <-
       Seurat::FindMultiModalNeighbors(object = seurat_obj,
@@ -1132,8 +1134,10 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                                                             bcr_reduction),
                                       dims.list = list(1:pc_gex, 1:pc_bcr),
                                       k.nn = k_param,
-                                      knn.graph.name = paste0("w_", mw_suffix, "_nn"),
-                                      snn.graph.name = paste0("w_", mw_suffix, "_snn"),
+                                      knn.graph.name =
+                                        paste0("w_", mw_suffix, "_nn"),
+                                      snn.graph.name =
+                                        paste0("w_", mw_suffix, "_snn"),
                                       weighted.nn.name = wnn_nn_name,
                                       modality.weight.name =
                                         str_c(c("RNA", "BCR"), "_", mw_suffix, ".weight"),

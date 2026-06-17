@@ -205,7 +205,6 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
     }
   }
 
-
   # fill in the "graphs" slot
   seurat_obj <- FindNeighbors(seurat_obj, reduction = pca_name,
                               dims = 1:num_dims, k.param = k_param,

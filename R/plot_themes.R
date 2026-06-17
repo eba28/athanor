@@ -55,8 +55,7 @@ labels_rotate_x <- ggplot2::theme(
 clean_dimplot <- ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
                                 axis.text.x = ggplot2::element_blank(),
                                 axis.text.y = ggplot2::element_blank(),
-                                axis.ticks = ggplot2::element_blank(),
-                                aspect.ratio = 1)
+                                axis.ticks = ggplot2::element_blank())
 
 #' Clean theme for DimPlots
 #'
