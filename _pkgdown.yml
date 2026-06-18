@@ -93,6 +93,7 @@ reference:
 - subtitle: Metadata-based
 - contents:
   - calc_neighbor_matches
+  - calc_neighbor_overlap
 - subtitle: Permuted baselines
 - contents:
   - permute_adt
