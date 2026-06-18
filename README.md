@@ -3,16 +3,16 @@
 
 # athanor
 
-**Last Updated:** 2026-04-20
+**Last Updated:** 2026-06-17
 
 <!-- badges: start -->
 
 <!-- badges: end -->
 
 The goal of `athanor` is to integrate gene expression (GEX) and B cell
-receptor (BCR) data to improve B cell subtyping. The package provides
-functions for data preprocessing, feature extraction, concatenation,
-weighted nearest neighbors, and plotting.
+receptor (BCR) data. The package provides functions for data
+preprocessing, feature extraction, concatenation, weighted nearest
+neighbors, and plotting.
 
 ## Installation
 
@@ -23,6 +23,8 @@ You can install the development version of `athanor` from
 # install.packages("pak")
 pak::pak("eba28/athanor")
 ```
+
+*Please note that this package is still under active development.*
 
 ## Details
 
@@ -36,3 +38,7 @@ pak::pak("eba28/athanor")
 - Since the focus is on having multiple modalities, the GEX object
   created by `seurat_pipeline()` will have “rpca” and “rna.umap” as
   reductions instead of the usual “pca” and “umap” respectively.
+  Similarly, `bcr_embeddings_pipeline()` will return an object with
+  “bpca” and “bcr.umap” reductions instead of “pca” and “umap”. This is
+  to avoid confusion when the two objects are merged together in
+  `merge_gex_bcr()`.

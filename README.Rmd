@@ -11,12 +11,12 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>",
 
 # athanor
 
-**Last Updated:** `r Sys.Date()`
+**Last Updated:** `r system("git log -1 --format=%cd --date=short -- '*.Rmd' '*.md' man/ vignettes/ NEWS.md", intern=TRUE)`
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of `athanor` is to integrate gene expression (GEX) and B cell receptor (BCR) data to improve B cell subtyping. The package provides functions for data preprocessing, feature extraction, concatenation, weighted nearest neighbors, and plotting.
+The goal of `athanor` is to integrate gene expression (GEX) and B cell receptor (BCR) data. The package provides functions for data preprocessing, feature extraction, concatenation, weighted nearest neighbors, and plotting.
 
 ## Installation
 
@@ -27,8 +27,10 @@ You can install the development version of `athanor` from [GitHub](https://githu
 pak::pak("eba28/athanor")
 ```
 
+*Please note that this package is still under active development.*
+
 ## Details
 
 - `automated_annotation()` used to support Azimuth, but Azimuth is not currently available on CRAN and causes installation issues due to a hidden requirement of a Signac function that is no longer a part of Signac (`RunChromVAR()`)
 - The functions were designed to operate on v5 of Seurat. If you are using an older version, you may have to change `layer` to `slot` in some of the code.
-- Since the focus is on having multiple modalities, the GEX object created by `seurat_pipeline()` will have "rpca" and "rna.umap" as reductions instead of the usual "pca" and "umap" respectively.
+- Since the focus is on having multiple modalities, the GEX object created by `seurat_pipeline()` will have "rpca" and "rna.umap" as reductions instead of the usual "pca" and "umap" respectively. Similarly, `bcr_embeddings_pipeline()` will return an object with "bpca" and "bcr.umap" reductions instead of "pca" and "umap". This is to avoid confusion when the two objects are merged together in `merge_gex_bcr()`.
