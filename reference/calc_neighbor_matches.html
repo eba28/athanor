@@ -59,7 +59,7 @@ the same value for each metadata column.</p>
 <span>    <span class="st">"annotated_clusters_gex_bcr"</span>, <span class="st">"annotated_clusters_simpler"</span>, <span class="st">"cdr3_aa_length"</span>,</span>
 <span>    <span class="st">"clone_id_unique"</span>, <span class="st">"isotype_stage"</span>, <span class="st">"locus_light"</span>, <span class="st">"mu_freq_bins_binary"</span>,</span>
 <span>    <span class="st">"v_call_family"</span><span class="op">)</span>,</span>
-<span>  cdr3_length_range <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  cdr3_length_range <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  return_mean <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -85,7 +85,7 @@ Defaults to all graphs in the object.</p></dd>
 <dt id="arg-cdr-length-range">cdr3_length_range<a class="anchor" aria-label="anchor" href="#arg-cdr-length-range"></a></dt>
 <dd><p>Integer range for <code>cdr3_aa_length</code> matching.
 Neighbors within this many amino acids of the query cell are counted as
-matches. Defaults to 1.</p></dd>
+matches.</p></dd>
 
 
 <dt id="arg-return-mean">return_mean<a class="anchor" aria-label="anchor" href="#arg-return-mean"></a></dt>

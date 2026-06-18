@@ -173,6 +173,8 @@ Functions for evaluating the performance of models and analyses.
 
 - [`calc_neighbor_matches()`](https://eba28.github.io/athanor/reference/calc_neighbor_matches.md)
   : Calculate neighbor matching scores across metadata columns
+- [`calc_neighbor_overlap()`](https://eba28.github.io/athanor/reference/calc_neighbor_overlap.md)
+  : Calculate shared neighbors between two neighbor graphs
 
 ### Permuted baselines
 

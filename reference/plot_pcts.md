@@ -20,10 +20,12 @@ plot_pcts(
   perc_min = 3,
   label_size = 3,
   label_fill = FALSE,
+  label_counts = FALSE,
   include_counts = TRUE,
   drop_zeroes = TRUE,
   reverse_order = FALSE,
   total_order = FALSE,
+  horizontal = FALSE,
   details = NULL
 )
 ```
@@ -78,6 +80,10 @@ plot_pcts(
 - label_fill:
 
   Add a white background for clarity.
+
+- label_counts:
+
+  Show raw counts instead of percentages as bar segment labels.
 
 - include_counts:
 

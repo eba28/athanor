@@ -12,4 +12,4 @@ clean_dimplot
 
 An object of class `theme` (inherits from
 [`ggplot2::theme`](https://ggplot2.tidyverse.org/reference/theme.html),
-`gg`, `S7_object`) of length 5.
+`gg`, `S7_object`) of length 4.
