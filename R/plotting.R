@@ -310,6 +310,13 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
     clrs_highlight <- clrs_specific[highlight]
     clrs_highlight <- rev(clrs_highlight) # for some reason
 
+    # deal with unnamed colors if needed
+    if (length(clrs_specific) == 1) {
+      if (is.na(clrs_highlight)) {
+        clrs_highlight <- setNames(clrs_specific, highlight)
+      }
+    }
+
     # if specific clusters are being plotted, order them to be on top
     extra_args <- list(cells.highlight = cells_total,
                        cols.highlight = clrs_highlight,
