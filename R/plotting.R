@@ -344,7 +344,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
     p <- p + scale_fill_manual(values = rep("white", nlevels(Idents(seurat_obj))))
     # okay this seems to be broken right now, so do this too
     if ("geom.use" %in% names(p@layers)) {
-      p@layers$geom.use$aes_params$fill <- rep("white", length(clrs_specific))
+      p@layers$geom.use$aes_params$fill <- rep("white", nlevels(Idents(seurat_obj)))
     }
   }
 
