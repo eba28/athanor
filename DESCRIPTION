@@ -11,6 +11,7 @@ License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Suggests:
+    knitr,
     rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
@@ -24,13 +25,11 @@ Imports:
     clusterSim,
     clValid,
     dplyr,
-    DT,
     forcats,
     fpc,
     ggplot2,
     grDevices,
     hues,
-    knitr,
     lsa,
     magrittr,
     Matrix,
