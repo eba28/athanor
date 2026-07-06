@@ -257,6 +257,7 @@ calc_int_metrics <- function(seurat_obj, reduction_name,
   }
 
   if ("Silhouette" %in% criteria) {
+    # this could be slow, you can also use bluster::approxSilhouette() for speed
     score_sil <- cluster::silhouette(x = clusters_int, dist_matrix)
 
     if (!return_full) score_sil <- mean(score_sil[, "sil_width"])

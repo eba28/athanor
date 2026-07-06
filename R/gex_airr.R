@@ -483,17 +483,17 @@ infer_num_dims <- function(seurat_obj, default = 20, verbose = TRUE) {
 #' @details
 #' This would typically be used after [seurat_pipeline()] and [gex_add_airr()].
 #'
-#' The six combinations of `input_type` and `pca_stage` offer different
+#' The six combinations of `input_type` and `stage` offer different
 #' tradeoffs:
 #'
-#' **`input_type = "embeddings"`, `pca_stage = "raw"`** \cr
+#' **`input_type = "embeddings"`, `stage = "raw"`** \cr
 #' Same as above but BCR data comes from a pre-computed embedding matrix or the
 #' `BCR` assay of a merged object (from [merge_gex_bcr()]). Supply `embeddings`
 #' directly or pass a merged object and the BCR assay is detected automatically.
 #' Embedding dimensions tend to have more comparable scales to RNA features than
 #' raw metadata columns, but scale mismatch still applies.
 #'
-#' **`input_type = "features"`, `pca_stage = "raw"`** (default) \cr
+#' **`input_type = "features"`, `stage = "raw"`** (default) \cr
 #' BCR metadata columns (via `cols_to_include`) are processed by
 #' [process_bcr_features()] into a numeric features-by-cells matrix and
 #' row-bound onto the RNA count/data matrix. A new `RNA_BCR` assay is created
@@ -503,12 +503,12 @@ infer_num_dims <- function(seurat_obj, default = 20, verbose = TRUE) {
 #' may be dominated by whichever modality has higher total variance even after
 #' scaling.
 #'
-#' **`input_type = "embeddings"`, `pca_stage = "reduced"`** \cr
+#' **`input_type = "embeddings"`, `stage = "reduced"`** \cr
 #' Same as the features variant above but uses BCR embeddings instead of
 #' metadata columns. BCR embedding dimensions are appended to transposed GEX PCA
 #' embeddings and a joint PCA is run on the combined matrix.
 #'
-#' **`input_type = "features"`, `pca_stage = "reduced"`** \cr
+#' **`input_type = "features"`, `stage = "reduced"`** \cr
 #' A middle ground between `"raw"` and `"embed"`. Instead of row-binding BCR
 #' features onto the raw RNA matrix, they are appended to the transposed GEX PCA
 #' embeddings (`rpca`, subset to `num_dims` PCs). The combined matrix
@@ -518,14 +518,14 @@ infer_num_dims <- function(seurat_obj, default = 20, verbose = TRUE) {
 #' performing a new projection that can mix the two modalities. Normalization is
 #' skipped since GEX PCs are already processed. `filter_genes` does not apply.
 #'
-#' **`input_type = "embeddings"`, `pca_stage = "embed"`** \cr
+#' **`input_type = "embeddings"`, `stage = "embed"`** \cr
 #' Column-binds the existing `rpca` and `bpca` reductions directly. Requires a
 #' merged object from [merge_gex_bcr()] with both reductions already computed.
 #' This is the most efficient path when BCR embeddings are already available.
 #' As with the features "embed" path, `num_dims` controls how many PCs are taken
 #' from each reduction before joining.
 #'
-#' **`input_type = "features"`, `pca_stage = "embed"`** \cr
+#' **`input_type = "features"`, `stage = "embed"`** \cr
 #' BCR metadata features are first embedded into their own PCA space: a
 #' `BCR` assay is created, scaled, and PCA is run to produce `bpca`
 #' (capped at `nrow(bcr_features) - 1` PCs). The resulting BCR PCA embeddings
@@ -547,13 +547,13 @@ infer_num_dims <- function(seurat_obj, default = 20, verbose = TRUE) {
 #' many GEX PCs are taken from `rpca` before concatenation.
 #'
 #' @param seurat_obj A Seurat object with RNA assay and BCR metadata.
-#' @param pca_stage One of `"raw"`, `"reduced"`, or `"embed"`. `"raw"`
+#' @param stage One of `"raw"`, `"reduced"`, or `"embed"`. `"raw"`
 #'   concatenates at the count/feature level and runs a joint PCA from scratch.
 #'   `"reduced"` appends BCR features onto transposed GEX PCA embeddings and
 #'   runs a joint PCA. `"embed"` column-binds existing GEX and BCR PCA spaces
 #'   directly. See Details for all combinations.
 #' @param gex_reduction Name of the GEX PCA reduction to use as the GEX
-#'   component for `pca_stage = "reduced"` and `pca_stage = "embed"`. Defaults
+#'   component for `stage = "reduced"` and `stage = "embed"`. Defaults
 #'   to `"rpca"`. Use `"integrated"` to use a batch-corrected reduction (e.g.
 #'   from Harmony).
 #' @param input_type `"features"` to use processed BCR metadata columns;
@@ -565,7 +565,7 @@ infer_num_dims <- function(seurat_obj, default = 20, verbose = TRUE) {
 #' @param embeddings A features-by-cells matrix of BCR embeddings. Required for
 #'   `input_type = "embeddings"` when no merged object is provided.
 #' @param filter_genes If specified, filter out genes from this category
-#'   (e.g. `"IG"` and/or `"TR"`). Only applies for `pca_stage = "raw"`.
+#'   (e.g. `"IG"` and/or `"TR"`). Only applies for `stage = "raw"`.
 #' @param ensembl_version Ensembl version for gene annotations (e.g.
 #'   `"GRCh38.104"`). If `NULL`, auto-detected from
 #'   `Misc(seurat_obj, "ensembl_version")` when available.
@@ -573,23 +573,22 @@ infer_num_dims <- function(seurat_obj, default = 20, verbose = TRUE) {
 #'   to use instead of querying Ensembl live.
 #' @param normalize If `TRUE`, normalize the `RNA_BCR` assay before scaling.
 #'   Set to `FALSE` if the data has already been normalized. Ignored for
-#'   `pca_stage = "reduced"` (GEX PCs do not need normalization).
-#' @param num_features Number of variable features for the `"Before"` paths.
+#'   `stage = "reduced"` (GEX PCs do not need normalization).
+#' @param num_features Number of variable features for the `"raw"` stage.
 #' @param num_pcs Number of principal components to compute.
-#' @param num_dims Number of PCA dimensions to use for neighbor finding. For
-#'   `"After"` and `"Before_PCs"`, also controls how many GEX PCs are taken
+#' @param num_dims Number of PCA dimensions to use for neighbor finding. Also controls how many GEX PCs are taken
 #'   from `rpca` before concatenation.
 #' @param k_param Number of nearest neighbors.
 #' @param verbose Whether to show output from Seurat functions.
 #'
-#' @returns A Seurat object with:
-#'   - New `RNA_BCR` assay (for `pca_stage = "Before"`)
+#' @returns A Seurat object with the following added:
+#'   - New `RNA_BCR` assay
+#'   - Neighbor graphs computed on the combined data
 #'   - PCA reduction (`rna_bcr.pca`)
 #'   - UMAP reduction (`rna_bcr.umap`)
-#'   - Neighbor graphs computed on the combined data
 #' @export
 concatenate_gex_bcr <- function(seurat_obj,
-                                pca_stage = c("raw", "reduced", "embed"),
+                                stage = c("raw", "reduced", "embed"),
                                 input_type = c("features", "embeddings"),
                                 cols_to_include, embeddings = NULL,
                                 gex_reduction = "rpca",
@@ -600,8 +599,11 @@ concatenate_gex_bcr <- function(seurat_obj,
                                 verbose = TRUE) {
   # TODO: add an option to do weighting to influence the effect of the BCRs (post-normalization)
   # TODO: add separate num_dims for the GEX and for the BCR
+  # TODO: allow for a different number of BCR dims for 'embed'
+  # TODO: rename reduced to reduced_gex
+  # TODO: if the embeddings aren't a Seurat object, make one
 
-  pca_stage <- match.arg(pca_stage)
+  stage <- match.arg(stage)
   input_type <- match.arg(input_type)
 
   if (!inherits(seurat_obj, "Seurat")) {
@@ -643,7 +645,7 @@ concatenate_gex_bcr <- function(seurat_obj,
     }
   }
 
-  if (pca_stage == "raw") {
+  if (stage == "raw") {
     # warn if normalizing embeddings (since log1p of PLM values is meaningless)
     if (input_type == "embeddings" && normalize) {
       cli::cli_warn(c(
@@ -742,7 +744,7 @@ concatenate_gex_bcr <- function(seurat_obj,
                                   k_param = k_param,
                                   find_var_features = FALSE,
                                   verbose = verbose)
-  } else if (pca_stage == "reduced") {
+  } else if (stage == "reduced") {
     if (!gex_reduction %in% names(seurat_obj@reductions)) {
       cli::cli_abort(c(
         "Reduction {.code {gex_reduction}} not found.",
@@ -808,7 +810,7 @@ concatenate_gex_bcr <- function(seurat_obj,
                                   find_var_features = FALSE,
                                   verbose = verbose)
   } else {
-    # pca_stage == "embed": column-bind GEX and BCR PCA spaces
+    # stage == "embed": column-bind GEX and BCR PCA spaces
     if (!gex_reduction %in% names(seurat_obj@reductions)) {
       cli::cli_abort(c(
         "Reduction {.code {gex_reduction}} not found.",
@@ -850,7 +852,7 @@ concatenate_gex_bcr <- function(seurat_obj,
       # embeddings: use existing bpca from merge_gex_bcr
       if (!is_merged) {
         cli::cli_abort(c(
-          '{.code input_type = "embeddings"} with {.code pca_stage = "embed"} \\
+          '{.code input_type = "embeddings"} with {.code stage = "embed"} \\
            requires a merged object with a BCR assay and {.code bpca} reduction.',
           "i" = "Run {.fn merge_gex_bcr} first."
         ))
@@ -894,7 +896,7 @@ concatenate_gex_bcr <- function(seurat_obj,
                           reduction.key = "rnabcrUMAP_", verbose = verbose)
   }
 
-  Misc(seurat_obj, slot = "concat_pca_stage") <- pca_stage
+  Misc(seurat_obj, slot = "concat_stage") <- stage
   Misc(seurat_obj, slot = "concat_input_type") <- input_type
 
   if (verbose) {
@@ -951,6 +953,7 @@ run_wnn <- function(seurat_obj, embeddings, embedding_type, pc_gex = 20,
                     modality_weights = NULL, verbose = TRUE) {
   # TODO: update this to be able to run on other omics e.g. GEX & ADT
   # TODO: give the option to use an integrated GEX assay
+  # TODO: rename embeddings so it could take in BCR features
 
   # input validation
   if (!inherits(seurat_obj, "Seurat")) {
