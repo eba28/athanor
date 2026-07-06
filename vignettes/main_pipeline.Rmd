@@ -1,5 +1,5 @@
 ---
-title: "Main processing pipeline: GEX, concatenation, and WNN"
+title: "Main processing pipeline: GEX, BCR, concatenation, and WNN"
 output:
   rmarkdown::html_vignette:
     code_folding: show
@@ -8,7 +8,7 @@ output:
     toc: yes
     toc_depth: 3
 vignette: >
-  %\VignetteIndexEntry{Main processing pipeline: GEX, concatenation, and WNN}
+  %\VignetteIndexEntry{Main processing pipeline: GEX, BCR, concatenation, and WNN}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -23,10 +23,10 @@ This vignette walks through the full `athanor` pipeline on simulated data:
 
 1. **GEX processing**: `seurat_pipeline()` + `add_annotations()`
 2. **BCR metadata**: adding AIRR-derived features to the Seurat object
-3. **Concatenation**: `concatenate_gex_bcr()` combines gene expression and BCR
-   features into a single assay
-4. **WNN**: `run_wnn()` integrates GEX and BCR embeddings via Seurat's Weighted Nearest
+3. **WNN**: `run_wnn()` integrates GEX and BCR embeddings via Seurat's Weighted Nearest
    Neighbors
+4. **Concatenation**: `concatenate_gex_bcr()` combines gene expression and BCR
+   embeddings or features into a single assay
 5. **Evaluation**: ADT-based metrics across methods
 
 ---
@@ -34,6 +34,8 @@ This vignette walks through the full `athanor` pipeline on simulated data:
 ## Setup
 
 ```{r libs}
+# TODO: switch to using real data
+
 library(athanor)
 library(dplyr)
 library(ggplot2)
@@ -62,6 +64,9 @@ cell surface protein counts) since its presence is expected by `run_wnn()`.
 num_cells <- 2000
 num_genes <- 500
 num_proteins <- 6
+num_pcs <- 50
+num_dims <- 20
+k <- 20
 data_desc <- "Simulated"
 
 # TODO: put the memory and naive B cells into one cluster
@@ -89,9 +94,10 @@ mitochondrial genes). A higher `cluster_res` gives more granular clusters,
 which is useful for annotation.
 
 ```{r gex-pipeline}
-obj <- seurat_pipeline(obj, nfeatures_RNA = 0, perc_mt = 100,
-                       num_features = num_genes, num_pcs = 15, num_dims = 10,
-                       k_param = 20, cluster_res = 0.5, verbose = FALSE)
+obj <- seurat_pipeline(seurat_obj = obj, nfeatures_RNA = 0, perc_mt = 100,
+                       num_features = num_genes, num_pcs = num_pcs,
+                       num_dims = num_dims, k_param = k, cluster_res = 0.5,
+                       verbose = FALSE)
 
 # reductions and cluster column produced
 names(obj@reductions)
@@ -101,7 +107,7 @@ levels(obj$seurat_clusters)
 ```{r gex-umap}
 #| fig.dim = c(8, 6)
 
-plot_dimplot(obj, title = "GEX", data_source = data_desc,
+plot_dimplot(seurat_obj = obj, title = "GEX", data_source = data_desc,
              meta_col = "seurat_clusters", reduc = "rna.umap")
 ```
 
@@ -137,7 +143,7 @@ table(obj$annotated_clusters)
 ```{r annotated-umap}
 #| fig.dim = c(8, 6)
 
-plot_dimplot(obj, data_source = data_desc,
+plot_dimplot(seurat_obj = obj, data_source = data_desc,
              clrs_specific = named_colors$cell_types_celltypist,
              title = "GEX", reduc = "rna.umap",
              meta_col = "annotated_clusters",
@@ -146,7 +152,46 @@ plot_dimplot(obj, data_source = data_desc,
 
 ---
 
-## 2. BCR metadata
+## 2. BCR data
+
+### Embeddings
+
+We'll quickly simulate some BCR embeddings.
+
+```{r}
+embeddings <- sim_airr_manual(num_cells = num_cells, num_dims = 256,
+                              separator = "-")
+colnames(embeddings) <- obj$cell_id  # must match cell_id
+
+# examine the results
+dim(embeddings) # dimensions by cells
+embeddings[1:5, 1:5]
+```
+
+Let's make a Seurat object out of the embeddings:
+
+```{r}
+embeddings_obj <- bcr_embeddings_pipeline(embeddings = embeddings,
+                                          embedding_type = "Manual",
+                                          num_pcs = num_pcs,
+                                          num_dims = num_dims, k_param = k,
+                                          verbose = TRUE)
+```
+
+```{r bcr-umap}
+#| fig.dim = c(8, 6)
+
+# just for plotting (since we set cells to be the same here)
+embeddings_obj$annotated_clusters <- obj$annotated_clusters
+
+plot_dimplot(seurat_obj = embeddings_obj, data_source = data_desc,
+             clrs_specific = named_colors$cell_types_celltypist,
+             title = "BCR Embeddings",
+             reduc = "bcr.umap", meta_col = "annotated_clusters",
+             plot_label = FALSE, legend_label = "Cell Type")
+```
+
+### Metadata
 
 In a real experiment these columns come from `gex_add_airr()` applied to an
 AIRR-formatted table. Here we simulate them directly so that the downstream
@@ -170,46 +215,15 @@ obj$mu_freq <- round(runif(num_cells, min = 0, max = 0.3), 3)
 obj[[]] %>%
   select(mu_freq, cdr3_aa_length, isotype) %>%
   summary()
+
+# let's say that this object's cells all have paired BCRs too
+obj$Has_BCR <- TRUE
+obj$paired_light <- TRUE # TODO: test this
 ```
 
 ---
 
-## 3. Concatenation
-
-`concatenate_gex_bcr()` combines the RNA counts with processed BCR feature
-columns into a new `RNA_BCR` assay, then runs PCA and UMAP on the joint space.
-`pca_stage = "Before"` means the BCR features are concatenated *before* PCA;
-set it to `"After"` to combine pre-computed GEX and BCR PCA embeddings instead.
-
-`cols_to_include` lists the BCR metadata columns to pull into the assay.
-Internally, `process_bcr_features()` normalizes numeric columns, converts
-ordered factors to ordinal scores, and one-hot encodes categoricals.
-
-```{r concatenate}
-# keep a copy so run_wnn() below starts from the same object
-obj_cat <- concatenate_gex_bcr(obj, pca_stage = "raw",
-                               cols_to_include =
-                                 c("cdr3_aa_length", "isotype", "mu_freq"),
-                               normalize = TRUE, num_dims = 10)
-
-# new assay and reductions
-names(obj_cat@assays)
-names(obj_cat@reductions)
-```
-
-```{r concatenated-umap}
-#| fig.dim = c(8, 6)
-
-plot_dimplot(obj_cat, data_source = data_desc,
-             clrs_specific = named_colors$cell_types_celltypist,
-             title = "Concatenated GEX & BCR", reduc = "rna_bcr.umap",
-             meta_col = "annotated_clusters",
-             plot_label = FALSE, legend_label = "Cell Type")
-```
-
----
-
-## 4. WNN
+## 3. WNN (Embeddings)
 
 `run_wnn()` integrates two modalities via Weighted Nearest Neighbors. It
 expects:
@@ -217,24 +231,11 @@ expects:
 - a Seurat object with a `cell_id` column in the metadata
 - a BCR `embeddings` matrix (features × cells) whose column names match
   `cell_id`
-
-Here we simulate an immune2vec-style embedding matrix directly.
-
-```{r bcr-embeddings}
-num_dims_bcr <- 20
-
-bcr_embeddings <-
-  matrix(round(runif(num_cells * num_dims_bcr, min = -0.6, max = 0.6), 9),
-         nrow = num_dims_bcr, ncol = num_cells)
-rownames(bcr_embeddings) <- paste0("Dim-", seq_len(num_dims_bcr))
-colnames(bcr_embeddings) <- obj$cell_id  # must match cell_id
-
-# verify alignment
-all(colnames(bcr_embeddings) == obj$cell_id)
-```
+  
+You can technically also run this with BCR features but we do not recommend it.
 
 ```{r run-wnn}
-obj_wnn <- run_wnn(obj, embeddings = bcr_embeddings,
+obj_wnn <- run_wnn(seurat_obj = obj, embeddings = embeddings,
                    embedding_type = "Simulated",
                    pc_gex = 10, pc_bcr = 10, k_param = 20, cluster = TRUE,
                    cluster_res = list("GEX" = 0.5, "BCR" = 0.5, "WNN" = 0.5),
@@ -286,8 +287,6 @@ plot_mws(seurat_obj = obj_wnn, second_assay = "BCR",
          facet_by = "annotated_clusters", y_axis_label = "SHM Frequency Bins")
 ```
 
-### Object summary
-
 `object_overview()` prints a brief description of the post-WNN object,
 including assay sizes and the number of PCs used per modality.
 
@@ -297,18 +296,106 @@ object_overview(obj_wnn)
 
 ---
 
-## 5. Evaluation
+## 4. Concatenation (Embeddings)
+
+`concatenate_gex_bcr()` combines the RNA counts with processed BCR embeddings into a new `RNA_BCR` assay, then runs PCA and UMAP on the joint space.
+
+* `stage = "raw"` means that  GEX genes are concatenated with the BCR embeddings
+* `stage = "reduced"` means that GEX PCs are concatenated with BCR embeddings
+* `stage = "embed"` means that GEX PCs are concatenated with BCR PCs
+
+```{r concatenate-embeddings}
+# TODO: remove this step
+embeddings_obj$Has_BCR <- TRUE
+embeddings_obj$paired_light <- TRUE
+
+# merge the BCR embeddings into the GEX obj
+gex_bcr_obj <- merge_gex_bcr(gex_obj = obj, bcr_obj = embeddings_obj,
+                             transfer_reductions = TRUE, verbose = TRUE)
+
+# keep a copy so run_wnn() below starts from the same object
+obj_cat <- concatenate_gex_bcr(seurat_obj = gex_bcr_obj, stage = "embed",
+                               input_type = "embeddings",
+                               gex_reduction = "rpca",
+                               normalize = TRUE, num_dims = num_dims)
+
+# new assay and reductions
+names(obj_cat@assays)
+names(obj_cat@reductions)
+```
+
+```{r concatenated-embeddings-umap}
+#| fig.dim = c(8, 6)
+
+plot_dimplot(seurat_obj = obj_cat, data_source = data_desc,
+             clrs_specific = named_colors$cell_types_celltypist,
+             title = "Concatenated GEX & BCR Embeddings",
+             reduc = "rna_bcr.umap", meta_col = "annotated_clusters",
+             plot_label = FALSE, legend_label = "Cell Type")
+```
+
+```{r concatenated_embeddings-summary}
+object_overview(obj_cat)
+```
+
+---
+
+## 5. Concatenation (Features)
+
+`concatenate_gex_bcr()` combines the RNA counts with processed BCR feature
+columns into a new `RNA_BCR` assay, then runs PCA and UMAP on the joint space.
+
+* `stage = "raw"` means that  GEX genes are concatenated with the BCR features
+* `stage = "reduced"` means that GEX PCs are concatenated with BCR features
+* `stage = "embed"` means that GEX PCs are concatenated with BCR PCs
+  * This is not recommended as BCR features already tends to be a short list, so PCs are not informative
+
+`cols_to_include` lists the BCR metadata columns to pull into the assay.
+Internally, `process_bcr_features()` normalizes numeric columns, converts
+ordered factors to ordinal scores, and one-hot encodes categoricals.
+
+```{r concatenate-features}
+# keep a copy so run_wnn() below starts from the same object
+obj_cat <- concatenate_gex_bcr(seurat_obj = obj, stage = "reduced",
+                               cols_to_include =
+                                 c("cdr3_aa_length", "isotype", "mu_freq"),
+                               normalize = TRUE, num_dims = num_dims)
+
+# new assay and reductions
+names(obj_cat@assays)
+names(obj_cat@reductions)
+```
+
+```{r concatenated-features-umap}
+#| fig.dim = c(8, 6)
+
+plot_dimplot(seurat_obj = obj_cat, data_source = data_desc,
+             clrs_specific = named_colors$cell_types_celltypist,
+             title = "Concatenated GEX & BCR Features", reduc = "rna_bcr.umap",
+             meta_col = "annotated_clusters",
+             plot_label = FALSE, legend_label = "Cell Type")
+```
+
+```{r concatenated_embeddings-summary}
+object_overview(obj_cat)
+```
+
+---
+
+## 6. Evaluation
 
 ---
 
 ## Summary of the pipeline
 
-| Step | Function | Key output |
+| Step | Function | Key output(s) |
 |------|----------|-----------|
-| Simulate GEX | `sim_gex_manual()` | Seurat object with `cell_id` |
-| GEX pipeline | `seurat_pipeline()` | `rpca`, `rna.umap`, `seurat_clusters` |
-| Annotate | `add_annotations()` | `annotated_clusters` in metadata |
-| Add BCR features | `gex_add_airr()` / manual | BCR columns in metadata |
-| Concatenation | `concatenate_gex_bcr()` | `RNA_BCR` assay, `rna_bcr.umap` |
-| WNN | `run_wnn()` | `bpca`, `bcr.umap`, `wnn.umap` |
-| Describe object | `object_overview()` | printed summary |
+| GEX simulation | `sim_gex_manual()` | Seurat object with `cell_id` |
+| GEX pipeline | `seurat_pipeline()` | `RNA` assay, `rpca`, `rna.umap`, `seurat_clusters` |
+| BCR simulation | `sim_bcr_manual()` | Matrix of embedding values |
+| BCR pipeline | `bcr_embeddings_pipeline()` | `BCR` assay, `bpca`, `bcr.umap` |
+| Annotation | `add_annotations()` | `annotated_clusters` in metadata |
+| Addition of BCR features | `gex_add_airr()` | BCR columns in object metadata |
+| Weighted nearest neighbors | `run_wnn()` | `wnn.umap` |
+| Concatenation | `concatenate_gex_bcr()` | `RNA_BCR` assay, `rna_bcr.pca`, `rna_bcr.umap` |
+| Description | `object_overview()` | printed summary |

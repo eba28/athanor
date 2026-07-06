@@ -22,5 +22,5 @@ A data frame with columns "Count" and "Passed", where "Count" corresponds to the
 This function runs a series of WNN simulations by varying a specified variable (e.g. number of genes, cells, dimensions, GEX PCs, BCR PCs) while keeping other parameters constant. It captures whether each simulation run passes without errors or warnings and returns a data frame summarizing the results.
 }
 \details{
-It uses both \code{\link[=sim_bcr_manual]{sim_bcr_manual()}} and \code{\link[=sim_gex_manual]{sim_gex_manual()}} to generate the necessary data for the WNN simulations. The function also includes error handling to capture any issues that arise during the simulation runs and provides an option to display a progress bar.
+It uses both \code{\link[=sim_airr_manual]{sim_airr_manual()}} and \code{\link[=sim_gex_manual]{sim_gex_manual()}} to generate the necessary data for the WNN simulations. The function also includes error handling to capture any issues that arise during the simulation runs and provides an option to display a progress bar.
 }
