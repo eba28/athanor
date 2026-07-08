@@ -10,7 +10,7 @@ plot_dimplot(
   clrs_specific,
   use_hues = FALSE,
   pt_size = 0.2,
-  title,
+  plot_title,
   reduc = "rna.umap",
   meta_col = "annotated_clusters",
   highlight,
@@ -39,7 +39,7 @@ plot_dimplot(
 
 \item{pt_size}{The point size.}
 
-\item{title}{The plot title.}
+\item{plot_title}{The plot title.}
 
 \item{reduc}{The reduction to use for plotting e.g. "bpca" or wnn.umap".}
 

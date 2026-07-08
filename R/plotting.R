@@ -225,7 +225,7 @@ plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
 #' @param clrs_specific The specific color palette (should be named).
 #' @param use_hues Use the iwanthue hues instead of the default ggplot colors. Doesn't let you set any other settings.
 #' @param pt_size The point size.
-#' @param title The plot title.
+#' @param plot_title The plot title.
 #' @param reduc The reduction to use for plotting e.g. "bpca" or wnn.umap".
 #' @param meta_col Which column in the object metadata to color by. When combined with `highlight`, highlights those values as an overlay instead of coloring all cells.
 #' @param highlight Can overlay clusters of interest e.g. B cell or by #. Overrides the annotated option.
@@ -245,7 +245,7 @@ plot_color_scale <- function(plot, data, val_col = "avg.exp.scaled",
 #' @returns A Seurat plot of the specified reduction.
 #' @export
 plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
-                         use_hues = FALSE, pt_size = 0.2, title,
+                         use_hues = FALSE, pt_size = 0.2, plot_title,
                          reduc = "rna.umap", meta_col = "annotated_clusters",
                          highlight, plot_label = FALSE, label_size = 3,
                          label_box = TRUE, include_legend = TRUE, legend_label,
@@ -284,7 +284,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 
   # fill in missing arguments if needed
   if (is.null(data_source) || data_source == "") data_source <- NULL # don't show the subtitle
-  if (rlang::is_missing(title)) title <- meta_col
+  if (rlang::is_missing(title)) plot_title <- meta_col
   # if you want to use default ggplot2 or generated iwanthue colors
   if (rlang::is_missing(clrs_specific)) {
     if (use_hues) clrs_specific <- hues::iwanthue(nlevels(seurat_obj))
@@ -327,11 +327,11 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 
   # start assembling the plot
   p <- do.call(DimPlot, c(base_args, extra_args)) +
-    labs(title = title, subtitle = data_source, color = legend_label)
+    labs(title = plot_title, subtitle = data_source, color = legend_label)
 
   # custom subtitle if provided (otherwise the data source is the subtitle)
   if (!rlang::is_missing(details)) {
-    p <- p + labs(title = paste(data_source, title), subtitle = details)
+    p <- p + labs(title = paste(data_source, plot_title), subtitle = details)
   }
 
   # remove the legend if desired
@@ -804,7 +804,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                        not recognized and will be plotted if {?it/they} \\
                        {?is a/are} valid metadata column{?s}: {other_comps}")
         for (comp in other_comps) {
-          title <- stringr::str_to_title(stringr::str_replace_all(comp, "_", " "))
+          plot_title <-
+            stringr::str_to_title(stringr::str_replace_all(comp, "_", " "))
 
           if (comp %in% names(named_colors)) {
             plots_overview[[paste0(comp, "_", obj_name)]] <-
@@ -812,7 +813,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                            data_source = obj_data_source,
                            clrs_specific = named_colors[[comp]],
                            pt_size = pt_size,
-                           title = paste(assay_name, title), reduc = reduction,
+                           title = paste(assay_name, plot_title), reduc = reduction,
                            meta_col = comp, plot_label = FALSE,
                            details = details, ...)
           } else {
@@ -820,7 +821,7 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
               plot_dimplot(seurat_obj = seurat_obj,
                            data_source = obj_data_source, use_hues = TRUE,
                            pt_size = pt_size,
-                           title = paste(assay_name, title), reduc = reduction,
+                           title = paste(assay_name, plot_title), reduc = reduction,
                            meta_col = comp, plot_label = FALSE,
                            details = details, ...)
           }

@@ -11,6 +11,7 @@ articles:
   navbar: Pipelines
   contents:
   - main_pipeline
+  - real_data_pipeline
 - title: Visualization
   navbar: Visualization
   contents:
