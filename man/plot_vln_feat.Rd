@@ -8,7 +8,6 @@ plot_vln_feat(
   seurat_obj,
   clrs_specific,
   feature,
-  title = "RNA",
   reduc = "umap",
   meta_col = NULL,
   rotate = FALSE,
@@ -21,8 +20,6 @@ plot_vln_feat(
 \item{clrs_specific}{The specific color palette (should be named).}
 
 \item{feature}{The feature of interest.}
-
-\item{title}{The title for the plots.}
 
 \item{reduc}{The reduction to use for plotting e.g. "bpca" or wnn.umap".}
 

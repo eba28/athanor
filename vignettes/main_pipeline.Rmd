@@ -107,7 +107,7 @@ levels(obj$seurat_clusters)
 ```{r gex-umap}
 #| fig.dim = c(8, 6)
 
-plot_dimplot(seurat_obj = obj, title = "GEX", data_source = data_desc,
+plot_dimplot(seurat_obj = obj, plot_title = "GEX", data_source = data_desc,
              meta_col = "seurat_clusters", reduc = "rna.umap")
 ```
 
@@ -145,7 +145,7 @@ table(obj$annotated_clusters)
 
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
              clrs_specific = named_colors$cell_types_celltypist,
-             title = "GEX", reduc = "rna.umap",
+             plot_title = "GEX", reduc = "rna.umap",
              meta_col = "annotated_clusters",
              plot_label = FALSE, legend_label = "Cell Type")
 ```
@@ -186,7 +186,7 @@ embeddings_obj$annotated_clusters <- obj$annotated_clusters
 
 plot_dimplot(seurat_obj = embeddings_obj, data_source = data_desc,
              clrs_specific = named_colors$cell_types_celltypist,
-             title = "BCR Embeddings",
+             plot_title = "BCR Embeddings",
              reduc = "bcr.umap", meta_col = "annotated_clusters",
              plot_label = FALSE, legend_label = "Cell Type")
 ```
@@ -254,15 +254,15 @@ UMAPs:
 ```{r wnn-umap}
 #| fig.dim = c(14, 5)
 
-p_gex <- plot_dimplot(obj_wnn, title = "GEX", data_source = data_desc,
+p_gex <- plot_dimplot(obj_wnn, plot_title = "GEX", data_source = data_desc,
                       clrs_specific = named_colors$cell_types_celltypist,
                       meta_col = "annotated_clusters", reduc = "rna.umap",
                       plot_label = FALSE, legend_label = "Cell Type")
-p_bcr <- plot_dimplot(obj_wnn, title = "BCR", data_source = data_desc,
+p_bcr <- plot_dimplot(obj_wnn, plot_title = "BCR", data_source = data_desc,
                       clrs_specific = named_colors$cell_types_celltypist,
                       meta_col = "annotated_clusters", reduc = "bcr.umap",
                       plot_label = FALSE, legend_label = "Cell Type")
-p_wnn <- plot_dimplot(obj_wnn, title = "WNN", data_source = data_desc,
+p_wnn <- plot_dimplot(obj_wnn, plot_title = "WNN", data_source = data_desc,
                       clrs_specific = named_colors$cell_types_celltypist,
                       meta_col = "annotated_clusters", reduc = "wnn.umap",
                       plot_label = FALSE, legend_label = "Cell Type")
@@ -329,7 +329,7 @@ names(obj_cat@reductions)
 
 plot_dimplot(seurat_obj = obj_cat, data_source = data_desc,
              clrs_specific = named_colors$cell_types_celltypist,
-             title = "Concatenated GEX & BCR Embeddings",
+             plot_title = "Concatenated GEX & BCR Embeddings",
              reduc = "rna_bcr.umap", meta_col = "annotated_clusters",
              plot_label = FALSE, legend_label = "Cell Type")
 ```
@@ -371,7 +371,7 @@ names(obj_cat@reductions)
 
 plot_dimplot(seurat_obj = obj_cat, data_source = data_desc,
              clrs_specific = named_colors$cell_types_celltypist,
-             title = "Concatenated GEX & BCR Features", reduc = "rna_bcr.umap",
+             plot_title = "Concatenated GEX & BCR Features", reduc = "rna_bcr.umap",
              meta_col = "annotated_clusters",
              plot_label = FALSE, legend_label = "Cell Type")
 ```

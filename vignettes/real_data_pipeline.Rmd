@@ -110,7 +110,7 @@ levels(obj$seurat_clusters)
 ```{r gex-umap}
 #| fig.dim = c(8, 6)
 
-plot_dimplot(seurat_obj = obj, title = "GEX", data_source = data_desc,
+plot_dimplot(seurat_obj = obj, plot_title = "GEX", data_source = data_desc,
              meta_col = "seurat_clusters", reduc = "rna.umap")
 ```
 
@@ -166,7 +166,7 @@ table(obj$annotated_clusters)
 
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
              clrs_specific = named_colors$cell_types_celltypist,
-             title = "GEX", reduc = "rna.umap",
+             plot_title = "GEX", reduc = "rna.umap",
              meta_col = "annotated_clusters",
              plot_label = FALSE, legend_label = "Cell Type")
 ```
@@ -244,12 +244,12 @@ embeddings_obj <- bin_mu_freq(embeddings_obj)
 
 p_isotype <- plot_dimplot(seurat_obj = embeddings_obj, data_source = data_desc,
                           clrs_specific = named_colors$isotype,
-                          title = "BCR Embeddings", reduc = "bcr.umap",
+                          plot_title = "BCR Embeddings", reduc = "bcr.umap",
                           meta_col = "isotype", plot_label = FALSE,
                           legend_label = "Isotype")
 p_mu_freq <- plot_dimplot(seurat_obj = embeddings_obj, data_source = data_desc,
                           clrs_specific = named_colors$mu_freq_bins,
-                          title = "BCR Embeddings", reduc = "bcr.umap",
+                          plot_title = "BCR Embeddings", reduc = "bcr.umap",
                           meta_col = "mu_freq_bins", plot_label = FALSE,
                           legend_label = "SHM Frequency")
 
@@ -298,15 +298,15 @@ own structure.
 ```{r wnn-umap}
 #| fig.dim = c(14, 5)
 
-p_gex <- plot_dimplot(obj_wnn, title = "GEX", data_source = data_desc,
+p_gex <- plot_dimplot(obj_wnn, plot_title = "GEX", data_source = data_desc,
                       clrs_specific = named_colors$isotype_stage,
                       meta_col = "isotype_stage", reduc = "rna.umap",
                       plot_label = FALSE, legend_label = "Switch Status")
-p_bcr <- plot_dimplot(obj_wnn, title = "BCR", data_source = data_desc,
+p_bcr <- plot_dimplot(obj_wnn, plot_title = "BCR", data_source = data_desc,
                       clrs_specific = named_colors$isotype_stage,
                       meta_col = "isotype_stage", reduc = "bcr.umap",
                       plot_label = FALSE, legend_label = "Switch Status")
-p_wnn <- plot_dimplot(obj_wnn, title = "WNN", data_source = data_desc,
+p_wnn <- plot_dimplot(obj_wnn, plot_title = "WNN", data_source = data_desc,
                       clrs_specific = named_colors$isotype_stage,
                       meta_col = "isotype_stage", reduc = "wnn.umap",
                       plot_label = FALSE, legend_label = "Switch Status")
@@ -321,7 +321,7 @@ the *jointly* integrated space rather than a single modality:
 ```{r wnn-umap-celltype}
 #| fig.dim = c(8, 6)
 
-plot_dimplot(obj_wnn, title = "WNN", data_source = data_desc,
+plot_dimplot(obj_wnn, plot_title = "WNN", data_source = data_desc,
             clrs_specific = named_colors$cell_types_celltypist,
             meta_col = "annotated_clusters", reduc = "wnn.umap",
             plot_label = FALSE, legend_label = "Cell Type")
@@ -377,7 +377,7 @@ names(obj_cat@reductions)
 
 plot_dimplot(seurat_obj = obj_cat, data_source = data_desc,
              clrs_specific = named_colors$cell_types_celltypist,
-             title = "Concatenated GEX & BCR Embeddings",
+             plot_title = "Concatenated GEX & BCR Embeddings",
              reduc = "rna_bcr.umap", meta_col = "annotated_clusters",
              plot_label = FALSE, legend_label = "Cell Type")
 ```
@@ -408,7 +408,7 @@ names(obj_cat_feat@reductions)
 
 plot_dimplot(seurat_obj = obj_cat_feat, data_source = data_desc,
              clrs_specific = named_colors$cell_types_celltypist,
-             title = "Concatenated GEX & BCR Features", reduc = "rna_bcr.umap",
+             plot_title = "Concatenated GEX & BCR Features", reduc = "rna_bcr.umap",
              meta_col = "annotated_clusters",
              plot_label = FALSE, legend_label = "Cell Type")
 ```
@@ -503,7 +503,7 @@ ggplot(nn_scores, aes(x = Approach, y = k * Score, fill = Approach)) +
   facet_grid(cols = vars(Feature),
             labeller = labeller(Feature = feature_labels)) +
   labs(x = NULL, y = "# of k Nearest Neighbors with Matching Label",
-      title = "Neighbor matching scores", subtitle = data_desc) +
+      plot_title = "Neighbor matching scores", subtitle = data_desc) +
   theme_bw_custom + labels_rotate_x + labels_standard +
   theme(legend.position = "none")
 ```
@@ -547,7 +547,7 @@ ggplot(adt_scores, aes(x = Approach, y = Score, fill = Approach)) +
   scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1)) +
   facet_grid(cols = vars(Feature)) +
   labs(x = NULL, y = "Spearman Correlation (cell vs. neighbor mean)",
-      title = "ADT correlation", subtitle = data_desc) +
+      plot_title = "ADT correlation", subtitle = data_desc) +
   theme_bw_custom + labels_rotate_x + labels_standard +
   theme(legend.position = "none")
 ```
