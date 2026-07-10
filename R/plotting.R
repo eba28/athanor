@@ -284,7 +284,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
 
   # fill in missing arguments if needed
   if (is.null(data_source) || data_source == "") data_source <- NULL # don't show the subtitle
-  if (rlang::is_missing(title)) plot_title <- meta_col
+  if (rlang::is_missing(plot_title)) plot_title <- meta_col
   # if you want to use default ggplot2 or generated iwanthue colors
   if (rlang::is_missing(clrs_specific)) {
     if (use_hues) clrs_specific <- hues::iwanthue(nlevels(seurat_obj))

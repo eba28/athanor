@@ -376,7 +376,7 @@ plot_dimplot(seurat_obj = obj_cat, data_source = data_desc,
              plot_label = FALSE, legend_label = "Cell Type")
 ```
 
-```{r concatenated_embeddings-summary}
+```{r concatenated-features-summary}
 object_overview(obj_cat)
 ```
 
