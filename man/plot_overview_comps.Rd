@@ -16,6 +16,7 @@ plot_overview_comps(
   comparisons = c("annotated_clusters_simpler", "v_call_family", "light_chains",
     "isotype", "mu_freq"),
   details_col = "embedding_type",
+  custom_colors = list(),
   ...
 )
 }
@@ -39,6 +40,8 @@ plot_overview_comps(
 \item{comparisons}{Which metadata columns to plot. By default, it will plot "annotated_clusters_simpler", "v_call_family", "light_chains", "isotype", and "mu_freq". The first one is the simplified CellTypist annotations, and the rest are BCR features.}
 
 \item{details_col}{Which column in \code{seurat_obj@misc} to use for the plot subtitles. By default, it will use "embedding_type" to show the type of embedding being plotted (e.g. "AntiBERTa2").}
+
+\item{custom_colors}{A named list of color scales for comparisons not covered by \code{named_colors}, keyed by comparison name (e.g. \code{list(cdr3_bins = my_colors)}). Takes precedence over \code{named_colors} when both define the same comparison.}
 }
 \value{
 A patchwork object with overview plots in a grid.
@@ -46,4 +49,7 @@ A patchwork object with overview plots in a grid.
 \description{
 This function generates multiple UMAP plots from a Seurat object with various customizable options for coloring, labeling, and grouping the data based on different metadata columns, cluster annotations, and specific clusters of interest.
 It allows for a comprehensive overview of the data across different embedding types (e.g. RNA, ADT, BCR) and comparisons (e.g. annotated clusters, V call families, isotypes), making it easier to explore and interpret the underlying structure of the data.
+}
+\details{
+"L \%||\% R newly in base is an expressive idiom for the phrases if(!is.null(L)) L else R or if(is.null(L)) R else L." - R 4.4
 }

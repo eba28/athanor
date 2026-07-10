@@ -587,6 +587,9 @@ plot_mws <- function(seurat_obj, data_source = "", second_assay = "BCR",
 #' This function generates multiple UMAP plots from a Seurat object with various customizable options for coloring, labeling, and grouping the data based on different metadata columns, cluster annotations, and specific clusters of interest.
 #' It allows for a comprehensive overview of the data across different embedding types (e.g. RNA, ADT, BCR) and comparisons (e.g. annotated clusters, V call families, isotypes), making it easier to explore and interpret the underlying structure of the data.
 #'
+#' @details
+#' "L %||% R newly in base is an expressive idiom for the phrases if(!is.null(L)) L else R or if(is.null(L)) R else L." - R 4.4
+#'
 #' @param seurat_objs List of Seurat objects.
 #' @param data_source Dataset description.
 #' @param pt_size The size of the points in the UMAP.
@@ -597,6 +600,7 @@ plot_mws <- function(seurat_obj, data_source = "", second_assay = "BCR",
 #' @param ncol The number of columns to use in the grid.
 #' @param comparisons Which metadata columns to plot. By default, it will plot "annotated_clusters_simpler", "v_call_family", "light_chains", "isotype", and "mu_freq". The first one is the simplified CellTypist annotations, and the rest are BCR features.
 #' @param details_col Which column in `seurat_obj@misc` to use for the plot subtitles. By default, it will use "embedding_type" to show the type of embedding being plotted (e.g. "AntiBERTa2").
+#' @param custom_colors A named list of color scales for comparisons not covered by `named_colors`, keyed by comparison name (e.g. `list(cdr3_bins = my_colors)`). Takes precedence over `named_colors` when both define the same comparison.
 #'
 #' @return A patchwork object with overview plots in a grid.
 #' @export
@@ -606,7 +610,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
                                 comparisons = c("annotated_clusters_simpler",
                                                 "v_call_family", "light_chains",
                                                 "isotype", "mu_freq"),
-                                details_col = "embedding_type", ...) {
+                                details_col = "embedding_type",
+                                custom_colors = list(), ...) {
   possible_comps <- c("annotated_clusters_simpler", "annotated_clusters",
                       "c_call", "cdr3_aa_length", "isotype", "light_chains",
                       "mu_freq", "v_call_family", "weight_assay")
@@ -694,7 +699,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
         plots_overview[[paste0("annotated_clusters_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = obj_data_source, pt_size = pt_size,
-                       clrs_specific = seurat_obj@misc$colors_annotated,
+                       clrs_specific = custom_colors$annotated_clusters %||%
+                         seurat_obj@misc$colors_annotated,
                        plot_title = paste(assay_name, "Cell Types"),
                        reduc = reduction, plot_label = FALSE,
                        meta_col = "annotated_clusters",
@@ -705,7 +711,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
         plots_overview[[paste0("annotated_clusters_simpler_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = obj_data_source, pt_size = pt_size,
-                       clrs_specific = seurat_obj@misc$colors_annotated,
+                       clrs_specific = custom_colors$annotated_clusters_simpler %||%
+                         seurat_obj@misc$colors_annotated,
                        # clrs_specific = named_colors$cell_types_celltypist,
                        plot_title = paste(assay_name, "Cell Types"),
                        reduc = reduction, plot_label = FALSE,
@@ -718,11 +725,12 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
         plots_overview[[paste0("v_call_family_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = obj_data_source, pt_size = pt_size,
-                       clrs_specific = named_colors$v_call_family,
+                       clrs_specific = custom_colors$v_call_family %||%
+                         named_colors$v_call_family,
                        plot_title = paste(assay_name, "V Call Families"),
                        reduc = reduction, plot_label = FALSE,
                        meta_col = "v_call_family",
-                       legend_label = "V Call Family", details = details, ...)
+                       legend_label = "V Call Subgroup", details = details, ...)
       }
 
       # light chain types
@@ -731,7 +739,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
         plots_overview[[paste0("light_chains_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = obj_data_source, pt_size = pt_size,
-                       clrs_specific = named_colors$locus_light,
+                       clrs_specific = custom_colors$light_chains %||%
+                         named_colors$locus_light,
                        plot_title = paste(assay_name, "Light Chain Types"),
                        reduc = reduction, plot_label = FALSE,
                        meta_col = "locus_light",
@@ -743,7 +752,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
         plots_overview[[paste0("isotype_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = obj_data_source, pt_size = pt_size,
-                       clrs_specific = named_colors$isotype,
+                       clrs_specific = custom_colors$isotype %||%
+                         named_colors$isotype,
                        plot_title = paste(assay_name, "Isotypes"),
                        reduc = reduction, plot_label = FALSE,
                        meta_col = "isotype",
@@ -755,7 +765,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
         plots_overview[[paste0("c_call_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = obj_data_source, pt_size = pt_size,
-                       clrs_specific = named_colors$c_call,
+                       clrs_specific = custom_colors$c_call %||%
+                         named_colors$c_call,
                        plot_title = paste(assay_name, "Subisotypes"),
                        reduc = reduction, plot_label = FALSE,
                        meta_col = "c_call",
@@ -768,7 +779,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
         plots_overview[[paste0("mu_freq_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = obj_data_source, pt_size = pt_size,
-                       clrs_specific = named_colors$mu_freq_bins,
+                       clrs_specific = custom_colors$mu_freq %||%
+                         named_colors$mu_freq_bins,
                        plot_title = paste(assay_name, "SHM Frequencies (Binned)"),
                        reduc = reduction,
                        meta_col = "mu_freq_bins", plot_label = FALSE,
@@ -781,7 +793,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
         plots_overview[[paste0("cdr3_aa_length_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = obj_data_source, pt_size = pt_size,
-                       clrs_specific = named_colors$cdr3,
+                       clrs_specific = custom_colors$cdr3_aa_length %||%
+                         named_colors$cdr3,
                        plot_title = paste(assay_name, "CDR3 Length"),
                        reduc = reduction, plot_label = FALSE,
                        meta_col = "cdr3_aa_length",
@@ -793,7 +806,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
         plots_overview[[paste0("weight_assay_", obj_name)]] <-
           plot_dimplot(seurat_obj = seurat_obj,
                        data_source = obj_data_source, pt_size = pt_size,
-                       clrs_specific = named_colors$weight_assay,
+                       clrs_specific = custom_colors$weight_assay %||%
+                         named_colors$weight_assay,
                        plot_title = paste(assay_name, "Modality Weights"),
                        reduc = reduction, plot_label = FALSE,
                        meta_col = "weight_assay",
@@ -810,7 +824,16 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
           plot_title <-
             stringr::str_to_title(stringr::str_replace_all(comp, "_", " "))
 
-          if (comp %in% names(named_colors)) {
+          if (comp %in% names(custom_colors)) {
+            plots_overview[[paste0(comp, "_", obj_name)]] <-
+              plot_dimplot(seurat_obj = seurat_obj,
+                           data_source = obj_data_source,
+                           clrs_specific = custom_colors[[comp]],
+                           pt_size = pt_size,
+                           plot_title = paste(assay_name, plot_title), reduc = reduction,
+                           meta_col = comp, plot_label = FALSE,
+                           details = details, ...)
+          } else if (comp %in% names(named_colors)) {
             plots_overview[[paste0(comp, "_", obj_name)]] <-
               plot_dimplot(seurat_obj = seurat_obj,
                            data_source = obj_data_source,

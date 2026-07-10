@@ -211,10 +211,11 @@ plot_dimplot(seurat_obj = obj, data_source = "Simulated",
 ```{r vln-mufreq}
 #| fig.dim = c(9, 4)
 
+# plot_title = "SHM Frequency"
 plot_vln_feat(seurat_obj = obj,
               clrs_specific = named_colors$mu_freq_bins_fewer,
               feature = "mu_freq", meta_col = "mu_freq_bins_fewer",
-              plot_title = "SHMfrequency", reduc = "rna.umap")
+              reduc = "rna.umap")
 ```
 
 If a value in your data has no matching entry in `clrs_specific`, `athanor`
