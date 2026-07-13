@@ -13,18 +13,15 @@
 #' @returns A Seurat Assay
 #' @export
 sim_airr_manual <- function(num_cells, num_dims, separator = "-") {
-  # simulate a matrix of immune2vec-style embeddings
-  airr_embeddings <- round(runif(n = num_cells * num_dims, -0.6, 0.6), 9)
+  # simulate a matrix of embeddings with dimensions as rows and cells as columns
+  airr_embeddings <- round(runif(n = num_dims * num_cells, -0.6, 0.6), 9)
   airr_embeddings <- Matrix(data = airr_embeddings,
-                            nrow = num_cells, ncol = num_dims,
+                            nrow = num_dims, ncol = num_cells,
                             sparse = TRUE)
 
   # format the AIRR parameters and cells
-  rownames(airr_embeddings) <- paste("Cell", 1:num_cells, sep = separator)
-  colnames(airr_embeddings) <- paste("Dim", 1:num_dims, sep = separator)
-
-  # match the existing format (cells as columns)
-  airr_embeddings <- t(airr_embeddings)
+  colnames(airr_embeddings) <- paste("Cell", 1:num_cells, sep = separator)
+  rownames(airr_embeddings) <- paste("Dim", 1:num_dims, sep = separator)
 
   return(airr_embeddings)
 }
