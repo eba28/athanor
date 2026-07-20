@@ -301,8 +301,8 @@ object_overview(obj_wnn)
 `concatenate_gex_bcr()` combines the RNA counts with processed BCR embeddings into a new `RNA_BCR` assay, then runs PCA and UMAP on the joint space.
 
 * `stage = "raw"` means that  GEX genes are concatenated with the BCR embeddings
-* `stage = "reduced"` means that GEX PCs are concatenated with BCR embeddings
-* `stage = "embed"` means that GEX PCs are concatenated with BCR PCs
+* `stage = "reduced_gex"` means that GEX PCs are concatenated with BCR embeddings
+* `stage = "reduced_both"` means that GEX PCs are concatenated with BCR PCs
 
 ```{r concatenate-embeddings}
 # TODO: remove this step
@@ -314,7 +314,7 @@ gex_bcr_obj <- merge_gex_bcr(gex_obj = obj, bcr_obj = embeddings_obj,
                              transfer_reductions = TRUE, verbose = TRUE)
 
 # keep a copy so run_wnn() below starts from the same object
-obj_cat <- concatenate_gex_bcr(seurat_obj = gex_bcr_obj, stage = "embed",
+obj_cat <- concatenate_gex_bcr(seurat_obj = gex_bcr_obj, stage = "reduced_both",
                                input_type = "embeddings",
                                gex_reduction = "rpca",
                                normalize = TRUE, num_dims = num_dims)
@@ -346,8 +346,8 @@ object_overview(obj_cat)
 columns into a new `RNA_BCR` assay, then runs PCA and UMAP on the joint space.
 
 * `stage = "raw"` means that  GEX genes are concatenated with the BCR features
-* `stage = "reduced"` means that GEX PCs are concatenated with BCR features
-* `stage = "embed"` means that GEX PCs are concatenated with BCR PCs
+* `stage = "reduced_gex"` means that GEX PCs are concatenated with BCR features
+* `stage = "reduced_both"` means that GEX PCs are concatenated with BCR PCs
   * This is not recommended as BCR features already tends to be a short list, so PCs are not informative
 
 `cols_to_include` lists the BCR metadata columns to pull into the assay.
@@ -356,7 +356,7 @@ ordered factors to ordinal scores, and one-hot encodes categoricals.
 
 ```{r concatenate-features}
 # keep a copy so run_wnn() below starts from the same object
-obj_cat <- concatenate_gex_bcr(seurat_obj = obj, stage = "reduced",
+obj_cat <- concatenate_gex_bcr(seurat_obj = obj, stage = "reduced_gex",
                                cols_to_include =
                                  c("cdr3_aa_length", "isotype", "mu_freq"),
                                normalize = TRUE, num_dims = num_dims)

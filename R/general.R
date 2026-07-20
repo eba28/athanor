@@ -345,7 +345,7 @@ seurat_pipeline <- function(seurat_obj, assay = "RNA", pca_name = NULL,
   }
 
   # Cap num_pcs at matrix rank - 1 (RunPCA errors or hangs otherwise; common
-  # in concatenate_gex_bcr "reduced" where combined_mat has ~26 rows)
+  # in concatenate_gex_bcr "reduced_gex" where combined_mat has ~26 rows)
   if (num_pcs > max_dim - 1L) {
     if (verbose) {
       cli::cli_warn("num_pcs ({num_pcs}) exceeds matrix rank ({max_dim}); \\

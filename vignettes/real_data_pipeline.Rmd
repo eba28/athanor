@@ -366,10 +366,9 @@ space.
 gex_bcr_obj <- merge_gex_bcr(gex_obj = obj, bcr_obj = embeddings_obj,
                              transfer_reductions = TRUE, verbose = TRUE)
 
-obj_cat <- concatenate_gex_bcr(seurat_obj = gex_bcr_obj, stage = "embed",
+obj_cat <- concatenate_gex_bcr(seurat_obj = gex_bcr_obj, stage = "reduced_both",
                                input_type = "embeddings",
-                               gex_reduction = "rpca",
-                               normalize = TRUE, num_dims = num_dims)
+                               gex_reduction = "rpca", num_dims = num_dims)
 
 names(obj_cat@assays)
 names(obj_cat@reductions)
@@ -397,7 +396,7 @@ object_overview(obj_cat)
 feature columns (rather than embeddings) into a new `RNA_BCR` assay.
 
 ```{r concatenate-features}
-obj_cat_feat <- concatenate_gex_bcr(seurat_obj = obj, stage = "reduced",
+obj_cat_feat <- concatenate_gex_bcr(seurat_obj = obj, stage = "reduced_gex",
                                     cols_to_include =
                                       c("cdr3_aa_length", "isotype", "mu_freq"),
                                     normalize = TRUE, num_dims = num_dims)

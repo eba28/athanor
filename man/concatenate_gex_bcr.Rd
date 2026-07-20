@@ -6,29 +6,29 @@
 \usage{
 concatenate_gex_bcr(
   seurat_obj,
-  stage = c("raw", "reduced", "embed"),
-  input_type = c("features", "embeddings"),
+  stage = c("raw", "reduced_gex", "reduced_both"),
+  input_type = c("embeddings", "features"),
   cols_to_include,
   embeddings = NULL,
   gex_reduction = "rpca",
   filter_genes,
   ensembl_version = NULL,
   cache_file = NULL,
-  normalize = TRUE,
   num_features = 2000,
   num_pcs = 50,
-  num_dims = 20,
+  num_dims = c(20, 20),
   k_param = 20,
+  gex_weight = 0.5,
   verbose = TRUE
 )
 }
 \arguments{
 \item{seurat_obj}{A Seurat object with RNA assay and BCR metadata.}
 
-\item{stage}{One of \code{"raw"}, \code{"reduced"}, or \code{"embed"}. \code{"raw"}
+\item{stage}{One of \code{"raw"}, \code{"reduced_gex"}, or \code{"reduced_both"}. \code{"raw"}
 concatenates at the count/feature level and runs a joint PCA from scratch.
-\code{"reduced"} appends BCR features onto transposed GEX PCA embeddings and
-runs a joint PCA. \code{"embed"} column-binds existing GEX and BCR PCA spaces
+\code{"reduced_gex"} appends BCR features onto transposed GEX PCA embeddings and
+runs a joint PCA. \code{"reduced_both"} column-binds existing GEX and BCR PCA spaces
 directly. See Details for all combinations.}
 
 \item{input_type}{\code{"features"} to use processed BCR metadata columns;
@@ -43,7 +43,7 @@ as features (e.g. \code{c("mu_freq", "isotype")}). Required for
 \code{input_type = "embeddings"} when no merged object is provided.}
 
 \item{gex_reduction}{Name of the GEX PCA reduction to use as the GEX
-component for \code{stage = "reduced"} and \code{stage = "embed"}. Defaults
+component for \code{stage = "reduced_gex"} and \code{stage = "reduced_both"}. Defaults
 to \code{"rpca"}. Use \code{"integrated"} to use a batch-corrected reduction (e.g.
 from Harmony).}
 
@@ -57,18 +57,21 @@ from Harmony).}
 \item{cache_file}{Passed to \code{\link[=get_airr_genes]{get_airr_genes()}}. Path to a cached RDS result
 to use instead of querying Ensembl live.}
 
-\item{normalize}{If \code{TRUE}, normalize the \code{RNA_BCR} assay before scaling.
-Set to \code{FALSE} if the data has already been normalized. Ignored for
-\code{stage = "reduced"} (GEX PCs do not need normalization).}
-
 \item{num_features}{Number of variable features for the \code{"raw"} stage.}
 
 \item{num_pcs}{Number of principal components to compute.}
 
-\item{num_dims}{Number of PCA dimensions to use for neighbor finding. Also controls how many GEX PCs are taken
-from \code{rpca} before concatenation.}
+\item{num_dims}{Number of PCA dimensions to use for neighbor finding, where
+the first integer corresponds to the number of GEX PCs and the second
+integer corresponds to the number of BCR PCs. If only one integer is
+provided, it is used for both modalities. For the approaches that do not
+use the BCR PCA, only the first integer is used.}
 
 \item{k_param}{Number of nearest neighbors.}
+
+\item{gex_weight}{Weighting factor for GEX vs BCR when computing neighbors.
+The BCR weight will be equal to 1 - gex_weight.
+Only applies for \code{stage = "reduced_both"}.}
 
 \item{verbose}{Whether to show output from Seurat functions.}
 }
@@ -89,8 +92,13 @@ Supports two input types and two PCA stages (see Details).
 \details{
 This would typically be used after \code{\link[=seurat_pipeline]{seurat_pipeline()}} and \code{\link[=gex_add_airr]{gex_add_airr()}}.
 
+Input BCR data should already be normalized as needed; running \code{Seurat::NormalizeData()} is not appropriate for non-counts data.
+
+Note that the \code{reduced_both} stage will only use the GEX and BCR PCs specified, not all of the PCs available.
+We also chose not to do PCA again once the data was combined as it doesn't make sense to do PCA on PCA.
+
 The six combinations of \code{input_type} and \code{stage} offer different
-tradeoffs:
+trade-offs:
 
 \strong{\code{input_type = "embeddings"}, \code{stage = "raw"}} \cr
 Same as above but BCR data comes from a pre-computed embedding matrix or the
@@ -103,18 +111,18 @@ raw metadata columns, but scale mismatch still applies.
 BCR metadata columns (via \code{cols_to_include}) are processed by
 \code{\link[=process_bcr_features]{process_bcr_features()}} into a numeric features-by-cells matrix and
 row-bound onto the RNA count/data matrix. A new \code{RNA_BCR} assay is created
-and the full Seurat pipeline (normalize, scale, PCA, neighbors, UMAP) is run
+and the full Seurat pipeline (scaling, PCA, neighbor detection, UMAP) is run
 from scratch on the combined data. The main limitation is scale mismatch:
 log-normalized RNA values and BCR metadata live in different ranges, so PCA
 may be dominated by whichever modality has higher total variance even after
 scaling.
 
-\strong{\code{input_type = "embeddings"}, \code{stage = "reduced"}} \cr
+\strong{\code{input_type = "embeddings"}, \code{stage = "reduced_gex"}} \cr
 Same as the features variant above but uses BCR embeddings instead of
 metadata columns. BCR embedding dimensions are appended to transposed GEX PCA
 embeddings and a joint PCA is run on the combined matrix.
 
-\strong{\code{input_type = "features"}, \code{stage = "reduced"}} \cr
+\strong{\code{input_type = "features"}, \code{stage = "reduced_gex"}} \cr
 A middle ground between \code{"raw"} and \code{"embed"}. Instead of row-binding BCR
 features onto the raw RNA matrix, they are appended to the transposed GEX PCA
 embeddings (\code{rpca}, subset to \code{num_dims} PCs). The combined matrix
@@ -124,14 +132,14 @@ scaled, and a joint PCA is run. This avoids the scale mismatch of \code{"raw"}
 performing a new projection that can mix the two modalities. Normalization is
 skipped since GEX PCs are already processed. \code{filter_genes} does not apply.
 
-\strong{\code{input_type = "embeddings"}, \code{stage = "embed"}} \cr
+\strong{\code{input_type = "embeddings"}, \code{stage = "reduced_both"}} \cr
 Column-binds the existing \code{rpca} and \code{bpca} reductions directly. Requires a
 merged object from \code{\link[=merge_gex_bcr]{merge_gex_bcr()}} with both reductions already computed.
 This is the most efficient path when BCR embeddings are already available.
-As with the features "embed" path, \code{num_dims} controls how many PCs are taken
+As with the features "reduced_both" path, \code{num_dims} controls how many PCs are taken
 from each reduction before joining.
 
-\strong{\code{input_type = "features"}, \code{stage = "embed"}} \cr
+\strong{\code{input_type = "features"}, \code{stage = "reduced_both"}} \cr
 BCR metadata features are first embedded into their own PCA space: a
 \code{BCR} assay is created, scaled, and PCA is run to produce \code{bpca}
 (capped at \code{nrow(bcr_features) - 1} PCs). The resulting BCR PCA embeddings
@@ -141,14 +149,14 @@ both modalities are in comparable PCA spaces before being joined, and each
 modality's internal variance structure is preserved. Use \code{num_dims} to
 control how many PCs are taken from each side.
 
-For the \code{"raw"} and \code{"reduced"} paths, variable features are always set by
+For the \code{"raw"} and \code{"reduced_gex"} paths, variable features are always set by
 appending BCR features onto the existing RNA variable features rather than
 re-running \code{\link[Seurat:FindVariableFeatures]{Seurat::FindVariableFeatures()}}. Re-running would drop BCR features from
 the selection and trigger Seurat warnings about underscores in feature names
 and missing count layers.
 
-The \code{normalize}, \code{num_features}, \code{num_pcs}, \code{num_dims}, and \code{k_param}
-arguments are passed to \code{\link[=seurat_pipeline]{seurat_pipeline()}} for the \code{"raw"} and \code{"reduced"}
-paths. For \code{"reduced"} and \code{"embed"}, \code{num_dims} additionally controls how
+The \code{num_features}, \code{num_pcs}, \code{num_dims}, and \code{k_param}
+arguments are passed to \code{\link[=seurat_pipeline]{seurat_pipeline()}} for the \code{"raw"} and \code{"reduced_gex"}
+paths. For \code{"reduced_gex"} and \code{"reduced_both"}, \code{num_dims} additionally controls how
 many GEX PCs are taken from \code{rpca} before concatenation.
 }
