@@ -60,7 +60,7 @@ data_desc <- "Diabetes Nicholas (108_ND, healthy control)"
 # path_data <- system.file("extdata", "diabetes_nicholas_108_ND",
 #                          package = "athanor")
 
-path_data <- file.path("data", "diabetes_nicholas_108_ND")
+path_data <- file.path(".", "data", "diabetes_nicholas_108_ND")
 ```
 
 ---
