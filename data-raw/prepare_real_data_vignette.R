@@ -8,6 +8,9 @@
 # inst/extdata/diabetes_nicholas_108_ND/. Not run as part of R CMD check;
 # rerun by hand if the fixture needs to be regenerated.
 
+
+# I'm storing the data in vignettes/ for now instead of making it part of the package itself
+
 library(dplyr)
 library(readr)
 library(stringr)
@@ -16,9 +19,10 @@ library(Matrix)
 set.seed(42)
 
 path_raw <- "/media/edelaron/Midas/diabetes/nicholas"
-path_out <- "inst/extdata/diabetes_nicholas_108_ND"
+# path_out <- "inst/extdata/diabetes_nicholas_108_ND"
+path_out <- "vignettes/data/diabetes_nicholas_108_ND"
 sample_id <- "108_ND"
-n_cells <- 1500 #TODO
+n_cells <- 1500 # TODO: try different cell counts
 
 # raw 10x counts (RNA + ADT) for this subject (non-standard GEO file names,
 # so read the trio manually instead of via Seurat::Read10X())

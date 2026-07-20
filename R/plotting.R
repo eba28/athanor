@@ -252,6 +252,8 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
                          sort_idents = TRUE, idents_char = TRUE, order = FALSE,
                          details, fix_aspect = TRUE, simplify_titles = FALSE,
                          ...) {
+  # TODO: check if rownames(seurat_obj@meta.data) are the cell ids
+
   # check parameters
   if (!meta_col %in% names(seurat_obj[[]])) {
     cli::cli_abort("{meta_col} is not a valid metadata column name. Please select one of: {names(seurat_obj[[]])}.")

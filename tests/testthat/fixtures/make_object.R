@@ -29,7 +29,7 @@ colnames(adt_counts) <- paste("Cell", 1:num_cells, sep = "-")
 seurat_obj <-
   CreateSeuratObject(counts = raw_counts, project = "Manual")
 seurat_obj[["ADT"]] <-
-  CreateAssay5Object(counts = adt_counts, assay = "ADT", project = "Manual")
+  CreateAssay5Object(counts = adt_counts)
 
 # add metadata
 seurat_obj$cell_id <- Cells(seurat_obj)
