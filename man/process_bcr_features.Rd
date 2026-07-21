@@ -4,11 +4,36 @@
 \alias{process_bcr_features}
 \title{Process BCR features for integration}
 \usage{
-process_bcr_features(bcr_features, verbose = TRUE)
+process_bcr_features(
+  bcr_features,
+  scaling = c("z_score", "scale", "center", "range", "none"),
+  scale_dummies = TRUE,
+  remove_nzv = FALSE,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{bcr_features}{A data frame containing BCR features (e.g. isotype, mutation
 frequency). May contain ordered factors, numeric, or categorical variables.}
+
+\item{scaling}{Character string specifying how to scale numeric predictors.
+One of:
+\itemize{
+\item \code{"z_score"} (default): center to mean = 0 and scale to sd = 1 (z-score).
+\item \code{"scale"}: scale to sd = 1 without centering.
+\item \code{"center"}: center to mean = 0 without scaling.
+\item \code{"range"}: min-max normalization to [0, 1].
+\item \code{"none"}: no scaling applied.
+}}
+
+\item{scale_dummies}{Logical. If \code{TRUE} (default), scaling is also applied to
+one-hot encoded dummy variables. If \code{FALSE}, scaling is applied before
+\code{step_dummy()} so that dummy columns are left on their original 0/1 scale.}
+
+\item{remove_nzv}{Logical. If \code{TRUE}, near-zero-variance predictors (as defined
+by \code{recipes::step_nzv()}) are dropped in addition to exact zero-variance ones.
+Off by default since it can remove rare-but-informative categories (e.g. a
+rare isotype).}
 
 \item{verbose}{Logical indicating whether or not to print messages.}
 }
@@ -18,7 +43,7 @@ A transposed matrix of processed features where:
 \item Ordered variables are converted to numeric scores and suffixed with "-ordered"
 \item Numeric variables are suffixed with "-scaled"
 \item Categorical variables are one-hot encoded (all categories kept)
-\item All numeric predictors are normalized to mean = 0 and sd = 1
+\item All numeric predictors are scaled according to \code{scaling}
 \item Underscores are removed from feature names (so Seurat doesn't throw a warning)
 }
 }
@@ -32,7 +57,8 @@ Uses \code{recipes} to:
 \enumerate{
 \item Rename columns to distinguish from existing metadata
 \item Convert ordered factors to ordinal scores OR one-hot encode categorical variables
-\item Center and normalize all numeric predictors
+\item Scale all numeric predictors according to \code{scaling}
+\item Optionally remove near-zero-variance predictors
 \item Transpose the result for compatibility with Seurat assays
 You could do something like janitor::clean_names(bcr_features) to remove the underscores from the column names right off the bat, but one-hot encoding will add names with underscores automatically unless you messing with the \code{naming} argument in \code{step_dummy()}.
 }

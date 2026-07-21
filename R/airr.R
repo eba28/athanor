@@ -616,67 +616,148 @@ heavy chain{?s} with {.code NA} c_calls.")
 #' @details Uses `recipes` to:
 #'   1. Rename columns to distinguish from existing metadata
 #'   2. Convert ordered factors to ordinal scores OR one-hot encode categorical variables
-#'   3. Center and normalize all numeric predictors
-#'   4. Transpose the result for compatibility with Seurat assays
+#'   3. Scale all numeric predictors according to `scaling`
+#'   4. Optionally remove near-zero-variance predictors
+#'   5. Transpose the result for compatibility with Seurat assays
 #'  You could do something like janitor::clean_names(bcr_features) to remove the underscores from the column names right off the bat, but one-hot encoding will add names with underscores automatically unless you messing with the `naming` argument in `step_dummy()`.
 #'
 #' @param bcr_features A data frame containing BCR features (e.g. isotype, mutation
 #'   frequency). May contain ordered factors, numeric, or categorical variables.
+#' @param scaling Character string specifying how to scale numeric predictors.
+#'   One of:
+#'   - `"z_score"` (default): center to mean = 0 and scale to sd = 1 (z-score).
+#'   - `"scale"`: scale to sd = 1 without centering.
+#'   - `"center"`: center to mean = 0 without scaling.
+#'   - `"range"`: min-max normalization to \[0, 1\].
+#'   - `"none"`: no scaling applied.
+#' @param scale_dummies Logical. If `TRUE` (default), scaling is also applied to
+#'   one-hot encoded dummy variables. If `FALSE`, scaling is applied before
+#'   `step_dummy()` so that dummy columns are left on their original 0/1 scale.
+#' @param remove_nzv Logical. If `TRUE`, near-zero-variance predictors (as defined
+#'   by `recipes::step_nzv()`) are dropped in addition to exact zero-variance ones.
+#'   Off by default since it can remove rare-but-informative categories (e.g. a
+#'   rare isotype).
 #' @param verbose Logical indicating whether or not to print messages.
 #'
 #' @return A transposed matrix of processed features where:
 #'   - Ordered variables are converted to numeric scores and suffixed with "-ordered"
 #'   - Numeric variables are suffixed with "-scaled"
 #'   - Categorical variables are one-hot encoded (all categories kept)
-#'   - All numeric predictors are normalized to mean = 0 and sd = 1
+#'   - All numeric predictors are scaled according to `scaling`
 #'   - Underscores are removed from feature names (so Seurat doesn't throw a warning)
+#' @importFrom recipes step_scale step_center step_range step_nzv
 #' @export
-process_bcr_features <- function(bcr_features, verbose = TRUE) {
+process_bcr_features <- function(bcr_features,
+                                 scaling = c("z_score", "scale", "center",
+                                             "range", "none"),
+                                 scale_dummies = TRUE, remove_nzv = FALSE,
+                                 verbose = TRUE) {
+  scaling <- match.arg(scaling)
   has_ordered <- any(sapply(bcr_features, is.ordered))
 
-  # rename numeric columns
+  # capture the "before" shape for the verbose summary further down, since
+  # bcr_features gets renamed/reshaped repeatedly from here on
+  n_features_in <- ncol(bcr_features)
+  n_cells_in <- nrow(bcr_features)
+
+  # rename numeric columns so they're distinguishable from the "-ordered" and
+  # one-hot encoded columns downstream. this must happen before recipe() is
+  # called below: prep() later validates the training data's column names
+  # against the names recipe() was built with, so the two have to stay in sync
   bcr_features <- bcr_features %>%
                     rename_with(~str_c(., "-scaled"), where(is.numeric))
 
-  # rename (to distinguish from existing metadata) and convert the columns
+  # build the start of the recipe, optionally converting ordered factors to
+  # numeric ordinal scores
   if (has_ordered) {
     if (verbose) cli::cli_inform(c("i" = "Ordered variables detected: converting with ordinal scoring"))
     bcr_features <- bcr_features %>%
                       rename_with(~str_c(., "-ordered"), where(is.ordered))
-
-    # convert ordered variables to numeric; one-hot encode any remaining nominals
     ref_cell <- recipe( ~ ., data = bcr_features) %>%
-                  step_ordinalscore(all_ordered_predictors()) %>%
-                  step_unknown(all_nominal_predictors()) %>%
-                  step_dummy(all_nominal_predictors(), one_hot = TRUE)
+                  step_ordinalscore(all_ordered_predictors())
   } else {
-    if (verbose) cli::cli_inform(c("i" = "No ordered variables: applying one-hot encoding to nominal predictors"))
-
-    # one-hot encoding of categorical variables
-    ref_cell <- recipe( ~ ., data = bcr_features) %>%
-                  # cover missing values just in case
-                  step_unknown(all_nominal_predictors()) %>%
-                  step_dummy(all_nominal_predictors(), one_hot = TRUE)
+    ## Warning message:
+    ## The `x` argument of `as_tibble.matrix()` must have unique column names if `.name_repair` is omitted as of tibble 2.0.0.
+    if (verbose) cli::cli_inform(c("i" = "No ordered variables detected"))
+    ref_cell <- recipe( ~ ., data = bcr_features)
   }
+
+  # use built-in recipes functions for scaling; dispatches on the `scaling` arg
+  add_scaling_step <- function(rec, method) {
+    switch(method,
+           z_score = rec %>% step_normalize(all_numeric_predictors()),
+           scale = rec %>% step_scale(all_numeric_predictors()),
+           center = rec %>% step_center(all_numeric_predictors()),
+           range = rec %>% step_range(all_numeric_predictors()),
+           none = rec)
+  }
+
+  # scale original numerics first, then create dummies (which are left unscaled)
+  if (!scale_dummies) {
+    ref_cell <- ref_cell %>% step_zv(all_numeric_predictors())
+    if (remove_nzv) ref_cell <- ref_cell %>% step_nzv(all_numeric_predictors())
+    ref_cell <- add_scaling_step(ref_cell, scaling)
+  }
+
+  # step_unknown assigns a level to NA/unseen categories so step_dummy has
+  # something to one-hot encode them into, instead of erroring or dropping them
+  if (verbose) cli::cli_inform(c("i" = "Applying one-hot encoding to nominal predictors"))
+  ref_cell <- ref_cell %>%
+                step_unknown(all_nominal_predictors()) %>%
+                step_dummy(all_nominal_predictors(), one_hot = TRUE)
 
   # step_zv removes zero-variance columns (e.g. uniform "unknown" levels from step_unknown)
-  # before normalization, which would produce NaN/Inf for them
-  ref_cell <- ref_cell %>%
-                step_zv(all_numeric_predictors()) %>%
-                step_normalize(all_numeric_predictors()) %>%
-                prep(training = bcr_features)
+  # before scaling, which would produce NaN/Inf for them; by this point dummy columns
+  # are numeric too, so this call also catches one-hot columns that are all 0 or all 1
+  ref_cell <- ref_cell %>% step_zv(all_numeric_predictors())
+  # near-zero-variance predictors (e.g. a one-hot column that's almost always 0,
+  # such as a rare isotype) are only dropped if the caller opts in
+  if (remove_nzv) ref_cell <- ref_cell %>% step_nzv(all_numeric_predictors())
 
-  n_removed <- length(ref_cell$steps[[which(sapply(ref_cell$steps, \(s) inherits(s, "step_zv")))]]$removals)
-  if (n_removed > 0 && verbose) {
-    cli::cli_inform(c("i" = "Removed {n_removed} zero-variance feature{?s}"))
+  if (scale_dummies) {
+    ref_cell <- add_scaling_step(ref_cell, scaling)
   }
 
+  # prep() fits the recipe (e.g. learns means/sds, which levels exist) against
+  # the (by now renamed) input data
+  ref_cell <- ref_cell %>% prep(training = bcr_features)
+
+  # report what step_zv/step_nzv actually removed, grouped by step so the message
+  # distinguishes "exactly constant" from "near constant" removals
+  is_zv_step <- sapply(ref_cell$steps, inherits, "step_zv")
+  is_nzv_step <- sapply(ref_cell$steps, inherits, "step_nzv")
+  zv_removed <- unlist(lapply(ref_cell$steps[is_zv_step], \(s) s$removals))
+  nzv_removed <- unlist(lapply(ref_cell$steps[is_nzv_step], \(s) s$removals))
+  if (length(zv_removed) > 0 && verbose) {
+    cli::cli_inform(c("i" = "Removed {length(zv_removed)} zero-variance feature{?s}: {zv_removed}"))
+  }
+  if (length(nzv_removed) > 0 && verbose) {
+    cli::cli_inform(c("i" = "Removed {length(nzv_removed)} near-zero-variance feature{?s}: {nzv_removed}"))
+  }
+
+  # bake() applies the fitted recipe to produce the final numeric feature matrix;
+  # transpose so features are rows and cells are columns, as Seurat expects
   bcr_features <- bake(ref_cell, new_data = NULL) %>% base::t()
 
-  if (verbose) cli::cli_inform(c("v" = "Processed {nrow(bcr_features)} feature{?s} across {ncol(bcr_features)} cell{?s}"))
+  if (verbose) {
+    cli::cli_inform(c(
+      "v" = "Processed {n_features_in} input feature{?s} across {n_cells_in} cell{?s} \\
+             into {nrow(bcr_features)} output feature{?s}",
+      "i" = "Scaling method: {scaling}{if (scale_dummies) ' (applied to one-hot columns too)' else ' (one-hot columns left unscaled)'}"
+    ))
+  }
 
-  # step_dummy uses underscores for level names; Seurat requires dashes in feature names
+  # step_dummy uses underscores for level names; Seurat requires dashes in feature names.
+  # this is a blanket substitution, so two columns that only differ by "_" vs "-"
+  # (e.g. "a_b" and "a-b") would silently collide into the same row name
   rownames(bcr_features) <- gsub("_", "-", rownames(bcr_features))
+  dupes <- unique(rownames(bcr_features)[duplicated(rownames(bcr_features))])
+  if (length(dupes) > 0) {
+    cli::cli_abort(c(
+      "x" = "Feature name collision after replacing underscores with dashes: {dupes}",
+      "i" = "Rename the offending column(s) in {.arg bcr_features} before calling this function."
+    ))
+  }
 
   return(bcr_features)
 }

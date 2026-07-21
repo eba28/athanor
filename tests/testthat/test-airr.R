@@ -515,3 +515,41 @@ test_that("process_bcr_features drops zero-variance features", {
 
   expect_false(any(grepl("constant", rownames(result))))
 })
+
+test_that("process_bcr_features works with non-default scaling methods", {
+  # step_scale/step_center/step_range weren't imported from recipes, so these
+  # previously failed with "could not find function" at runtime
+  df <- data.frame(mu_freq = c(1, 2, 3, 4, 5))
+
+  expect_no_error(suppressMessages(process_bcr_features(df, scaling = "scale")))
+  expect_no_error(suppressMessages(process_bcr_features(df, scaling = "center")))
+  expect_no_error(suppressMessages(process_bcr_features(df, scaling = "range")))
+})
+
+test_that("process_bcr_features leaves rare categories in place by default", {
+  # 49:1 majority:minority ratio for isotype - skewed enough to trip step_nzv's
+  # default frequency cutoff, but should survive since remove_nzv is off
+  df <- data.frame(mu_freq = seq(0.01, 0.99, length.out = 50),
+                   isotype = c(rep("IgG", 49), "IgM"))
+  result <- suppressMessages(process_bcr_features(df, remove_nzv = FALSE))
+
+  expect_true(any(grepl("IgM", rownames(result))))
+})
+
+test_that("process_bcr_features removes near-zero-variance features when remove_nzv = TRUE", {
+  df <- data.frame(mu_freq = seq(0.01, 0.99, length.out = 50),
+                   isotype = c(rep("IgG", 49), "IgM"))
+  result <- suppressMessages(process_bcr_features(df, remove_nzv = TRUE))
+
+  expect_false(any(grepl("IgM", rownames(result))))
+})
+
+test_that("process_bcr_features errors on feature name collisions", {
+  # "a_b" and "a-b" both resolve to "a-b-<level>" once underscores are
+  # replaced with dashes, so this must be caught rather than silently merged
+  df <- data.frame(`a_b` = c("x", "y", "x", "y"),
+                   `a-b` = c("x", "y", "x", "y"),
+                   check.names = FALSE)
+
+  expect_error(suppressMessages(process_bcr_features(df)), "collision")
+})
