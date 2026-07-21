@@ -16,7 +16,7 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE,
                       warning = FALSE, dpi = 300, fig.align = "center",
-                      out.width = "100%")
+                      out.width = "100%", eval = FALSE, echo = TRUE)
 ```
 
 This vignette walks through the same `athanor` pipeline as `vignette("main_pipeline")`,
@@ -397,9 +397,10 @@ feature columns (rather than embeddings) into a new `RNA_BCR` assay.
 
 ```{r concatenate-features}
 obj_cat_feat <- concatenate_gex_bcr(seurat_obj = obj, stage = "reduced_gex",
+                                    input_type = "features",
                                     cols_to_include =
                                       c("cdr3_aa_length", "isotype", "mu_freq"),
-                                    normalize = TRUE, num_dims = num_dims)
+                                    num_dims = num_dims)
 
 names(obj_cat_feat@assays)
 names(obj_cat_feat@reductions)

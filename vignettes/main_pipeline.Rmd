@@ -316,8 +316,7 @@ gex_bcr_obj <- merge_gex_bcr(gex_obj = obj, bcr_obj = embeddings_obj,
 # keep a copy so run_wnn() below starts from the same object
 obj_cat <- concatenate_gex_bcr(seurat_obj = gex_bcr_obj, stage = "reduced_both",
                                input_type = "embeddings",
-                               gex_reduction = "rpca",
-                               normalize = TRUE, num_dims = num_dims)
+                               gex_reduction = "rpca", num_dims = num_dims)
 
 # new assay and reductions
 names(obj_cat@assays)
@@ -357,9 +356,10 @@ ordered factors to ordinal scores, and one-hot encodes categoricals.
 ```{r concatenate-features}
 # keep a copy so run_wnn() below starts from the same object
 obj_cat <- concatenate_gex_bcr(seurat_obj = obj, stage = "reduced_gex",
+                               input_type = "features",
                                cols_to_include =
                                  c("cdr3_aa_length", "isotype", "mu_freq"),
-                               normalize = TRUE, num_dims = num_dims)
+                               num_dims = num_dims)
 
 # new assay and reductions
 names(obj_cat@assays)

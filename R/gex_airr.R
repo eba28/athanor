@@ -818,6 +818,7 @@ concatenate_gex_bcr <- function(seurat_obj,
                                   num_pcs = num_pcs, num_dims = num_dims[1],
                                   k_param = k_param,
                                   find_var_features = FALSE,
+                                  post_scale = reweight_blocks,
                                   verbose = verbose)
   } else if (stage == "reduced_both") {
     # column-bind GEX and BCR PCA spaces
@@ -929,40 +930,40 @@ concatenate_gex_bcr <- function(seurat_obj,
     loadings <- Loadings(seurat_obj, "rna_bcr.pca")
     bcr_rows <- rownames(loadings) %in% gsub("_", ".", rownames(bcr_features))
 
-    # contribution per PC (sums to 1 across the two groups, per PC)
+    # contribution per PC (sum to 1 across the two groups for each PC)
     pc_contrib <- rowsum(loadings^2, group = ifelse(bcr_rows, "BCR", "GEX"))
     sweep(pc_contrib, 2, colSums(pc_contrib), "/")
 
     # overall contribution, weighted by each PC's variance (stdev^2)
-    stdevs <- Stdev(seurat_obj, "rna_bcr.pca")
+    stdevs <- Stdev(seurat_obj, "rna_bcr.pca")[seq_len(ncol(pc_contrib))]
     overall <- rowSums(sweep(pc_contrib, 2, stdevs^2, "*"))
 
-    if (verbose) {
-      cli::cli_inform(c("i" = "Overall contribution to the combined PCA:"))
-      cli::cli_inform(c("i" = "GEX: {round(overall['GEX'], 3)}"))
-      cli::cli_inform(c("i" = "BCR: {round(overall['BCR'], 3)}"))
-    }
-
-    # overall / sum(overall)
-
+    # for display
+    contrib_gex <- round(overall["GEX"] / sum(overall), 3)
+    contrib_bcr <- round(overall["BCR"] / sum(overall), 3)
   } else {
-    # "contribution" = each block's share of total squared magnitude (energy),
-    # which drives Euclidean distances in FindNeighbors/RunUMAP:
+    # "contribution" = each block's share of total squared magnitude which
+    # drives the Euclidean distances for FindNeighbors:
     emb <- Embeddings(seurat_obj, "rna_bcr.pca")
     n_gex_dims <- num_dims[1]
-    gex_cols <- 1:n_gex_dims # first n_gex_dims columns are GEX
+    gex_cols <- 1:n_gex_dims # first n_gex_dims columns are always GEX
     bcr_cols <- (n_gex_dims + 1):total_dims
 
+    # ≈ 0.5 if weighting is balanced
     contrib_gex <- sum(emb[, gex_cols]^2)
     contrib_bcr <- sum(emb[, bcr_cols]^2)
+    contrib_total <- contrib_gex + contrib_bcr
 
-    # ≈ 0.5 if weighting is balanced
-    if (verbose) {
-      cli::cli_inform(c("i" = "GEX contribution: {round(contrib_gex, 3)} \\
-                               ({round(contrib_gex / (contrib_gex + contrib_bcr), 3)})"))
-      cli::cli_inform(c("i" = "BCR contribution: {round(contrib_bcr, 3)} \\
-                               ({round(contrib_bcr / (contrib_gex + contrib_bcr), 3)})"))
-    }
+    # for display
+    contrib_gex <- round(contrib_gex / contrib_total, 3)
+    contrib_bcr <- round(contrib_bcr / contrib_total, 3)
+  }
+
+  # print out the per-modality contributions
+  if (verbose) {
+    cli::cli_inform(c("i" = "Overall contributions to the combined PCA:"))
+    cli::cli_inform(c("i" = "GEX: {contrib_gex}"))
+    cli::cli_inform(c("i" = "BCR: {contrib_bcr}"))
   }
 
   # final touches
