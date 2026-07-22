@@ -2,8 +2,10 @@
 
 ### Pipelines
 
-- [Main processing pipeline: GEX, concatenation, and
+- [Main processing pipeline: GEX, BCR, concatenation, and
   WNN](https://eba28.github.io/athanor/articles/main_pipeline.md):
+- [Main processing pipeline on real data: a single healthy
+  control](https://eba28.github.io/athanor/articles/real_data_pipeline.md):
 
 ### Visualization
 

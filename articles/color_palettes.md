@@ -25,7 +25,7 @@ library(Seurat)
 
 # helper to display a named color vector as a swatch strip
 # could also use colorspace::swatchplot() or scales::show_col()
-show_palette <- function(colors, title = "") {
+show_palette <- function(colors, plot_title = "") {
   if (names(colors) %>% is.null()) {
     names(colors) <- seq_along(colors)
   }
@@ -36,7 +36,7 @@ show_palette <- function(colors, title = "") {
 
   ggplot(df, aes(x = label, y = 1, fill = I(fill))) +
     geom_tile(color = "white", linewidth = 0.3) +
-    labs(title = title) +
+    labs(title = plot_title) +
     theme_void() +
     theme(plot.title = element_text(size = 9, hjust = 0.5),
           axis.text.x = element_text(size = 7, angle = 45, hjust = 1))
@@ -209,7 +209,7 @@ obj <- bin_mu_freq(obj)
 
 plot_dimplot(seurat_obj = obj, data_source = "Simulated",
              clrs_specific = named_colors$isotype, meta_col = "isotype",
-             reduc = "rna.umap", title = "Isotype", legend_label = "Isotype",
+             reduc = "rna.umap", plot_title = "Isotype", legend_label = "Isotype",
              plot_label = FALSE)
 ```
 
@@ -217,10 +217,11 @@ plot_dimplot(seurat_obj = obj, data_source = "Simulated",
 
 ``` r
 
+# plot_title = "SHM Frequency"
 plot_vln_feat(seurat_obj = obj,
               clrs_specific = named_colors$mu_freq_bins_fewer,
               feature = "mu_freq", meta_col = "mu_freq_bins_fewer",
-              title = "SHMfrequency", reduc = "rna.umap")
+              reduc = "rna.umap")
 ```
 
 ![](color_palettes_files/figure-html/vln-mufreq-1.png)

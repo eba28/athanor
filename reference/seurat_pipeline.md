@@ -25,6 +25,7 @@ seurat_pipeline(
   filter_genes,
   ensembl_version = NULL,
   cache_file = NULL,
+  post_scale = NULL,
   verbose = TRUE
 )
 ```
@@ -104,6 +105,17 @@ seurat_pipeline(
   Passed to
   [`get_airr_genes()`](https://eba28.github.io/athanor/reference/get_airr_genes.md).
   Path to a cached RDS result to use instead of querying Ensembl.
+
+- post_scale:
+
+  Optional function applied to the `scale.data` matrix after
+  [`Seurat::ScaleData()`](https://satijalab.org/seurat/reference/ScaleData.html)
+  but before
+  [`Seurat::RunPCA()`](https://satijalab.org/seurat/reference/RunPCA.html)
+  (e.g. to reweight blocks of rows relative to one another before the
+  joint PCA in
+  [`concatenate_gex_bcr()`](https://eba28.github.io/athanor/reference/concatenate_gex_bcr.md)).
+  Takes and returns a features-by-cells matrix.
 
 - verbose:
 

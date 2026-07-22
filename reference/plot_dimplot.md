@@ -13,7 +13,7 @@ plot_dimplot(
   clrs_specific,
   use_hues = FALSE,
   pt_size = 0.2,
-  title,
+  plot_title,
   reduc = "rna.umap",
   meta_col = "annotated_clusters",
   highlight,
@@ -55,7 +55,7 @@ plot_dimplot(
 
   The point size.
 
-- title:
+- plot_title:
 
   The plot title.
 

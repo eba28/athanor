@@ -211,8 +211,8 @@ Simulate GEX and AIRR data.
 - [`run_wnn_sims()`](https://eba28.github.io/athanor/reference/run_wnn_sims.md)
   : Run manual WNN simulations by varying a specific variable while
   keeping others constant
-- [`sim_bcr_manual()`](https://eba28.github.io/athanor/reference/sim_bcr_manual.md)
-  : Simulate an assay made from BCR embeddings independent of any GEX
+- [`sim_airr_manual()`](https://eba28.github.io/athanor/reference/sim_airr_manual.md)
+  : Simulate an assay made from AIRR embeddings independent of any GEX
   object
 - [`sim_gex_manual()`](https://eba28.github.io/athanor/reference/sim_gex_manual.md)
   : Manually simulate gene expression data

@@ -16,7 +16,6 @@ plot_vln_feat(
   seurat_obj,
   clrs_specific,
   feature,
-  title = "RNA",
   reduc = "umap",
   meta_col = NULL,
   rotate = FALSE,
@@ -37,10 +36,6 @@ plot_vln_feat(
 - feature:
 
   The feature of interest.
-
-- title:
-
-  The title for the plots.
 
 - reduc:
 

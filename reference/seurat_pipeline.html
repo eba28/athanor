@@ -26,7 +26,8 @@ from variable features, and clusters. Supports any assay (e.g. "RNA",
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Pipelines</h6></li>
-    <li><a class="dropdown-item" href="../articles/main_pipeline.html">Main processing pipeline: GEX, concatenation, and WNN</a></li>
+    <li><a class="dropdown-item" href="../articles/main_pipeline.html">Main processing pipeline: GEX, BCR, concatenation, and WNN</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data_pipeline.html">Main processing pipeline on real data: a single healthy control</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Visualization</h6></li>
     <li><a class="dropdown-item" href="../articles/color_palettes.html">Color palettes in athanor</a></li>
@@ -74,6 +75,7 @@ from variable features, and clusters. Supports any assay (e.g. <code>"RNA"</code
 <span>  <span class="va">filter_genes</span>,</span>
 <span>  ensembl_version <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cache_file <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  post_scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -149,6 +151,13 @@ scaling. Set to <code>FALSE</code> if variable features are already set on the a
 <dd><p>Passed to <code><a href="get_airr_genes.html">get_airr_genes()</a></code>. Path to a cached RDS result to use instead of querying Ensembl.</p></dd>
 
 
+<dt id="arg-post-scale">post_scale<a class="anchor" aria-label="anchor" href="#arg-post-scale"></a></dt>
+<dd><p>Optional function applied to the <code>scale.data</code> matrix after
+<code><a href="https://satijalab.org/seurat/reference/ScaleData.html" class="external-link">Seurat::ScaleData()</a></code> but before <code><a href="https://satijalab.org/seurat/reference/RunPCA.html" class="external-link">Seurat::RunPCA()</a></code> (e.g. to reweight blocks of rows
+relative to one another before the joint PCA in <code><a href="concatenate_gex_bcr.html">concatenate_gex_bcr()</a></code>).
+Takes and returns a features-by-cells matrix.</p></dd>
+
+
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
 <dd><p>Logical indicating whether or not to print messages.</p></dd>
 
@@ -174,7 +183,7 @@ the data has already been normalized.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

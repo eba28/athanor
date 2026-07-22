@@ -103,7 +103,7 @@ The simplest call colors cells by `seurat_clusters` (the default
 
 # could also just use umap
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
-             title = "GEX", reduc = "rna.umap")
+             plot_title = "GEX", reduc = "rna.umap")
 ```
 
 ![](plot_dimplot_files/figure-html/gex-clusters-1.png)
@@ -113,7 +113,7 @@ To suppress labels and the legend:
 ``` r
 
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
-             title = "GEX", reduc = "rna.umap",
+             plot_title = "GEX", reduc = "rna.umap",
              plot_label = FALSE, include_legend = FALSE)
 ```
 
@@ -127,7 +127,7 @@ Sort the cell type levels alphabetically.
 
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
              clrs_specific = named_colors$cell_types_celltypist,
-             title = "GEX", reduc = "rna.umap",
+             plot_title = "GEX", reduc = "rna.umap",
              meta_col = "annotated_clusters", plot_label = FALSE)
 ```
 
@@ -141,7 +141,7 @@ of a grey background.
 ``` r
 
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
-             title = "GEX", reduc = "rna.umap",
+             plot_title = "GEX", reduc = "rna.umap",
              meta_col = "annotated_clusters",
              highlight = c("Naive B cells", "Plasma cells"))
 ```
@@ -168,7 +168,7 @@ named_clrs$cdr3 <- c(Short = "#482778", Medium = "#20938C", Long = "#C9E020")
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
              clrs_specific = named_clrs$cdr3,
              # clrs_specific = named_colors$cdr3,
-             title = "CDR3 Length", reduc = "rna.umap",
+             plot_title = "CDR3 Length", reduc = "rna.umap",
              meta_col = "cdr3_aa_length",
              plot_label = FALSE, legend_label = "CDR3 Length")
 ```
@@ -182,7 +182,7 @@ plot_dimplot(seurat_obj = obj, data_source = data_desc,
 # uses colors defined in the alakazam package
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
              clrs_specific = named_colors$isotype,
-             title = "Isotype", reduc = "rna.umap",
+             plot_title = "Isotype", reduc = "rna.umap",
              meta_col = "isotype",
              plot_label = FALSE, legend_label = "Isotype")
 ```
@@ -199,7 +199,7 @@ You could also use a `FeaturePlot` to see the actual values.
 # be careful with the order
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
              clrs_specific = named_colors$mu_freq_bins,
-             title = "SHM Frequency", reduc = "rna.umap",
+             plot_title = "SHM Frequency", reduc = "rna.umap",
              meta_col = "mu_freq_bins", plot_label = FALSE,
              legend_label = "SHM Bins", sort_idents = FALSE,
              order = TRUE)
@@ -212,7 +212,7 @@ plot_dimplot(seurat_obj = obj, data_source = data_desc,
 ``` r
 
 plot_dimplot(seurat_obj = obj, data_source = data_desc,
-             title = "V Gene Family",
+             plot_title = "V Gene Family",
              clrs_specific = named_colors$v_call_family,
              meta_col = "v_call_family", plot_label = FALSE,
              legend_label = "V Gene Family", reduc = "rna.umap")
@@ -225,18 +225,18 @@ plot_dimplot(seurat_obj = obj, data_source = data_desc,
 ``` r
 
 p_iso <- plot_dimplot(obj, data_source = data_desc,
-                      title = "Isotype", reduc = "rna.umap",
+                      plot_title = "Isotype", reduc = "rna.umap",
                       clrs_specific = named_colors$isotype,
                       meta_col = "isotype",
                       plot_label = FALSE, legend_label = "Isotype")
 p_shm <- plot_dimplot(obj, data_source = data_desc,
-                      title = "SHM", reduc = "rna.umap",
+                      plot_title = "SHM", reduc = "rna.umap",
                       clrs_specific = named_colors$mu_freq_bins,
                       meta_col = "mu_freq_bins",
                       plot_label = FALSE, legend_label = "SHM Bins",
                       order = TRUE)
 p_cdr3 <- plot_dimplot(obj, data_source = data_desc,
-                       title = "CDR3 Length", reduc = "rna.umap",
+                       plot_title = "CDR3 Length", reduc = "rna.umap",
                        clrs_specific = named_clrs$cdr3,
                        meta_col = "cdr3_aa_length",
                        plot_label = FALSE, legend_label = "CDR3 Length")

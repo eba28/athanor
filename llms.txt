@@ -253,8 +253,8 @@ Simulate GEX and AIRR data.
 - [`run_wnn_sims()`](https://eba28.github.io/athanor/reference/run_wnn_sims.md)
   : Run manual WNN simulations by varying a specific variable while
   keeping others constant
-- [`sim_bcr_manual()`](https://eba28.github.io/athanor/reference/sim_bcr_manual.md)
-  : Simulate an assay made from BCR embeddings independent of any GEX
+- [`sim_airr_manual()`](https://eba28.github.io/athanor/reference/sim_airr_manual.md)
+  : Simulate an assay made from AIRR embeddings independent of any GEX
   object
 - [`sim_gex_manual()`](https://eba28.github.io/athanor/reference/sim_gex_manual.md)
   : Manually simulate gene expression data
@@ -298,8 +298,10 @@ Utilities for various tasks.
 
 ### Pipelines
 
-- [Main processing pipeline: GEX, concatenation, and
+- [Main processing pipeline: GEX, BCR, concatenation, and
   WNN](https://eba28.github.io/athanor/articles/main_pipeline.md):
+- [Main processing pipeline on real data: a single healthy
+  control](https://eba28.github.io/athanor/articles/real_data_pipeline.md):
 
 ### Visualization
 

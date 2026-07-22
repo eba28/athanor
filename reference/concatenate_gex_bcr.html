@@ -24,7 +24,8 @@ Supports two input types and two PCA stages (see Details)."></head><body>
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Pipelines</h6></li>
-    <li><a class="dropdown-item" href="../articles/main_pipeline.html">Main processing pipeline: GEX, concatenation, and WNN</a></li>
+    <li><a class="dropdown-item" href="../articles/main_pipeline.html">Main processing pipeline: GEX, BCR, concatenation, and WNN</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data_pipeline.html">Main processing pipeline on real data: a single healthy control</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Visualization</h6></li>
     <li><a class="dropdown-item" href="../articles/color_palettes.html">Color palettes in athanor</a></li>
@@ -57,19 +58,19 @@ Supports two input types and two PCA stages (see Details).</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">concatenate_gex_bcr</span><span class="op">(</span></span>
 <span>  <span class="va">seurat_obj</span>,</span>
-<span>  pca_stage <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"raw"</span>, <span class="st">"reduced"</span>, <span class="st">"embed"</span><span class="op">)</span>,</span>
-<span>  input_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"features"</span>, <span class="st">"embeddings"</span><span class="op">)</span>,</span>
+<span>  stage <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"raw"</span>, <span class="st">"reduced_gex"</span>, <span class="st">"reduced_both"</span><span class="op">)</span>,</span>
+<span>  input_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"embeddings"</span>, <span class="st">"features"</span><span class="op">)</span>,</span>
 <span>  <span class="va">cols_to_include</span>,</span>
 <span>  embeddings <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  gex_reduction <span class="op">=</span> <span class="st">"rpca"</span>,</span>
 <span>  <span class="va">filter_genes</span>,</span>
 <span>  ensembl_version <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cache_file <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  normalize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  num_features <span class="op">=</span> <span class="fl">2000</span>,</span>
 <span>  num_pcs <span class="op">=</span> <span class="fl">50</span>,</span>
-<span>  num_dims <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>  num_dims <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">20</span><span class="op">)</span>,</span>
 <span>  k_param <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>  gex_weight <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -82,11 +83,11 @@ Supports two input types and two PCA stages (see Details).</p>
 <dd><p>A Seurat object with RNA assay and BCR metadata.</p></dd>
 
 
-<dt id="arg-pca-stage">pca_stage<a class="anchor" aria-label="anchor" href="#arg-pca-stage"></a></dt>
-<dd><p>One of <code>"raw"</code>, <code>"reduced"</code>, or <code>"embed"</code>. <code>"raw"</code>
+<dt id="arg-stage">stage<a class="anchor" aria-label="anchor" href="#arg-stage"></a></dt>
+<dd><p>One of <code>"raw"</code>, <code>"reduced_gex"</code>, or <code>"reduced_both"</code>. <code>"raw"</code>
 concatenates at the count/feature level and runs a joint PCA from scratch.
-<code>"reduced"</code> appends BCR features onto transposed GEX PCA embeddings and
-runs a joint PCA. <code>"embed"</code> column-binds existing GEX and BCR PCA spaces
+<code>"reduced_gex"</code> appends BCR features onto transposed GEX PCA embeddings and
+runs a joint PCA. <code>"reduced_both"</code> column-binds existing GEX and BCR PCA spaces
 directly. See Details for all combinations.</p></dd>
 
 
@@ -109,14 +110,14 @@ as features (e.g. <code>c("mu_freq", "isotype")</code>). Required for
 
 <dt id="arg-gex-reduction">gex_reduction<a class="anchor" aria-label="anchor" href="#arg-gex-reduction"></a></dt>
 <dd><p>Name of the GEX PCA reduction to use as the GEX
-component for <code>pca_stage = "reduced"</code> and <code>pca_stage = "embed"</code>. Defaults
+component for <code>stage = "reduced_gex"</code> and <code>stage = "reduced_both"</code>. Defaults
 to <code>"rpca"</code>. Use <code>"integrated"</code> to use a batch-corrected reduction (e.g.
 from Harmony).</p></dd>
 
 
 <dt id="arg-filter-genes">filter_genes<a class="anchor" aria-label="anchor" href="#arg-filter-genes"></a></dt>
 <dd><p>If specified, filter out genes from this category
-(e.g. <code>"IG"</code> and/or <code>"TR"</code>). Only applies for <code>pca_stage = "raw"</code>.</p></dd>
+(e.g. <code>"IG"</code> and/or <code>"TR"</code>). Only applies for <code>stage = "raw"</code>.</p></dd>
 
 
 <dt id="arg-ensembl-version">ensembl_version<a class="anchor" aria-label="anchor" href="#arg-ensembl-version"></a></dt>
@@ -130,14 +131,8 @@ from Harmony).</p></dd>
 to use instead of querying Ensembl live.</p></dd>
 
 
-<dt id="arg-normalize">normalize<a class="anchor" aria-label="anchor" href="#arg-normalize"></a></dt>
-<dd><p>If <code>TRUE</code>, normalize the <code>RNA_BCR</code> assay before scaling.
-Set to <code>FALSE</code> if the data has already been normalized. Ignored for
-<code>pca_stage = "reduced"</code> (GEX PCs do not need normalization).</p></dd>
-
-
 <dt id="arg-num-features">num_features<a class="anchor" aria-label="anchor" href="#arg-num-features"></a></dt>
-<dd><p>Number of variable features for the <code>"Before"</code> paths.</p></dd>
+<dd><p>Number of variable features for the <code>"raw"</code> stage.</p></dd>
 
 
 <dt id="arg-num-pcs">num_pcs<a class="anchor" aria-label="anchor" href="#arg-num-pcs"></a></dt>
@@ -145,13 +140,21 @@ Set to <code>FALSE</code> if the data has already been normalized. Ignored for
 
 
 <dt id="arg-num-dims">num_dims<a class="anchor" aria-label="anchor" href="#arg-num-dims"></a></dt>
-<dd><p>Number of PCA dimensions to use for neighbor finding. For
-<code>"After"</code> and <code>"Before_PCs"</code>, also controls how many GEX PCs are taken
-from <code>rpca</code> before concatenation.</p></dd>
+<dd><p>Number of PCA dimensions to use for neighbor finding, where
+the first integer corresponds to the number of GEX PCs and the second
+integer corresponds to the number of BCR PCs. If only one integer is
+provided, it is used for both modalities. For the approaches that do not
+use the BCR PCA, only the first integer is used.</p></dd>
 
 
 <dt id="arg-k-param">k_param<a class="anchor" aria-label="anchor" href="#arg-k-param"></a></dt>
 <dd><p>Number of nearest neighbors.</p></dd>
+
+
+<dt id="arg-gex-weight">gex_weight<a class="anchor" aria-label="anchor" href="#arg-gex-weight"></a></dt>
+<dd><p>Weighting factor for GEX vs BCR when computing neighbors.
+The BCR weight will be equal to 1 - gex_weight.
+Applies for <code>stage = "reduced_gex"</code> and <code>stage = "reduced_both"</code>.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
@@ -160,36 +163,39 @@ from <code>rpca</code> before concatenation.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A Seurat object with:</p><ul><li><p>New <code>RNA_BCR</code> assay (for <code>pca_stage = "Before"</code>)</p></li>
+    <p>A Seurat object with the following added:</p><ul><li><p>New <code>RNA_BCR</code> assay</p></li>
+<li><p>Neighbor graphs computed on the combined data</p></li>
 <li><p>PCA reduction (<code>rna_bcr.pca</code>)</p></li>
 <li><p>UMAP reduction (<code>rna_bcr.umap</code>)</p></li>
-<li><p>Neighbor graphs computed on the combined data</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>This would typically be used after <code><a href="seurat_pipeline.html">seurat_pipeline()</a></code> and <code><a href="gex_add_airr.html">gex_add_airr()</a></code>.</p>
-<p>The six combinations of <code>input_type</code> and <code>pca_stage</code> offer different
-tradeoffs:</p>
-<p><strong><code>input_type = "embeddings"</code>, <code>pca_stage = "raw"</code></strong> <br>
+<p>Input BCR data should already be normalized as needed; running <code><a href="https://satijalab.org/seurat/reference/NormalizeData.html" class="external-link">Seurat::NormalizeData()</a></code> is not appropriate for non-counts data.</p>
+<p>Note that the <code>reduced_both</code> stage will only use the GEX and BCR PCs specified, not all of the PCs available.
+We also chose not to do PCA again once the data was combined as it doesn't make sense to do PCA on PCA.</p>
+<p>The six combinations of <code>input_type</code> and <code>stage</code> offer different
+trade-offs:</p>
+<p><strong><code>input_type = "embeddings"</code>, <code>stage = "raw"</code></strong> <br>
 Same as above but BCR data comes from a pre-computed embedding matrix or the
 <code>BCR</code> assay of a merged object (from <code><a href="merge_gex_bcr.html">merge_gex_bcr()</a></code>). Supply <code>embeddings</code>
 directly or pass a merged object and the BCR assay is detected automatically.
 Embedding dimensions tend to have more comparable scales to RNA features than
 raw metadata columns, but scale mismatch still applies.</p>
-<p><strong><code>input_type = "features"</code>, <code>pca_stage = "raw"</code></strong> (default) <br>
+<p><strong><code>input_type = "features"</code>, <code>stage = "raw"</code></strong> (default) <br>
 BCR metadata columns (via <code>cols_to_include</code>) are processed by
 <code><a href="process_bcr_features.html">process_bcr_features()</a></code> into a numeric features-by-cells matrix and
 row-bound onto the RNA count/data matrix. A new <code>RNA_BCR</code> assay is created
-and the full Seurat pipeline (normalize, scale, PCA, neighbors, UMAP) is run
+and the full Seurat pipeline (scaling, PCA, neighbor detection, UMAP) is run
 from scratch on the combined data. The main limitation is scale mismatch:
 log-normalized RNA values and BCR metadata live in different ranges, so PCA
 may be dominated by whichever modality has higher total variance even after
 scaling.</p>
-<p><strong><code>input_type = "embeddings"</code>, <code>pca_stage = "reduced"</code></strong> <br>
+<p><strong><code>input_type = "embeddings"</code>, <code>stage = "reduced_gex"</code></strong> <br>
 Same as the features variant above but uses BCR embeddings instead of
 metadata columns. BCR embedding dimensions are appended to transposed GEX PCA
 embeddings and a joint PCA is run on the combined matrix.</p>
-<p><strong><code>input_type = "features"</code>, <code>pca_stage = "reduced"</code></strong> <br>
+<p><strong><code>input_type = "features"</code>, <code>stage = "reduced_gex"</code></strong> <br>
 A middle ground between <code>"raw"</code> and <code>"embed"</code>. Instead of row-binding BCR
 features onto the raw RNA matrix, they are appended to the transposed GEX PCA
 embeddings (<code>rpca</code>, subset to <code>num_dims</code> PCs). The combined matrix
@@ -198,13 +204,13 @@ scaled, and a joint PCA is run. This avoids the scale mismatch of <code>"raw"</c
 (GEX PCs and BCR metadata are in more comparable ranges) while still
 performing a new projection that can mix the two modalities. Normalization is
 skipped since GEX PCs are already processed. <code>filter_genes</code> does not apply.</p>
-<p><strong><code>input_type = "embeddings"</code>, <code>pca_stage = "embed"</code></strong> <br>
+<p><strong><code>input_type = "embeddings"</code>, <code>stage = "reduced_both"</code></strong> <br>
 Column-binds the existing <code>rpca</code> and <code>bpca</code> reductions directly. Requires a
 merged object from <code><a href="merge_gex_bcr.html">merge_gex_bcr()</a></code> with both reductions already computed.
 This is the most efficient path when BCR embeddings are already available.
-As with the features "embed" path, <code>num_dims</code> controls how many PCs are taken
+As with the features "reduced_both" path, <code>num_dims</code> controls how many PCs are taken
 from each reduction before joining.</p>
-<p><strong><code>input_type = "features"</code>, <code>pca_stage = "embed"</code></strong> <br>
+<p><strong><code>input_type = "features"</code>, <code>stage = "reduced_both"</code></strong> <br>
 BCR metadata features are first embedded into their own PCA space: a
 <code>BCR</code> assay is created, scaled, and PCA is run to produce <code>bpca</code>
 (capped at <code>nrow(bcr_features) - 1</code> PCs). The resulting BCR PCA embeddings
@@ -213,14 +219,14 @@ space. This is more principled than <code>"raw"</code> for metadata features bec
 both modalities are in comparable PCA spaces before being joined, and each
 modality's internal variance structure is preserved. Use <code>num_dims</code> to
 control how many PCs are taken from each side.</p>
-<p>For the <code>"raw"</code> and <code>"reduced"</code> paths, variable features are always set by
+<p>For the <code>"raw"</code> and <code>"reduced_gex"</code> paths, variable features are always set by
 appending BCR features onto the existing RNA variable features rather than
 re-running <code><a href="https://satijalab.org/seurat/reference/FindVariableFeatures.html" class="external-link">Seurat::FindVariableFeatures()</a></code>. Re-running would drop BCR features from
 the selection and trigger Seurat warnings about underscores in feature names
 and missing count layers.</p>
-<p>The <code>normalize</code>, <code>num_features</code>, <code>num_pcs</code>, <code>num_dims</code>, and <code>k_param</code>
-arguments are passed to <code><a href="seurat_pipeline.html">seurat_pipeline()</a></code> for the <code>"raw"</code> and <code>"reduced"</code>
-paths. For <code>"reduced"</code> and <code>"embed"</code>, <code>num_dims</code> additionally controls how
+<p>The <code>num_features</code>, <code>num_pcs</code>, <code>num_dims</code>, and <code>k_param</code>
+arguments are passed to <code><a href="seurat_pipeline.html">seurat_pipeline()</a></code> for the <code>"raw"</code> and <code>"reduced_gex"</code>
+paths. For <code>"reduced_gex"</code> and <code>"reduced_both"</code>, <code>num_dims</code> additionally controls how
 many GEX PCs are taken from <code>rpca</code> before concatenation.</p>
     </div>
 
@@ -233,7 +239,7 @@ many GEX PCs are taken from <code>rpca</code> before concatenation.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

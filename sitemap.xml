@@ -5,6 +5,7 @@
 <url><loc>https://eba28.github.io/athanor/articles/index.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/articles/main_pipeline.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/articles/plot_dimplot.html</loc></url>
+<url><loc>https://eba28.github.io/athanor/articles/real_data_pipeline.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/authors.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/index.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/news/index.html</loc></url>
@@ -72,7 +73,7 @@
 <url><loc>https://eba28.github.io/athanor/reference/run_wnn.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/run_wnn_sims.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/seurat_pipeline.html</loc></url>
-<url><loc>https://eba28.github.io/athanor/reference/sim_bcr_manual.html</loc></url>
+<url><loc>https://eba28.github.io/athanor/reference/sim_airr_manual.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/sim_gex_manual.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/sim_gex_splatter.html</loc></url>
 <url><loc>https://eba28.github.io/athanor/reference/theme_bw_custom.html</loc></url>

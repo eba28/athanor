@@ -1,11 +1,12 @@
 pandoc: 3.8.3
-pkgdown: 2.2.0
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   color_palettes: color_palettes.html
   main_pipeline: main_pipeline.html
   plot_dimplot: plot_dimplot.html
-last_built: 2026-06-24T21:06Z
+  real_data_pipeline: real_data_pipeline.html
+last_built: 2026-07-22T13:58Z
 urls:
   reference: https://eba28.github.io/athanor/reference
   article: https://eba28.github.io/athanor/articles

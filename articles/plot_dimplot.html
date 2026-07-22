@@ -35,7 +35,8 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Pipelines</h6></li>
-    <li><a class="dropdown-item" href="../articles/main_pipeline.html">Main processing pipeline: GEX, concatenation, and WNN</a></li>
+    <li><a class="dropdown-item" href="../articles/main_pipeline.html">Main processing pipeline: GEX, BCR, concatenation, and WNN</a></li>
+    <li><a class="dropdown-item" href="../articles/real_data_pipeline.html">Main processing pipeline on real data: a single healthy control</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Visualization</h6></li>
     <li><a class="dropdown-item" href="../articles/color_palettes.html">Color palettes in athanor</a></li>
@@ -173,12 +174,12 @@ default <code>meta_col</code>). Passing the assay name to
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># could also just use umap</span></span>
 <span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
-<span>             title <span class="op">=</span> <span class="st">"GEX"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span><span class="op">)</span></span></code></pre></div>
+<span>             plot_title <span class="op">=</span> <span class="st">"GEX"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="plot_dimplot_files/figure-html/gex-clusters-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <p>To suppress labels and the legend:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
-<span>             title <span class="op">=</span> <span class="st">"GEX"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>             plot_title <span class="op">=</span> <span class="st">"GEX"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
 <span>             plot_label <span class="op">=</span> <span class="cn">FALSE</span>, include_legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="plot_dimplot_files/figure-html/gex-clusters-clean-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
@@ -189,7 +190,7 @@ default <code>meta_col</code>). Passing the assay name to
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
 <span>             clrs_specific <span class="op">=</span> <span class="va">named_colors</span><span class="op">$</span><span class="va">cell_types_celltypist</span>,</span>
-<span>             title <span class="op">=</span> <span class="st">"GEX"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>             plot_title <span class="op">=</span> <span class="st">"GEX"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
 <span>             meta_col <span class="op">=</span> <span class="st">"annotated_clusters"</span>, plot_label <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="plot_dimplot_files/figure-html/gex-annotations-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
@@ -200,7 +201,7 @@ default <code>meta_col</code>). Passing the assay name to
 cells on top of a grey background.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
-<span>             title <span class="op">=</span> <span class="st">"GEX"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>             plot_title <span class="op">=</span> <span class="st">"GEX"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
 <span>             meta_col <span class="op">=</span> <span class="st">"annotated_clusters"</span>,</span>
 <span>             highlight <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Naive B cells"</span>, <span class="st">"Plasma cells"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="plot_dimplot_files/figure-html/gex-highlight-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
@@ -222,7 +223,7 @@ so they are plotted exactly like any other metadata column.</p>
 <span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
 <span>             clrs_specific <span class="op">=</span> <span class="va">named_clrs</span><span class="op">$</span><span class="va">cdr3</span>,</span>
 <span>             <span class="co"># clrs_specific = named_colors$cdr3,</span></span>
-<span>             title <span class="op">=</span> <span class="st">"CDR3 Length"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>             plot_title <span class="op">=</span> <span class="st">"CDR3 Length"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
 <span>             meta_col <span class="op">=</span> <span class="st">"cdr3_aa_length"</span>,</span>
 <span>             plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"CDR3 Length"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="plot_dimplot_files/figure-html/bcr-cdr3-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
@@ -234,7 +235,7 @@ so they are plotted exactly like any other metadata column.</p>
 <code class="sourceCode R"><span><span class="co"># uses colors defined in the alakazam package</span></span>
 <span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
 <span>             clrs_specific <span class="op">=</span> <span class="va">named_colors</span><span class="op">$</span><span class="va">isotype</span>,</span>
-<span>             title <span class="op">=</span> <span class="st">"Isotype"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>             plot_title <span class="op">=</span> <span class="st">"Isotype"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
 <span>             meta_col <span class="op">=</span> <span class="st">"isotype"</span>,</span>
 <span>             plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"Isotype"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="plot_dimplot_files/figure-html/bcr-isotype-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
@@ -249,7 +250,7 @@ values.</p>
 <span><span class="co"># be careful with the order</span></span>
 <span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
 <span>             clrs_specific <span class="op">=</span> <span class="va">named_colors</span><span class="op">$</span><span class="va">mu_freq_bins</span>,</span>
-<span>             title <span class="op">=</span> <span class="st">"SHM Frequency"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>             plot_title <span class="op">=</span> <span class="st">"SHM Frequency"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
 <span>             meta_col <span class="op">=</span> <span class="st">"mu_freq_bins"</span>, plot_label <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>             legend_label <span class="op">=</span> <span class="st">"SHM Bins"</span>, sort_idents <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>             order <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
@@ -260,7 +261,7 @@ values.</p>
 </h3>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span>seurat_obj <span class="op">=</span> <span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
-<span>             title <span class="op">=</span> <span class="st">"V Gene Family"</span>,</span>
+<span>             plot_title <span class="op">=</span> <span class="st">"V Gene Family"</span>,</span>
 <span>             clrs_specific <span class="op">=</span> <span class="va">named_colors</span><span class="op">$</span><span class="va">v_call_family</span>,</span>
 <span>             meta_col <span class="op">=</span> <span class="st">"v_call_family"</span>, plot_label <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>             legend_label <span class="op">=</span> <span class="st">"V Gene Family"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span><span class="op">)</span></span></code></pre></div>
@@ -271,18 +272,18 @@ values.</p>
 </h3>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p_iso</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
-<span>                      title <span class="op">=</span> <span class="st">"Isotype"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>                      plot_title <span class="op">=</span> <span class="st">"Isotype"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
 <span>                      clrs_specific <span class="op">=</span> <span class="va">named_colors</span><span class="op">$</span><span class="va">isotype</span>,</span>
 <span>                      meta_col <span class="op">=</span> <span class="st">"isotype"</span>,</span>
 <span>                      plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"Isotype"</span><span class="op">)</span></span>
 <span><span class="va">p_shm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
-<span>                      title <span class="op">=</span> <span class="st">"SHM"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>                      plot_title <span class="op">=</span> <span class="st">"SHM"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
 <span>                      clrs_specific <span class="op">=</span> <span class="va">named_colors</span><span class="op">$</span><span class="va">mu_freq_bins</span>,</span>
 <span>                      meta_col <span class="op">=</span> <span class="st">"mu_freq_bins"</span>,</span>
 <span>                      plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"SHM Bins"</span>,</span>
 <span>                      order <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">p_cdr3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_dimplot.html">plot_dimplot</a></span><span class="op">(</span><span class="va">obj</span>, data_source <span class="op">=</span> <span class="va">data_desc</span>,</span>
-<span>                       title <span class="op">=</span> <span class="st">"CDR3 Length"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
+<span>                       plot_title <span class="op">=</span> <span class="st">"CDR3 Length"</span>, reduc <span class="op">=</span> <span class="st">"rna.umap"</span>,</span>
 <span>                       clrs_specific <span class="op">=</span> <span class="va">named_clrs</span><span class="op">$</span><span class="va">cdr3</span>,</span>
 <span>                       meta_col <span class="op">=</span> <span class="st">"cdr3_aa_length"</span>,</span>
 <span>                       plot_label <span class="op">=</span> <span class="cn">FALSE</span>, legend_label <span class="op">=</span> <span class="st">"CDR3 Length"</span><span class="op">)</span></span>
@@ -397,7 +398,7 @@ assay key is prepended to the feature name).</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

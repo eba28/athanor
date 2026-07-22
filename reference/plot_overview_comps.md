@@ -23,6 +23,7 @@ plot_overview_comps(
   comparisons = c("annotated_clusters_simpler", "v_call_family", "light_chains",
     "isotype", "mu_freq"),
   details_col = "embedding_type",
+  custom_colors = list(),
   ...
 )
 ```
@@ -77,6 +78,18 @@ plot_overview_comps(
   default, it will use "embedding_type" to show the type of embedding
   being plotted (e.g. "AntiBERTa2").
 
+- custom_colors:
+
+  A named list of color scales for comparisons not covered by
+  `named_colors`, keyed by comparison name (e.g.
+  `list(cdr3_bins = my_colors)`). Takes precedence over `named_colors`
+  when both define the same comparison.
+
 ## Value
 
 A patchwork object with overview plots in a grid.
+
+## Details
+
+"L %\|\|% R newly in base is an expressive idiom for the phrases
+if(!is.null(L)) L else R or if(is.null(L)) R else L." - R 4.4

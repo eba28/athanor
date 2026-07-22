@@ -42,7 +42,7 @@ whether the simulation run passed without errors (1), had warnings
 ## Details
 
 It uses both
-[`sim_bcr_manual()`](https://eba28.github.io/athanor/reference/sim_bcr_manual.md)
+[`sim_airr_manual()`](https://eba28.github.io/athanor/reference/sim_airr_manual.md)
 and
 [`sim_gex_manual()`](https://eba28.github.io/athanor/reference/sim_gex_manual.md)
 to generate the necessary data for the WNN simulations. The function
