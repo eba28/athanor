@@ -265,6 +265,10 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
 #' @param filter_genes If specified, filter out genes from this category (e.g. `"IG"` and/or `"TR"`).
 #' @param ensembl_version Ensembl version for gene annotations (e.g. `"GRCh38.104"`). If `NULL`, uses the default in [get_airr_genes()].
 #' @param cache_file Passed to [get_airr_genes()]. Path to a cached RDS result to use instead of querying Ensembl.
+#' @param post_scale Optional function applied to the `scale.data` matrix after
+#'   [ScaleData()] but before [RunPCA()] (e.g. to reweight blocks of rows
+#'   relative to one another before the joint PCA in [concatenate_gex_bcr()]).
+#'   Takes and returns a features-by-cells matrix.
 #' @param verbose Logical indicating whether or not to print messages.
 #'
 #' @returns A processed Seurat object with PCA, neighbor graphs, optional
@@ -276,7 +280,8 @@ seurat_pipeline <- function(seurat_obj, assay = "RNA", pca_name = NULL,
                             k_param = 20, normalize = TRUE,
                             find_var_features = TRUE, cluster_res = NULL,
                             filter_genes, ensembl_version = NULL,
-                            cache_file = NULL, verbose = TRUE) {
+                            cache_file = NULL, post_scale = NULL,
+                            verbose = TRUE) {
   # derive reduction and graph names from assay
   if (is.null(pca_name)) {
     pca_name <- if (assay == "RNA") "rpca" else paste0(tolower(assay), ".pca")
@@ -321,6 +326,11 @@ seurat_pipeline <- function(seurat_obj, assay = "RNA", pca_name = NULL,
     seurat_obj <- filter_variable_features(seurat_obj, filter_genes,
                                            ensembl_version = ensembl_version,
                                            cache_file = cache_file)
+  }
+
+  if (!is.null(post_scale)) {
+    scale_data <- Seurat::GetAssayData(seurat_obj, assay = assay, layer = "scale.data")
+    LayerData(seurat_obj, assay = assay, layer = "scale.data") <- post_scale(scale_data)
   }
 
   # irlba throws a warning to "use a standard svd instead" when requesting more

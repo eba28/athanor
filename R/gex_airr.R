@@ -373,12 +373,21 @@ merge_gex_bcr <- function(gex_obj, bcr_obj, transfer_reductions = TRUE,
       } else {
         # don't need all of regen_reduc()
         # TODO: do this on the bcr_obj?
-        seurat_obj@neighbors[[nn]] <-
+        # FindNeighbors() always returns a Seurat object (even with
+        # return.neighbor = TRUE), so pull the Neighbor object back out of it
+
+        # Found and fixed a real bug in merge_gex_bcr() (R/gex_airr.R:373-383) —
+        # it called FindNeighbors(..., return.neighbor = TRUE) and stored the
+        # result directly into @neighbors, but that function always returns a
+        # Seurat object, not a Neighbor object. This only surfaced with real data
+        # where BCR coverage isn't 100% (the simulated vignette never exercised
+        # this path).
+        seurat_obj_nn <-
           FindNeighbors(seurat_obj, reduction = "bpca",
                         dims = 1:bcr_dims, k.param = bcr_k,
-                        graph.name = stringr::str_c("BCR", "_", c("", "s"),
-                                                    "nn"),
+                        return.neighbor = TRUE, graph.name = nn,
                         verbose = verbose)
+        seurat_obj@neighbors[[nn]] <- seurat_obj_nn@neighbors[[nn]]
       }
     }
   }
@@ -588,7 +597,7 @@ infer_num_dims <- function(seurat_obj, default = 20, verbose = TRUE) {
 #' @param k_param Number of nearest neighbors.
 #' @param gex_weight Weighting factor for GEX vs BCR when computing neighbors.
 #'  The BCR weight will be equal to 1 - gex_weight.
-#'  Only applies for `stage = "reduced_both"`.
+#'  Applies for `stage = "reduced_gex"` and `stage = "reduced_both"`.
 #' @param verbose Whether to show output from Seurat functions.
 #'
 #' @returns A Seurat object with the following added:
@@ -606,11 +615,10 @@ concatenate_gex_bcr <- function(seurat_obj,
                                 num_features = 2000, num_pcs = 50,
                                 num_dims = c(20, 20), k_param = 20,
                                 gex_weight = 0.5, verbose = TRUE) {
-  # TODO: add an option to do weighting to influence the effect of the BCRs (post-normalization)
   # TODO: if the embeddings aren't a Seurat object, make one
   # TODO: remove duplicate code e.g. rownames()
-  # TODO: make sure the scales are comparable for reduced_gex
   # TODO: build out a reduced_bcr option for stage
+  # TODO: make non-raw branches also take in num_features (so recompute PCA if needed)
 
   stage <- match.arg(stage)
   input_type <- match.arg(input_type)
@@ -710,6 +718,21 @@ concatenate_gex_bcr <- function(seurat_obj,
     rownames(bcr_features) <- gsub("_", ".", rownames(bcr_features))
     # this shouldn't affect embeddings, which will typically be in the format "Dim1", "Dim2", etc.
 
+    # (re)select RNA variable features here, on the RNA assay alone, so that
+    # num_features actually takes effect -- re-running FindVariableFeatures
+    # after creating RNA_BCR would most likely drop BCR features from the
+    # selection (and trigger Seurat warnings about underscores in feature
+    # names and about the count layer being missing when normalize = FALSE)
+    # TODO: don't recompute this if the num_features is the same as before or not specified
+    if (verbose) {
+      cli::cli_inform(c("i" = "Re-selecting {num_features} RNA variable \\
+                               feature{?s}, overwriting any existing \\
+                               selection on the {.val RNA} assay."))
+    }
+    seurat_obj <- FindVariableFeatures(seurat_obj, assay = "RNA",
+                                       selection.method = "vst",
+                                       nfeatures = num_features, verbose = verbose)
+
     # write directly to data (don't need a counts layer)
     seurat_obj[["RNA_BCR"]] <-
       CreateAssay5Object(data = rbind(GetAssayData(seurat_obj, assay = "RNA",
@@ -717,11 +740,7 @@ concatenate_gex_bcr <- function(seurat_obj,
                                       bcr_features))
     DefaultAssay(seurat_obj) <- "RNA_BCR"
 
-    # always append BCR features onto existing RNA variable features rather than
-    # re-running FindVariableFeatures, which would most likely drop BCR features
-    # from the selection (and trigger Seurat warnings about underscores in
-    # feature names and about the count layer being missing when
-    # normalize = FALSE)
+    # append BCR features onto the RNA variable features selected above
     collisions <- intersect(VariableFeatures(seurat_obj, assay = "RNA"),
                             rownames(bcr_features))
     if (length(collisions) > 0) {
@@ -749,7 +768,7 @@ concatenate_gex_bcr <- function(seurat_obj,
                                     num_features = num_features,
                                     num_pcs = num_pcs, num_dims = num_dims[1],
                                     k_param = k_param, normalize = FALSE,
-                                    # don't mess forcing on the BCR features
+                                    # don't mess up forcing on the BCR features
                                     find_var_features = FALSE,
                                     filter_genes = filter_genes,
                                     ensembl_version = ensembl_version,
@@ -760,7 +779,7 @@ concatenate_gex_bcr <- function(seurat_obj,
                                     num_features = num_features,
                                     num_pcs = num_pcs, num_dims = num_dims[1],
                                     k_param = k_param, normalize = FALSE,
-                                    # don't mess forcing on the BCR features
+                                    # don't mess up forcing on the BCR features
                                     find_var_features = FALSE,
                                     verbose = verbose)
     }
@@ -808,6 +827,24 @@ concatenate_gex_bcr <- function(seurat_obj,
       LayerData(seurat_obj, assay = "RNA_BCR", layer = "counts")
     DefaultAssay(seurat_obj) <- "RNA_BCR"
     VariableFeatures(seurat_obj) <- rownames(combined_mat)
+
+    # ScaleData z-scores every row to mean 0 / variance 1 individually, which
+    # erases any block-level scale difference between modalities -- without
+    # this, each modality's share of the joint PCA ends up driven by how many
+    # rows it happens to have (e.g. 20 GEX PCs vs. 5 BCR features), not by its
+    # actual signal. Rebalance each block to unit Euclidean/Frobenius norm post-scaling,
+    # then apply gex_weight, mirroring the "reduced_both" block-normalization.
+    gex_feature_names <- rownames(gex_pca_mat)
+    reweight_blocks <- function(scale_mat) {
+      is_gex <- rownames(scale_mat) %in% gex_feature_names
+      gex_block <- scale_mat[is_gex, , drop = FALSE]
+      bcr_block <- scale_mat[!is_gex, , drop = FALSE]
+      gex_block <- gex_block / sqrt(sum(gex_block^2)) * gex_weight
+      bcr_block <- bcr_block / sqrt(sum(bcr_block^2)) * (1 - gex_weight)
+      scale_mat[is_gex, ] <- gex_block
+      scale_mat[!is_gex, ] <- bcr_block
+      scale_mat
+    }
 
     # use the GEX number of dims to choose how many dimensions to keep
     # it's possible num_pcs > nrow(combined_mat), but this function will handle that internally

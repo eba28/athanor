@@ -71,7 +71,7 @@ use the BCR PCA, only the first integer is used.}
 
 \item{gex_weight}{Weighting factor for GEX vs BCR when computing neighbors.
 The BCR weight will be equal to 1 - gex_weight.
-Only applies for \code{stage = "reduced_both"}.}
+Applies for \code{stage = "reduced_gex"} and \code{stage = "reduced_both"}.}
 
 \item{verbose}{Whether to show output from Seurat functions.}
 }

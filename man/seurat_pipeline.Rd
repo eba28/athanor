@@ -20,6 +20,7 @@ seurat_pipeline(
   filter_genes,
   ensembl_version = NULL,
   cache_file = NULL,
+  post_scale = NULL,
   verbose = TRUE
 )
 }
@@ -60,6 +61,11 @@ scaling. Set to \code{FALSE} if variable features are already set on the assay
 \item{ensembl_version}{Ensembl version for gene annotations (e.g. \code{"GRCh38.104"}). If \code{NULL}, uses the default in \code{\link[=get_airr_genes]{get_airr_genes()}}.}
 
 \item{cache_file}{Passed to \code{\link[=get_airr_genes]{get_airr_genes()}}. Path to a cached RDS result to use instead of querying Ensembl.}
+
+\item{post_scale}{Optional function applied to the \code{scale.data} matrix after
+\code{\link[Seurat:ScaleData]{Seurat::ScaleData()}} but before \code{\link[Seurat:RunPCA]{Seurat::RunPCA()}} (e.g. to reweight blocks of rows
+relative to one another before the joint PCA in \code{\link[=concatenate_gex_bcr]{concatenate_gex_bcr()}}).
+Takes and returns a features-by-cells matrix.}
 
 \item{verbose}{Logical indicating whether or not to print messages.}
 }
