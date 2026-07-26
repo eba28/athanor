@@ -630,6 +630,25 @@ concatenate_gex_bcr <- function(seurat_obj,
   if (!"cell_id" %in% colnames(seurat_obj[[]])) {
     cli::cli_abort("Cell ID column not found in metadata.")
   }
+  # catch metadata/cell desync early (e.g. from a many-to-one left_join onto
+  # meta.data upstream) with a clear message, rather than letting it surface
+  # later as an opaque "Cannot add new cells with [[<-" error
+  if (nrow(seurat_obj[[]]) != ncol(seurat_obj)) {
+    cli::cli_abort(c(
+      "x" = "{.arg seurat_obj} has {nrow(seurat_obj[[]])} metadata row{?s} but \\
+             {ncol(seurat_obj)} cell{?s}.",
+      "i" = "This usually means metadata was replaced with a table that has \\
+             duplicate or missing keys for some cells (e.g. a many-to-one \\
+             {.fn left_join} onto {.arg seurat_obj}'s metadata). Deduplicate \\
+             the join keys before calling {.fn concatenate_gex_bcr}."
+    ))
+  }
+  if (anyDuplicated(seurat_obj$cell_id) > 0) {
+    cli::cli_abort(c(
+      "x" = "{.field cell_id} has duplicate values in {.arg seurat_obj}'s metadata.",
+      "i" = "Deduplicate {.field cell_id} before calling {.fn concatenate_gex_bcr}."
+    ))
+  }
 
   # `missing()` only works on formal args of the function it's called from, so
   # validate cols_to_include here rather than inside each branch
@@ -708,6 +727,21 @@ concatenate_gex_bcr <- function(seurat_obj,
   if (input_type == "features") {
     bcr_features <- seurat_obj[[]] %>% select(all_of(cols_to_include))
     bcr_features <- process_bcr_features(bcr_features, verbose = verbose)
+    # process_bcr_features() doesn't preserve cell identity as colnames (it
+    # goes through a recipes::bake() tibble, which drops rownames), so
+    # downstream code relies on positional alignment with Cells(seurat_obj).
+    # Guard that assumption explicitly and name the columns so any later
+    # rbind/cbind mismatch surfaces here instead of as an opaque Seurat
+    # "Cannot add new cells with [[<-" error.
+    if (ncol(bcr_features) != ncol(seurat_obj)) {
+      cli::cli_abort(c(
+        "x" = "{.fn process_bcr_features} returned {ncol(bcr_features)} cell \\
+               column{?s}, but {.arg seurat_obj} has {ncol(seurat_obj)} cell{?s}.",
+        "i" = "Check {.arg cols_to_include} and any upstream metadata joins \\
+               for row count mismatches."
+      ))
+    }
+    colnames(bcr_features) <- Cells(seurat_obj)
   }
 
   # go through each stage
@@ -809,6 +843,26 @@ concatenate_gex_bcr <- function(seurat_obj,
     n_gex_dims <- min(num_dims[1], ncol(Embeddings(seurat_obj, gex_reduction)))
     gex_pca_mat <- t(Embeddings(seurat_obj, gex_reduction)[, seq_len(n_gex_dims), drop = FALSE])
 
+    # rbind() only checks that column *counts* match, not identity, so a
+    # reduction computed on a stale/different cell set (e.g. before a
+    # subset(), or loaded from a cache that predates one) can silently
+    # combine the wrong cells together and only surface much later as an
+    # opaque Seurat "Cannot add new cells with [[<-" error. Catch it here
+    # while we still know which matrix is at fault.
+    missing_cells <- setdiff(colnames(gex_pca_mat), Cells(seurat_obj))
+    if (length(missing_cells) > 0) {
+      cli::cli_abort(c(
+        "x" = "The {.val {gex_reduction}} reduction has {length(missing_cells)} \\
+               cell{?s} not present in {.arg seurat_obj} \\
+               (e.g. {.val {utils::head(missing_cells, 3)}}).",
+        "i" = "This usually means {.val {gex_reduction}} was computed on a \\
+               different cell set than the one currently in {.arg seurat_obj} \\
+               (e.g. before a {.fn subset} call, or from a stale cached \\
+               object). Recompute {.val {gex_reduction}} on the current \\
+               {.arg seurat_obj} before calling {.fn concatenate_gex_bcr}."
+      ))
+    }
+
     # same "_" → "." rename as "raw" branch (avoids Seurat 5's silent rewrite)
     rownames(gex_pca_mat) <- gsub("_", ".", rownames(gex_pca_mat))
     rownames(bcr_features) <- gsub("_", ".", rownames(bcr_features))
@@ -818,6 +872,31 @@ concatenate_gex_bcr <- function(seurat_obj,
       cli::cli_inform(c("i" = "Combining {n_gex_dims} GEX PCs + \\
                                {nrow(bcr_features)} BCR features = \\
                                {nrow(combined_mat)} rows in the new assay."))
+    }
+
+    # final gate right at the point of assignment: rbind() silently takes its
+    # colnames from whichever operand happens to carry them (verified: the
+    # first non-null one), so upstream per-matrix checks can each look fine
+    # individually while still producing a `combined_mat` whose identity
+    # doesn't match Cells(seurat_obj). Check the actual value being assigned.
+    combined_extra <- setdiff(colnames(combined_mat), Cells(seurat_obj))
+    combined_dupes <- unique(colnames(combined_mat)[duplicated(colnames(combined_mat))])
+    if (is.null(colnames(combined_mat)) || length(combined_extra) > 0 ||
+        length(combined_dupes) > 0) {
+      cli::cli_abort(c(
+        "x" = "The combined GEX+BCR matrix's cell names don't match \\
+               {.arg seurat_obj} ({ncol(combined_mat)} columns vs. \\
+               {ncol(seurat_obj)} cells).",
+        "i" = if (is.null(colnames(combined_mat))) {
+          "{.code colnames(combined_mat)} is {.val NULL}."
+        } else if (length(combined_dupes) > 0) {
+          "Duplicate cell name{?s}: {.val {utils::head(combined_dupes, 3)}}."
+        } else {
+          "Cell name{?s} not in {.arg seurat_obj}: {.val {utils::head(combined_extra, 3)}}."
+        },
+        "i" = "{.code colnames(gex_pca_mat)} identical to {.code colnames(bcr_features)}: \\
+               {identical(colnames(gex_pca_mat), colnames(bcr_features))}."
+      ))
     }
 
     # write to counts then copy to data (ScaleData reads from data, not counts,
@@ -1017,6 +1096,7 @@ concatenate_gex_bcr <- function(seurat_obj,
       "i" = "Use {.fn Seurat::DimPlot} with {.arg reduction = 'rna_bcr.umap'} or \\
              {.fn athanor::plot_dimplot} with {.arg reduc = 'rna_bcr.umap'} to visualize."
     ))
+    cat("\n") # so that multiple runs are visually separated in the console
   }
 
   return(seurat_obj)

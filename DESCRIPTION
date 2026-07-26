@@ -33,6 +33,7 @@ Imports:
     lsa,
     magrittr,
     Matrix,
+    matrixStats,
     mclust,
     pals,
     patchwork,

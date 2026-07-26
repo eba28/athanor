@@ -158,7 +158,6 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
                         num_dims = 20, k_param = 20, verbose = TRUE) {
   # TODO: regenerate PCA too?
   # TODO: integrate this into other functions e.g. seurat_pipeline, run_wnn?
-  # TODO: don't use the cli calls if verbose = FALSE
   # TODO: just reuse seurat_pipeline and bcr_embeddings_pipeline???
 
   # parameter checks
@@ -171,7 +170,8 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
   # note that this could cause undesired behavior e.g. new reductions made by batch effect integration methods will typically use a different name
   if (missing(assay)) {
     assay <- seurat_obj@reductions[[pca_name]]@assay.used
-    cli::cli_inform("Assay not provided, so using assay {assay} that was used to compute the PCA reduction.")
+
+    if (verbose) cli::cli_inform("Assay not provided, so using assay {assay} that was used to compute the PCA reduction.")
   }
 
   # if dims and k are not provided, get them from the object
@@ -188,17 +188,17 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
       if (missing(num_dims)) num_dims <- nn@alg.info$ndim
       if (missing(k_param)) k_param <- ncol(nn@nn.idx)
 
-      cli::cli_inform("Using existing neighbor graph for assay {assay} to determine num_dims ({num_dims}) and k_param ({k_param}).")
+      if (verbose) cli::cli_inform("Using existing neighbor graph for assay {assay} to determine num_dims ({num_dims}) and k_param ({k_param}).")
     } else if (nn_command %in% names(seurat_obj@commands)) {
       cmd <- seurat_obj@commands[[nn_command]]
 
       if (missing(num_dims)) num_dims <- length(cmd$dims)
       if (missing(k_param)) k_param <- cmd$k.param
 
-      cli::cli_inform("Using existing command {nn_command} for assay {assay} to determine num_dims ({num_dims}) and k_param ({k_param}).")
+      if (verbose) cli::cli_inform("Using existing command {nn_command} for assay {assay} to determine num_dims ({num_dims}) and k_param ({k_param}).")
     }
       else {
-      cli::cli_inform(c("i" = "No existing neighbor graph found for assay {assay}, \\
+      if (verbose) cli::cli_inform(c("i" = "No existing neighbor graph found for assay {assay}, \\
                                so using default values for num_dims (20) and k_param (20)."))
       if (missing(num_dims)) num_dims <- 20
       if (missing(k_param)) k_param <- 20
@@ -273,6 +273,7 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
 #'
 #' @returns A processed Seurat object with PCA, neighbor graphs, optional
 #'   clusters, and UMAP. Reduction names are derived from `assay` and `pca_name`.
+#' @importFrom matrixStats rowVars
 #' @export
 seurat_pipeline <- function(seurat_obj, assay = "RNA", pca_name = NULL,
                             nfeatures_RNA, perc_mt,
@@ -337,7 +338,16 @@ seurat_pipeline <- function(seurat_obj, assay = "RNA", pca_name = NULL,
   # than 50% of all singular values, so use exact SVD in that case (also faster
   # when the embedding dimension is small)
   scale_data <- Seurat::GetAssayData(seurat_obj, assay = assay, layer = "scale.data")
-  max_dim <- min(nrow(scale_data), ncol(scale_data))
+  # RunPCA silently drops zero-variance features before computing PCs (e.g.
+  # an entire modality block scaled to 0 by post_scale's gex_weight/BCR
+  # weight, as happens at the extremes of concatenate_gex_bcr's gex_weight
+  # sweep), so rank must be assessed on the post-drop feature count -- basing
+  # it on nrow(scale_data) alone under-counts how much RunPCA will actually
+  # exclude and leaves num_dims requesting more PCs than get computed,
+  # surfacing later as an opaque FindNeighbors "More dimensions specified in
+  # dims than have been computed" error.
+  n_nonzero_var <- sum(matrixStats::rowVars(scale_data) > 0)
+  max_dim <- min(n_nonzero_var, ncol(scale_data))
 
   # ScaleData silently no-ops when VariableFeatures names don't match assay
   # feature names (Seurat 5 rewrites "_" to "-" at assay creation, so a
