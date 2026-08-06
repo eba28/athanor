@@ -489,6 +489,15 @@ factor_family_info <- function(combined_airr) {
 #' @returns A processed AIRR-formatted data.frame with several columns added.
 #' @export
 process_airrflow <- function(dataset_path, version_airrflow, verbose = TRUE) {
+  # TODO: add a clone_id fix e.g.
+  # combined_bcr <-
+  # combined_bcr %>%
+  # # these are the only columns with the single quotation marks
+  # # (checked with `str_detect(.x, "'")`)
+  # mutate(clone_id_unique = str_replace_all(clone_id_unique, "'", ""),
+  #        subject_id = str_replace_all(subject_id, "'", ""))
+  # TODO: check if this is still needed since I ran using sample_id, not subject_id
+
   # deal with possible format e.g. 4.0 or 4.3.1
   version_airrflow_num <-
     str_split_1(version_airrflow, pattern = "")[1:3] %>% str_c(collapse = "")
