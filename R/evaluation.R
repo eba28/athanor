@@ -55,6 +55,19 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
 
   for (nn_name in names(seurat_obj@neighbors)) {
     nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
+
+    # a cell can appear as its own neighbor (e.g. distance-0 self match);
+    # exclude it so the neighbor mean isn't partly computed from the cell
+    # itself, which would inflate the correlation. Keeps k fixed across
+    # cells rather than leaving some with fewer neighbors than others.
+    nn_idx_clean <- drop_self_neighbors(nn_idx)
+    if (verbose && ncol(nn_idx_clean) < ncol(nn_idx)) {
+      cli::cli_inform("Excluding self-neighbors from the '{nn_name}' \\
+                      neighbor graph (k reduced from {ncol(nn_idx)} to \\
+                      {ncol(nn_idx_clean)}).")
+    }
+    nn_idx <- nn_idx_clean
+
     neighbor_adt_mean <- vapply(seq_len(ncol(adt_data)), function(i) {
       rowMeans(adt_data[, nn_idx[i, ]])
     }, FUN.VALUE = numeric(nrow(adt_data)))
@@ -517,6 +530,18 @@ calc_neighbor_matches <- function(seurat_obj,
 
   for (nn_name in nn_names) {
     nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
+
+    # a cell can appear as its own neighbor (e.g. distance-0 self match);
+    # exclude it so it doesn't trivially "match" itself and inflate the
+    # mixing score. Keeps k fixed across cells rather than leaving some
+    # with fewer neighbors than others.
+    nn_idx_clean <- drop_self_neighbors(nn_idx)
+    if (verbose && ncol(nn_idx_clean) < ncol(nn_idx)) {
+      cli::cli_inform("Excluding self-neighbors from the '{nn_name}' \\
+                      neighbor graph (k reduced from {ncol(nn_idx)} to \\
+                      {ncol(nn_idx_clean)}).")
+    }
+    nn_idx <- nn_idx_clean
     n_cells <- nrow(nn_idx)
     k <- ncol(nn_idx)
     results_list <- vector("list", length(meta_cols))

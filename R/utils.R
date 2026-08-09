@@ -10,6 +10,52 @@ map_assay_name <- function(base_assay) {
 }
 
 
+#' Drop self-neighbors from a k-NN index matrix, keeping k fixed for every cell
+#'
+#' @description
+#' A cell can appear as its own nearest neighbor (e.g. a distance-0 self
+#' match). This drops that self-entry from each row so it doesn't trivially
+#' "match" itself, while keeping the neighbor count the same for every cell:
+#' rows without a self-match instead drop their single farthest neighbor
+#' (the last column), so all rows end up with `k - 1` neighbors.
+#'
+#' @param nn_idx A cell-by-k matrix of neighbor indices (`@nn.idx` from a
+#'   Seurat neighbor graph), where row `i` gives the neighbors of cell `i`.
+#'
+#' @returns A cell-by-(k - 1) matrix of neighbor indices with no self-matches.
+#'   If no cell is its own neighbor, `nn_idx` is returned unchanged.
+#' @keywords internal
+drop_self_neighbors <- function(nn_idx) {
+  n_cells <- nrow(nn_idx)
+  k <- ncol(nn_idx)
+
+  self_mask <- nn_idx == seq_len(n_cells)
+  self_count <- rowSums(self_mask)
+
+  if (any(self_count > 1)) {
+    cli::cli_abort("A cell appears as its own neighbor more than once; \\
+                   please check the neighbor graph.")
+  }
+
+  if (all(self_count == 0)) {
+    return(nn_idx)
+  }
+
+  target_k <- k - 1L
+  cleaned <- vapply(seq_len(n_cells), function(j) {
+    if (self_count[j] == 1) {
+      nn_idx[j, ][!self_mask[j, ]]
+    } else {
+      nn_idx[j, seq_len(target_k)]
+    }
+  }, FUN.VALUE = numeric(target_k))
+
+  cleaned <- t(cleaned)
+  rownames(cleaned) <- rownames(nn_idx)
+  cleaned
+}
+
+
 #' Reduce a Seurat object's size
 #'
 #' @description

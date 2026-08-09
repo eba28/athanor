@@ -253,6 +253,8 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
                          details, fix_aspect = TRUE, simplify_titles = FALSE,
                          ...) {
   # TODO: check if rownames(seurat_obj@meta.data) are the cell ids
+  # TODO: make an option for plotting that removes all titles, but adds titles for the left sides and top sides
+  # TODO: don't plot highlights that don't exist in meta_col
 
   # check parameters
   if (!meta_col %in% names(seurat_obj[[]])) {

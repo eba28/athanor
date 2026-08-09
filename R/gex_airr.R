@@ -324,7 +324,12 @@ merge_gex_bcr <- function(gex_obj, bcr_obj, transfer_reductions = TRUE,
 
   # transfer over some of the BCR-specific metadata
   # all of the other columns should already be present in the GEX object
-  # TODO: check if these following BCR columns already exist
+  # drop any pre-existing versions so bcr_obj's values win (consistent with the
+  # BCR assay itself being overwritten above), avoiding left_join .x/.y suffixes
+  existing_bcr_cols <- intersect(c("nCount_BCR", "nFeature_BCR"), colnames(seurat_obj[[]]))
+  if (length(existing_bcr_cols) > 0) {
+    seurat_obj@meta.data <- seurat_obj@meta.data %>% select(-all_of(existing_bcr_cols))
+  }
   seurat_obj@meta.data <-
     left_join(seurat_obj[[]],
               bcr_obj[[]] %>% select(cell_id, nCount_BCR, nFeature_BCR),
@@ -333,22 +338,36 @@ merge_gex_bcr <- function(gex_obj, bcr_obj, transfer_reductions = TRUE,
       relocate(., nCount_BCR, nFeature_BCR, .after = nFeature_ADT) else .}
   rownames(seurat_obj@meta.data) <- seurat_obj$cell_id
 
-  # filter out cells that have no BCR data
-  # TODO: if this exists
-  n_missing <- sum(!seurat_obj$Has_BCR)
-  seurat_obj <- subset(seurat_obj, Has_BCR == TRUE)
-  bcr_obj <- subset(bcr_obj, Has_BCR == TRUE)
+  # filter out cells that have no BCR data (requires gex_add_airr() to have been run)
+  if ("Has_BCR" %in% colnames(seurat_obj[[]])) {
+    n_missing <- sum(!seurat_obj$Has_BCR)
+    seurat_obj <- subset(seurat_obj, Has_BCR == TRUE)
+    bcr_obj <- subset(bcr_obj, Has_BCR == TRUE)
 
-  if (verbose) cli::cli_inform(c("!" = "{n_missing} cells had no BCR metadata and were excluded."))
+    if (verbose) cli::cli_inform(c("!" = "{n_missing} cells had no BCR metadata and were excluded."))
+  } else if (verbose) {
+    cli::cli_inform(c("i" = "{.code Has_BCR} column not found; skipping the no-BCR-data filter. \\
+Run {.fn gex_add_airr} first to enable this filter."))
+  }
 
   # filter out cells without paired light chains
   # have to use quotes because it is a factor
-  n_unpaired <- sum(seurat_obj$paired_light == "FALSE")
-  seurat_obj <- subset(seurat_obj, paired_light == "TRUE")
-  # TODO: only do this if it exists
-  bcr_obj <- subset(bcr_obj, paired_light == "TRUE")
+  if ("paired_light" %in% colnames(seurat_obj[[]])) {
+    n_unpaired <- sum(seurat_obj$paired_light == "FALSE")
+    seurat_obj <- subset(seurat_obj, paired_light == "TRUE")
 
-  if (verbose) cli::cli_inform(c("!" = "{n_unpaired} cells had no paired light chain{?s} and were excluded."))
+    if ("paired_light" %in% colnames(bcr_obj[[]])) {
+      bcr_obj <- subset(bcr_obj, paired_light == "TRUE")
+    } else if (transfer_reductions) {
+      cli::cli_warn(c("!" = "{.code paired_light} not found on {.arg bcr_obj}; it was not filtered \\
+to match {.arg seurat_obj}, so transferred reductions/graphs/neighbors may be misaligned."))
+    }
+
+    if (verbose) cli::cli_inform(c("!" = "{n_unpaired} cells had no paired light chain{?s} and were excluded."))
+  } else if (verbose) {
+    cli::cli_inform(c("i" = "{.code paired_light} column not found; skipping the unpaired-light-chain filter. \\
+Run {.fn gex_add_airr} first to enable this filter."))
+  }
 
   # just in case
   seurat_obj@meta.data <- seurat_obj@meta.data %>% droplevels()
@@ -619,6 +638,7 @@ concatenate_gex_bcr <- function(seurat_obj,
   # TODO: remove duplicate code e.g. rownames()
   # TODO: build out a reduced_bcr option for stage
   # TODO: make non-raw branches also take in num_features (so recompute PCA if needed)
+  # TODO: don't say this for reduced_gex: ℹ Using 25 dimensions for both GEX and BCR. If `stage = 'reduced_both'`, consider using two integers to specify different numbers of dimensions for each modality.
 
   stage <- match.arg(stage)
   input_type <- match.arg(input_type)
