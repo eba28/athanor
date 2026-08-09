@@ -14,20 +14,28 @@ map_assay_name <- function(base_assay) {
 #'
 #' @description
 #' A cell can appear as its own nearest neighbor (e.g. a distance-0 self
-#' match). This drops that self-entry from each row so it doesn't trivially
-#' "match" itself, while keeping the neighbor count the same for every cell:
-#' rows without a self-match instead drop their single farthest neighbor
-#' (the last column), so all rows end up with `k - 1` neighbors.
+#' match), and whether this happens can vary by cell or even be absent
+#' entirely, depending on how the neighbor graph was built. To make the
+#' output width predictable regardless, this *always* drops exactly one
+#' neighbor per row: the self-entry if present, otherwise the single
+#' farthest neighbor (the last column). Every row therefore always ends up
+#' with `k - 1` neighbors, whether or not that cell (or any cell) had a
+#' self-match.
+#'
+#' Because of this, always build the neighbor graph with one extra neighbor
+#' than you actually want (e.g. `k.param = 21` to end up with 20 real
+#' neighbors per cell) — you don't need to know in advance whether
+#' self-matches are present.
 #'
 #' @param nn_idx A cell-by-k matrix of neighbor indices (`@nn.idx` from a
 #'   Seurat neighbor graph), where row `i` gives the neighbors of cell `i`.
 #'
 #' @returns A cell-by-(k - 1) matrix of neighbor indices with no self-matches.
-#'   If no cell is its own neighbor, `nn_idx` is returned unchanged.
 #' @keywords internal
 drop_self_neighbors <- function(nn_idx) {
   n_cells <- nrow(nn_idx)
   k <- ncol(nn_idx)
+  target_k <- k - 1
 
   self_mask <- nn_idx == seq_len(n_cells)
   self_count <- rowSums(self_mask)
@@ -37,11 +45,6 @@ drop_self_neighbors <- function(nn_idx) {
                    please check the neighbor graph.")
   }
 
-  if (all(self_count == 0)) {
-    return(nn_idx)
-  }
-
-  target_k <- k - 1L
   cleaned <- vapply(seq_len(n_cells), function(j) {
     if (self_count[j] == 1) {
       nn_idx[j, ][!self_mask[j, ]]
@@ -50,7 +53,9 @@ drop_self_neighbors <- function(nn_idx) {
     }
   }, FUN.VALUE = numeric(target_k))
 
-  cleaned <- t(cleaned)
+  # vapply drops to a plain vector when target_k == 1, so fix dims explicitly
+  # rather than relying on t() to infer orientation
+  cleaned <- t(matrix(cleaned, nrow = target_k, ncol = n_cells))
   rownames(cleaned) <- rownames(nn_idx)
   cleaned
 }

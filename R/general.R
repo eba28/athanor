@@ -352,7 +352,7 @@ seurat_pipeline <- function(seurat_obj, assay = "RNA", pca_name = NULL,
   # ScaleData silently no-ops when VariableFeatures names don't match assay
   # feature names (Seurat 5 rewrites "_" to "-" at assay creation, so a
   # pre-rename VariableFeatures list finds nothing to scale)
-  if (nrow(scale_data) == 0L) {
+  if (nrow(scale_data) == 0) {
     cli::cli_abort(c(
       "ScaleData produced an empty {.code scale.data} layer for assay {.val {assay}}.",
       "i" = "Usually means {.fn VariableFeatures} contains names that don't \\
@@ -366,12 +366,12 @@ seurat_pipeline <- function(seurat_obj, assay = "RNA", pca_name = NULL,
 
   # Cap num_pcs at matrix rank - 1 (RunPCA errors or hangs otherwise; common
   # in concatenate_gex_bcr "reduced_gex" where combined_mat has ~26 rows)
-  if (num_pcs > max_dim - 1L) {
+  if (num_pcs > max_dim - 1) {
     if (verbose) {
       cli::cli_warn("num_pcs ({num_pcs}) exceeds matrix rank ({max_dim}); \\
-                     capping at {max_dim - 1L}.")
+                     capping at {max_dim - 1}.")
     }
-    num_pcs <- max_dim - 1L
+    num_pcs <- max_dim - 1
   }
 
   # FindNeighbors errors if dims > computed PCs

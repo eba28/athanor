@@ -980,7 +980,7 @@ concatenate_gex_bcr <- function(seurat_obj,
     if (input_type == "features") {
       # embed BCR metadata features into their own PCA space first, then cbind
       # cap PCs at number of BCR features (can't exceed rank of the matrix)
-      n_bcr_pcs <- min(nrow(bcr_features) - 1L, num_dims[2])
+      n_bcr_pcs <- min(nrow(bcr_features) - 1, num_dims[2])
       if (verbose) {
         cli::cli_inform(c("i" = "Computing BCR PCA from {nrow(bcr_features)} metadata \\
                                  features ({n_bcr_pcs} PCs)."))

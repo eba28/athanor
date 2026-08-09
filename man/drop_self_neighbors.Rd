@@ -12,13 +12,20 @@ Seurat neighbor graph), where row \code{i} gives the neighbors of cell \code{i}.
 }
 \value{
 A cell-by-(k - 1) matrix of neighbor indices with no self-matches.
-If no cell is its own neighbor, \code{nn_idx} is returned unchanged.
 }
 \description{
 A cell can appear as its own nearest neighbor (e.g. a distance-0 self
-match). This drops that self-entry from each row so it doesn't trivially
-"match" itself, while keeping the neighbor count the same for every cell:
-rows without a self-match instead drop their single farthest neighbor
-(the last column), so all rows end up with \code{k - 1} neighbors.
+match), and whether this happens can vary by cell or even be absent
+entirely, depending on how the neighbor graph was built. To make the
+output width predictable regardless, this \emph{always} drops exactly one
+neighbor per row: the self-entry if present, otherwise the single
+farthest neighbor (the last column). Every row therefore always ends up
+with \code{k - 1} neighbors, whether or not that cell (or any cell) had a
+self-match.
+
+Because of this, always build the neighbor graph with one extra neighbor
+than you actually want (e.g. \code{k.param = 21} to end up with 20 real
+neighbors per cell) — you don't need to know in advance whether
+self-matches are present.
 }
 \keyword{internal}

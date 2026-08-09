@@ -13,6 +13,7 @@ calc_neighbor_matches(
     "v_call_family"),
   cdr3_length_range = 0,
   return_mean = TRUE,
+  drop_self = TRUE,
   verbose = FALSE
 )
 }
@@ -30,6 +31,11 @@ matches.}
 
 \item{return_mean}{If TRUE, return the mean across all cells; else return
 per-cell values.}
+
+\item{drop_self}{Logical indicating whether to drop one neighbor per cell
+(the self-match if present, else the farthest neighbor) so \code{k} is fixed
+across cells regardless of whether self-matches are present. See
+\code{\link[=drop_self_neighbors]{drop_self_neighbors()}} for details.}
 
 \item{verbose}{If TRUE, print progress messages.}
 }

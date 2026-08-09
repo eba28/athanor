@@ -10,12 +10,17 @@
 #' @param features_adt Name of the ADT features to evaluate (e.g. "CD27.1").
 #' @param adt_assay Name of the assay containing ADT data.
 #' @param cor_method Correlation method to use (e.g. "pearson", "spearman").
+#' @param drop_self Logical indicating whether to drop one neighbor per cell
+#'   (the self-match if present, else the farthest neighbor) so `k` is fixed
+#'   across cells regardless of whether self-matches are present. See
+#'   [drop_self_neighbors()] for details.
 #' @param verbose Logical indicating whether or not to print messages.
 #'
 #' @returns A data frame with columns: Graph, Feature, Score.
 #' @export
 calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
-                                 cor_method = "spearman", verbose = FALSE) {
+                                 cor_method = "spearman", drop_self = TRUE,
+                                 verbose = FALSE) {
   # TODO: only calculate on a subset of the neighbors if desired
   # TODO: print a list of graphs used
   # TODO: include the airrflow version?
@@ -58,15 +63,19 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
 
     # a cell can appear as its own neighbor (e.g. distance-0 self match);
     # exclude it so the neighbor mean isn't partly computed from the cell
-    # itself, which would inflate the correlation. Keeps k fixed across
-    # cells rather than leaving some with fewer neighbors than others.
-    nn_idx_clean <- drop_self_neighbors(nn_idx)
-    if (verbose && ncol(nn_idx_clean) < ncol(nn_idx)) {
-      cli::cli_inform("Excluding self-neighbors from the '{nn_name}' \\
-                      neighbor graph (k reduced from {ncol(nn_idx)} to \\
-                      {ncol(nn_idx_clean)}).")
+    # itself, which would inflate the correlation. drop_self_neighbors()
+    # always drops one neighbor per cell (self if present, else the
+    # farthest) so k stays fixed across cells regardless of whether self
+    # was present for all, some, or none of them.
+    if (drop_self) {
+      if (verbose) {
+        cli::cli_inform("Dropping one neighbor per cell from the '{nn_name}' \\
+                        neighbor graph (self-match if present, else the \\
+                        farthest neighbor); k reduced from {ncol(nn_idx)} to \\
+                        {ncol(nn_idx) - 1}.")
+      }
+      nn_idx <- drop_self_neighbors(nn_idx)
     }
-    nn_idx <- nn_idx_clean
 
     neighbor_adt_mean <- vapply(seq_len(ncol(adt_data)), function(i) {
       rowMeans(adt_data[, nn_idx[i, ]])
@@ -493,6 +502,10 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
 #'   matches.
 #' @param return_mean If TRUE, return the mean across all cells; else return
 #'   per-cell values.
+#' @param drop_self Logical indicating whether to drop one neighbor per cell
+#'   (the self-match if present, else the farthest neighbor) so `k` is fixed
+#'   across cells regardless of whether self-matches are present. See
+#'   [drop_self_neighbors()] for details.
 #' @param verbose If TRUE, print progress messages.
 #'
 #' @return Data frame with columns: Graph, Assay, Feature, Method, Score.
@@ -510,7 +523,8 @@ calc_neighbor_matches <- function(seurat_obj,
                                       "isotype_stage", "locus_light",
                                       "mu_freq_bins_binary", "v_call_family"),
                                   cdr3_length_range = 0,
-                                  return_mean = TRUE, verbose = FALSE) {
+                                  return_mean = TRUE, drop_self = TRUE,
+                                  verbose = FALSE) {
   # input validation
   if (length(seurat_obj@neighbors) == 0) {
     cli::cli_abort("No neighbor graphs found in object. \\
@@ -533,15 +547,19 @@ calc_neighbor_matches <- function(seurat_obj,
 
     # a cell can appear as its own neighbor (e.g. distance-0 self match);
     # exclude it so it doesn't trivially "match" itself and inflate the
-    # mixing score. Keeps k fixed across cells rather than leaving some
-    # with fewer neighbors than others.
-    nn_idx_clean <- drop_self_neighbors(nn_idx)
-    if (verbose && ncol(nn_idx_clean) < ncol(nn_idx)) {
-      cli::cli_inform("Excluding self-neighbors from the '{nn_name}' \\
-                      neighbor graph (k reduced from {ncol(nn_idx)} to \\
-                      {ncol(nn_idx_clean)}).")
+    # mixing score. drop_self_neighbors() always drops one neighbor per
+    # cell (self if present, else the farthest) so k stays fixed across
+    # cells regardless of whether self was present for all, some, or none
+    # of them.
+    if (drop_self) {
+      if (verbose) {
+        cli::cli_inform("Dropping one neighbor per cell from the '{nn_name}' \\
+                        neighbor graph (self-match if present, else the \\
+                        farthest neighbor); k reduced from {ncol(nn_idx)} to \\
+                        {ncol(nn_idx) - 1}.")
+      }
+      nn_idx <- drop_self_neighbors(nn_idx)
     }
-    nn_idx <- nn_idx_clean
     n_cells <- nrow(nn_idx)
     k <- ncol(nn_idx)
     results_list <- vector("list", length(meta_cols))

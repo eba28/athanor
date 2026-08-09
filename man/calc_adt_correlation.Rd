@@ -10,6 +10,7 @@ calc_adt_correlation(
   features_adt,
   adt_assay = "ADT",
   cor_method = "spearman",
+  drop_self = TRUE,
   verbose = FALSE
 )
 }
@@ -21,6 +22,11 @@ calc_adt_correlation(
 \item{adt_assay}{Name of the assay containing ADT data.}
 
 \item{cor_method}{Correlation method to use (e.g. "pearson", "spearman").}
+
+\item{drop_self}{Logical indicating whether to drop one neighbor per cell
+(the self-match if present, else the farthest neighbor) so \code{k} is fixed
+across cells regardless of whether self-matches are present. See
+\code{\link[=drop_self_neighbors]{drop_self_neighbors()}} for details.}
 
 \item{verbose}{Logical indicating whether or not to print messages.}
 }
