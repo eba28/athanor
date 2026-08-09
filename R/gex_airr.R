@@ -639,6 +639,18 @@ concatenate_gex_bcr <- function(seurat_obj,
   # TODO: build out a reduced_bcr option for stage
   # TODO: make non-raw branches also take in num_features (so recompute PCA if needed)
   # TODO: don't say this for reduced_gex: ℹ Using 25 dimensions for both GEX and BCR. If `stage = 'reduced_both'`, consider using two integers to specify different numbers of dimensions for each modality.
+  # TODO: make sure num_features is actually being used
+
+  # TODO: address how the weights aren't completely accurate
+  ## GEX weight: 0.6
+  ## ℹ GEX: 0.692
+  ## ℹ BCR: 0.308
+  ## GEX weight: 0.7
+  ## ℹ GEX: 0.845
+  ## ℹ BCR: 0.155
+  ## GEX weight: 0.8
+  ## ℹ GEX: 0.941
+  ## ℹ BCR: 0.059
 
   stage <- match.arg(stage)
   input_type <- match.arg(input_type)
