@@ -15,6 +15,7 @@ calc_neighbor_matches(
     "v_call_family"),
   cdr3_length_range = 0,
   return_mean = TRUE,
+  drop_self = TRUE,
   verbose = FALSE
 )
 ```
@@ -43,6 +44,14 @@ calc_neighbor_matches(
 
   If TRUE, return the mean across all cells; else return per-cell
   values.
+
+- drop_self:
+
+  Logical indicating whether to drop one neighbor per cell (the
+  self-match if present, else the farthest neighbor) so `k` is fixed
+  across cells regardless of whether self-matches are present. See
+  [`drop_self_neighbors()`](https://eba28.github.io/athanor/reference/drop_self_neighbors.md)
+  for details.
 
 - verbose:
 

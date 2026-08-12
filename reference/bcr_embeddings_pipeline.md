@@ -71,3 +71,9 @@ identical embeddings (e.g. from clonal expansion), `RunUMAP()` may hang
 on spectral initialization. Use
 [`bcr_embeddings_pipeline_dedup()`](https://eba28.github.io/athanor/reference/bcr_embeddings_pipeline_dedup.md)
 to handle this automatically.
+
+Due to how Seurat's `CalcN()` works, nFeatures_BCR will actually be a
+count of how many of the embedding's values for that cell are greater
+than 0, not the number of features (embeddings dimensions) in the BCR
+assay. `nCounts_BCR` will be the column (cell) sum of the embedding
+values for that cell.

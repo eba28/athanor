@@ -11,6 +11,7 @@ calc_adt_correlation(
   features_adt,
   adt_assay = "ADT",
   cor_method = "spearman",
+  drop_self = TRUE,
   verbose = FALSE
 )
 ```
@@ -32,6 +33,14 @@ calc_adt_correlation(
 - cor_method:
 
   Correlation method to use (e.g. "pearson", "spearman").
+
+- drop_self:
+
+  Logical indicating whether to drop one neighbor per cell (the
+  self-match if present, else the farthest neighbor) so `k` is fixed
+  across cells regardless of whether self-matches are present. See
+  [`drop_self_neighbors()`](https://eba28.github.io/athanor/reference/drop_self_neighbors.md)
+  for details.
 
 - verbose:
 

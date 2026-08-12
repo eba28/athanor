@@ -1,10 +1,18 @@
 # Drop self-neighbors from a k-NN index matrix, keeping k fixed for every cell
 
 A cell can appear as its own nearest neighbor (e.g. a distance-0 self
-match). This drops that self-entry from each row so it doesn't trivially
-"match" itself, while keeping the neighbor count the same for every
-cell: rows without a self-match instead drop their single farthest
-neighbor (the last column), so all rows end up with `k - 1` neighbors.
+match), and whether this happens can vary by cell or even be absent
+entirely, depending on how the neighbor graph was built. To make the
+output width predictable regardless, this *always* drops exactly one
+neighbor per row: the self-entry if present, otherwise the single
+farthest neighbor (the last column). Every row therefore always ends up
+with `k - 1` neighbors, whether or not that cell (or any cell) had a
+self-match.
+
+Because of this, always build the neighbor graph with one extra neighbor
+than you actually want (e.g. `k.param = 21` to end up with 20 real
+neighbors per cell) — you don't need to know in advance whether
+self-matches are present.
 
 ## Usage
 
@@ -21,5 +29,4 @@ drop_self_neighbors(nn_idx)
 
 ## Value
 
-A cell-by-(k - 1) matrix of neighbor indices with no self-matches. If no
-cell is its own neighbor, `nn_idx` is returned unchanged.
+A cell-by-(k - 1) matrix of neighbor indices with no self-matches.
