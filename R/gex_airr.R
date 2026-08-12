@@ -1035,6 +1035,11 @@ concatenate_gex_bcr <- function(seurat_obj,
     # BCR object and then subset to paired cells can have a large non-zero column
     # mean -- without centering, sum(X^2) is inflated by the mean^2 term and
     # the normalized block ends up with far less inter-cell variance than GEX
+
+    # scale(..., center = TRUE, scale = FALSE) removes the per-column mean from each block before computing the Frobenius norm
+    # after centering, sum(X^2) = n × total_variance, so dividing by the Frobenius norm gives both blocks equal total inter-cell variance (1/n each)
+    # without this, a large column mean in the subsetted bpca scores inflated the denominator and left BCR with near-zero effective contribution to neighbor distances
+
     # TODO: double check this
     gex_emb <- scale(gex_emb, center = TRUE, scale = FALSE)
     bcr_emb <- scale(bcr_emb, center = TRUE, scale = FALSE)
