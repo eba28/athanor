@@ -171,6 +171,7 @@
 #' @importFrom stringr str_subset
 #' @importFrom stringr str_to_title
 #' @importFrom tibble remove_rownames
+#' @importFrom tibble rownames_to_column
 #' @importFrom tibble tibble
 #' @importFrom tidyr complete
 #' @importFrom tidyr pivot_wider

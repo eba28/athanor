@@ -50,4 +50,6 @@ so downstream reads do not fail.
 If many cells share identical embeddings (e.g. from clonal expansion),
 \code{RunUMAP()} may hang on spectral initialization. Use
 \code{bcr_embeddings_pipeline_dedup()} to handle this automatically.
+
+Due to how Seurat's \code{CalcN()} works, nFeatures_BCR will actually be a count of how many of the embedding's values for that cell are greater than 0, not the number of features (embeddings dimensions) in the BCR assay. \code{nCounts_BCR} will be the column (cell) sum of the embedding values for that cell.
 }

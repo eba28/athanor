@@ -19,7 +19,7 @@ adt_dists_core <- function(adt_mat, nn_idx, distance_metric = "euclidean",
 
     if (exclude_self) {
       idx <- idx[idx != cell_i]
-      if (length(idx) == 0) return(NA_real_)
+      if (length(idx) == 0) return(NA)
     }
 
     xi <- adt_mat[cell_i, , drop = FALSE]

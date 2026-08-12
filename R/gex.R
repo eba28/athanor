@@ -34,7 +34,7 @@ add_annotations <- function(seurat_obj, annotations_df,
    }
    names(annotations) <- levels(seurat_obj[[]][[clusters_col]])
 
-   # TODO: simplify the renaming logic
+   # this renaming logic could be simpler
    current_idents <- Idents(seurat_obj)
    Idents(seurat_obj) <- clusters_col
    seurat_obj <- RenameIdents(seurat_obj, annotations)
@@ -61,13 +61,18 @@ add_annotations <- function(seurat_obj, annotations_df,
 #' Run automated cell type annotation
 #'
 #' @description
-#' This function runs automated cell type annotation using `CellTypist`.
+#' This function runs automated cell type annotation using `CellTypist` or `Azimuth`.
 #'
 #' @details
-#' Supports CellTypist annotation methods.
+#' Supports CellTypist and Azimuth annotation methods.
 #' Assumes that the `Cells()` of `seurat_obj` are properly formatted (i.e. unique).
 #' For `CellTypist`, assumes the H5AD file and predictions have already been generated.
+#' For `Azimuth`, requires the `AzimuthAPI` package (not a dependency of this package,
+#' since it is not on CRAN), which runs predictions through Satija Lab's cloud API.
+#' See <https://github.com/satijalab/azimuth> for installation instructions.
 #' This would typically be used after [seurat_pipeline()].
+#'
+#' Even though CellTypist runs upon a scanpy object, we call the first parameter `seurat_obj` for consistency with the rest of the package. It should be the path to a H5AD object if using CellTypist, or a Seurat object if using Azimuth.
 #'
 #' "Majority voting refines the prediction result in a local cell cluster by
 #' choosing the dominant cell type label but may increase the runtime especially
@@ -77,8 +82,8 @@ add_annotations <- function(seurat_obj, annotations_df,
 #' assigned the same label regardless of potential batch effects separating them)."
 #' - https://www.celltypist.org/tutorials/onlineguide
 #'
-#' @param seurat_obj The Seurat object. Must be the path to a H5AD object if using CellTypist.
-#' @param annotation_method Which method to use: CellTypist
+#' @param seurat_obj The Seurat object. Must be the path to a H5AD object if using CellTypist, or a Seurat object if using Azimuth.
+#' @param annotation_method Which method to use: CellTypist or Azimuth
 #' @param reference Reference or model to use for prediction.
 #' @param majority_voting Whether to enable majority voting for CellTypist predictions, which refines predictions based on local cluster information but may increase runtime.
 #'
@@ -88,10 +93,8 @@ automated_annotation <- function(seurat_obj, annotation_method,
                                  reference = "pbmcref",
                                  majority_voting = FALSE,
                                  over_clustering = NULL) {
-   # TODO: Rename seurat_obj since it can be scanpy too
-
    # validate input
-   valid_methods <- c("CellTypist") # for now
+   valid_methods <- c("CellTypist", "Azimuth")
    if (!any(annotation_method %in% valid_methods)) {
      cli::cli_abort("Method must be one of: {paste(valid_methods, collapse = ', ')}")
    }
@@ -150,6 +153,28 @@ automated_annotation <- function(seurat_obj, annotation_method,
 
    }
 
+   # run Azimuth annotation
+   if (annotation_method == "Azimuth") {
+      cli::cli_inform("Processing Azimuth annotation...")
+
+      if (!requireNamespace("AzimuthAPI", quietly = TRUE)) {
+         cli::cli_abort("The `AzimuthAPI` package is required for running Azimuth \\
+                        predictions. See {.url https://github.com/satijalab/azimuth} \\
+                        for installation instructions.")
+      }
+
+      # CloudAzimuth returns the Seurat object with prediction columns added to
+      # the metadata, so diff against the original columns to isolate the new ones
+      prior_cols <- colnames(seurat_obj[[]])
+      annotated_obj <- AzimuthAPI::CloudAzimuth(object = seurat_obj, assay = "RNA")
+      new_cols <- setdiff(colnames(annotated_obj[[]]), prior_cols)
+
+      annotations <- annotated_obj[[]] %>%
+                        rownames_to_column("cell_id") %>%
+                        select(cell_id, all_of(new_cols)) %>%
+                        remove_rownames()
+   }
+
    return(annotations)
 }
 
@@ -174,7 +199,7 @@ cell_type_clusters <- function(seurat_obj, clusters_col = "seurat_clusters",
    seurat_obj[[]] %>%
       select(!!sym(clusters_col), !!sym(annotations_col)) %>%
       group_by(!!sym(clusters_col), !!sym(annotations_col)) %>%
-      tally() %>% # TODO: replace with count
+      tally() %>% # could also just use count()
       slice_max(n, with_ties = FALSE) %>%
       select(-n) %>%
       group_by(!!sym(annotations_col)) %>%
@@ -240,13 +265,14 @@ filter_variable_features <- function(seurat_obj, filter_genes,
 #'
 #' @param seurat_obj The Seurat object.
 #' @param graph_name The name of the graph to use for clustering.
-#' @param desired_k The desired number of clusters.
+#' @param desired_n The desired number of clusters.
+#' @param res_range The range of resolutions to test.
 #'
-#' @returns The Seurat object with clusters at the resolution that matches desired_k.
+#' @returns The Seurat object with clusters at the resolution that matches `desired_n`.
 #' @export
-find_k_clusters <- function(seurat_obj, graph_name = "RNA_snn", desired_k) {
-   # TODO: increase this range
-   for (res in seq(0.1, 2, by = 0.1)) {
+find_n_clusters <- function(seurat_obj, graph_name = "RNA_snn", desired_n,
+res_range = seq(0.1, 2, by = 0.1)) {
+   for (res in res_range) {
       cli::cli_inform("Checking resolution {res}...")
 
       seurat_obj <-
@@ -256,10 +282,10 @@ find_k_clusters <- function(seurat_obj, graph_name = "RNA_snn", desired_k) {
       n_clusters <- n_distinct(seurat_obj$seurat_clusters)
       cli::cli_inform("Resolution {res}: {n_clusters} cluster{?s}")
 
-      if (n_clusters == desired_k) {
-         # message(paste("Resolution", res, "gives", desired_k, "clusters"))
+      if (n_clusters == desired_n) {
+         # message(paste("Resolution", res, "gives", desired_n, "clusters"))
          return(seurat_obj)
-      } else if (n_clusters > desired_k) {
+      } else if (n_clusters > desired_n) {
          cli::cli_abort("The number of desired clusters has been exceeded.")
       } else {
          # don't keep the other resolutions

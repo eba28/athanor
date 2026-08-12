@@ -45,7 +45,7 @@ reference:
 - subtitle: Clustering-related
 - contents:
   - cell_type_clusters
-  - find_k_clusters
+  - find_n_clusters
 
 - title: Adaptive Immune Receptors
   desc: Functions for processing and analyzing adaptive immune receptor data.

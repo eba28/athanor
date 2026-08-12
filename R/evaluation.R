@@ -23,7 +23,6 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
                                  verbose = FALSE) {
   # TODO: only calculate on a subset of the neighbors if desired
   # TODO: print a list of graphs used
-  # TODO: include the airrflow version?
 
   if (rlang::is_missing(features_adt)) {
     features_adt <- rownames(seurat_obj@assays[[adt_assay]])
@@ -454,7 +453,7 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
   }
 
   # percentile_diff: empirical percentile rank in [0, 1]
-  adt_percentiles <- rep(NA_real_, length(adt_expr))
+  adt_percentiles <- rep(NA, length(adt_expr))
   valid <- !is.na(adt_expr)
   n_valid <- sum(valid)
 
@@ -473,7 +472,7 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
 
   results <- vapply(seq_len(nrow(nn_idx)), function(i) {
     cell_pct <- adt_percentiles[i]
-    if (is.na(cell_pct)) return(NA_real_)
+    if (is.na(cell_pct)) return(NA)
     neighbor_pct <- adt_percentiles[nn_idx[i, ]]
     mean(abs(neighbor_pct - cell_pct), na.rm = TRUE)
   }, FUN.VALUE = numeric(1))
@@ -744,7 +743,7 @@ permute_adt <- function(seurat_obj, nn_names = names(seurat_obj@neighbors),
         if ("mean_abs" %in% methods) {
           scores_adt <- vapply(seq_len(n_cells), function(j) {
             idx <- nn_idx[j, nn_idx[j, ] != j]
-            if (length(idx) == 0) return(NA_real_)
+            if (length(idx) == 0) return(NA)
             mean(abs(adt_expr[idx] - adt_expr[j]))
           }, FUN.VALUE = numeric(1))
 
@@ -758,7 +757,7 @@ permute_adt <- function(seurat_obj, nn_names = names(seurat_obj@neighbors),
         if ("range" %in% methods) {
           scores_adt <- vapply(seq_len(n_cells), function(j) {
             idx <- nn_idx[j, nn_idx[j, ] != j]
-            if (length(idx) == 0) return(NA_real_)
+            if (length(idx) == 0) return(NA)
             sum(adt_expr[idx] >= adt_expr[j] * (1 - adt_range) &
                   adt_expr[idx] <= adt_expr[j] * (1 + adt_range)) / k
           }, FUN.VALUE = numeric(1))
@@ -857,7 +856,7 @@ permute_neighbor_matches <- function(seurat_obj,
 
         scores_mixing <- vapply(seq_len(n_cells), function(j) {
           score <- sum(meta_group[nn_idx[j, ]] == meta_group[j], na.rm = TRUE) / k
-          if (is.na(score)) NA_real_ else score
+          if (is.na(score)) NA else score
         }, FUN.VALUE = numeric(1))
 
         valid_cells <- !is.na(scores_mixing)

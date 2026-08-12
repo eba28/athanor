@@ -176,18 +176,18 @@ test_that("get_airr_genes returns correct structure", {
 })
 
 
-# find_k_clusters ####
-test_that("find_k_clusters finds the target cluster count", {
+# find_n_clusters ####
+test_that("find_n_clusters finds the target cluster count", {
 	seurat_obj <- load_manual_object()
 
-	clustered_obj <- find_k_clusters(seurat_obj, graph_name = "RNA_snn",
-												desired_k = 1)
+	clustered_obj <- find_n_clusters(seurat_obj, graph_name = "RNA_snn",
+	                                 desired_n = 1)
 
 	expect_s4_class(clustered_obj, "Seurat")
 	expect_equal(dplyr::n_distinct(clustered_obj$seurat_clusters), 1)
 })
 
-test_that("find_k_clusters stops when desired_k is exceeded", {
+test_that("find_n_clusters stops when desired_n is exceeded", {
   obj <- CreateSeuratObject(counts = matrix(rpois(500, 1), ncol = 50))
   # Standard preprocessing needed for FindClusters to work
   obj <- NormalizeData(obj, verbose = FALSE)
@@ -197,11 +197,11 @@ test_that("find_k_clusters stops when desired_k is exceeded", {
   obj <- FindNeighbors(obj, verbose = FALSE)
 
   # Try to find 100 clusters in a 50-cell dataset (should fail)
-  expect_error(find_k_clusters(obj, desired_k = 100),
+  expect_error(find_n_clusters(obj, desired_n = 100),
                "Could not find resolution to match desired clusters.")
 
   # Test exceeding (mocking a low k)
-  expect_error(find_k_clusters(obj, desired_k = 1),
+  expect_error(find_n_clusters(obj, desired_n = 1),
                "The number of desired clusters has been exceeded.")
 })
 

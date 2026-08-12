@@ -13,9 +13,9 @@ automated_annotation(
 )
 }
 \arguments{
-\item{seurat_obj}{The Seurat object. Must be the path to a H5AD object if using CellTypist.}
+\item{seurat_obj}{The Seurat object. Must be the path to a H5AD object if using CellTypist, or a Seurat object if using Azimuth.}
 
-\item{annotation_method}{Which method to use: CellTypist}
+\item{annotation_method}{Which method to use: CellTypist or Azimuth}
 
 \item{reference}{Reference or model to use for prediction.}
 
@@ -25,13 +25,18 @@ automated_annotation(
 A data.frame with the annotations for each cell
 }
 \description{
-This function runs automated cell type annotation using \code{CellTypist}.
+This function runs automated cell type annotation using \code{CellTypist} or \code{Azimuth}.
 }
 \details{
-Supports CellTypist annotation methods.
+Supports CellTypist and Azimuth annotation methods.
 Assumes that the \code{Cells()} of \code{seurat_obj} are properly formatted (i.e. unique).
 For \code{CellTypist}, assumes the H5AD file and predictions have already been generated.
+For \code{Azimuth}, requires the \code{AzimuthAPI} package (not a dependency of this package,
+since it is not on CRAN), which runs predictions through Satija Lab's cloud API.
+See \url{https://github.com/satijalab/azimuth} for installation instructions.
 This would typically be used after \code{\link[=seurat_pipeline]{seurat_pipeline()}}.
+
+Even though CellTypist runs upon a scanpy object, we call the first parameter \code{seurat_obj} for consistency with the rest of the package. It should be the path to a H5AD object if using CellTypist, or a Seurat object if using Azimuth.
 
 "Majority voting refines the prediction result in a local cell cluster by
 choosing the dominant cell type label but may increase the runtime especially
