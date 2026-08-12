@@ -6,7 +6,7 @@ articles:
   main_pipeline: main_pipeline.html
   plot_dimplot: plot_dimplot.html
   real_data_pipeline: real_data_pipeline.html
-last_built: 2026-08-09T20:51Z
+last_built: 2026-08-12T15:56Z
 urls:
   reference: https://eba28.github.io/athanor/reference
   article: https://eba28.github.io/athanor/articles
