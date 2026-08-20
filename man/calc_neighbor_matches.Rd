@@ -12,6 +12,8 @@ calc_neighbor_matches(
     "clone_id_unique", "isotype_stage", "locus_light", "mu_freq_bins_binary",
     "v_call_family"),
   cdr3_length_range = 0,
+  clonal_cols = character(0),
+  min_clone_size = 2,
   return_mean = TRUE,
   drop_self = TRUE,
   verbose = FALSE
@@ -28,6 +30,19 @@ Defaults to all graphs in the object.}
 \item{cdr3_length_range}{Integer range for \code{cdr3_aa_length} matching.
 Neighbors within this many amino acids of the query cell are counted as
 matches.}
+
+\item{clonal_cols}{Character vector of \code{meta_cols} (typically
+\code{"clone_id_unique"}) that should be scored as clone-size-weighted matches
+instead of the usual proportion-of-k. For these columns, the score is the
+number of matching neighbors divided by \code{min(clone_size - 1, k)}, i.e.
+normalized by the number of same-clone cells actually available to be
+found (capped at k) rather than by k itself. This avoids penalizing
+small clones that can never fill all k neighbor slots. Cells whose clone
+is smaller than \code{min_clone_size} get a score of NA.}
+
+\item{min_clone_size}{Minimum clone size (inclusive) for a cell to receive
+a score on a \code{clonal_cols} column; smaller clones get NA. Ignored for
+columns not listed in \code{clonal_cols}.}
 
 \item{return_mean}{If TRUE, return the mean across all cells; else return
 per-cell values.}

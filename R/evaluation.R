@@ -499,6 +499,17 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
 #' @param cdr3_length_range Integer range for `cdr3_aa_length` matching.
 #'   Neighbors within this many amino acids of the query cell are counted as
 #'   matches.
+#' @param clonal_cols Character vector of `meta_cols` (typically
+#'   `"clone_id_unique"`) that should be scored as clone-size-weighted matches
+#'   instead of the usual proportion-of-k. For these columns, the score is the
+#'   number of matching neighbors divided by `min(clone_size - 1, k)`, i.e.
+#'   normalized by the number of same-clone cells actually available to be
+#'   found (capped at k) rather than by k itself. This avoids penalizing
+#'   small clones that can never fill all k neighbor slots. Cells whose clone
+#'   is smaller than `min_clone_size` get a score of NA.
+#' @param min_clone_size Minimum clone size (inclusive) for a cell to receive
+#'   a score on a `clonal_cols` column; smaller clones get NA. Ignored for
+#'   columns not listed in `clonal_cols`.
 #' @param return_mean If TRUE, return the mean across all cells; else return
 #'   per-cell values.
 #' @param drop_self Logical indicating whether to drop one neighbor per cell
@@ -522,6 +533,8 @@ calc_neighbor_matches <- function(seurat_obj,
                                       "isotype_stage", "locus_light",
                                       "mu_freq_bins_binary", "v_call_family"),
                                   cdr3_length_range = 0,
+                                  clonal_cols = character(0),
+                                  min_clone_size = 2,
                                   return_mean = TRUE, drop_self = TRUE,
                                   verbose = FALSE) {
   # input validation
@@ -566,20 +579,36 @@ calc_neighbor_matches <- function(seurat_obj,
     for (i in seq_along(meta_cols)) {
       meta_col <- meta_cols[[i]]
       meta_group <- seurat_obj@meta.data[[meta_col]]
+      # TODO: update this e.g. seurat_clusters should be GEX
       assay <- ifelse(meta_col %in% str_c("annotated_clusters_",
                                           c("binary", "gex_bcr", "simpler")),
                       "GEX", "BCR")
 
       is_length_col <- meta_col == "cdr3_aa_length"
+      is_clonal_col <- meta_col %in% clonal_cols
+
+      # clone size normalizes by how many same-clone cells could possibly be
+      # found (capped at k), rather than by k itself, so small clones aren't
+      # penalized for having fewer same-clone neighbors to find
+      if (is_clonal_col) {
+        clone_size <- as.integer(table(meta_group)[as.character(meta_group)])
+      }
+
       scores_mixing <- vapply(seq_len(n_cells), function(j) {
         if (is_length_col) {
-          score <- sum(abs(meta_group[nn_idx[j, ]] - meta_group[j]) <=
-                         cdr3_length_range, na.rm = TRUE) / k
+          n_matches <- sum(abs(meta_group[nn_idx[j, ]] - meta_group[j]) <=
+                             cdr3_length_range, na.rm = TRUE)
         } else {
-          score <- sum(meta_group[nn_idx[j, ]] == meta_group[j], na.rm = TRUE) / k
+          n_matches <- sum(meta_group[nn_idx[j, ]] == meta_group[j], na.rm = TRUE)
         }
+        denom <- if (is_clonal_col) min(clone_size[j] - 1, k) else k
+        score <- n_matches / denom
         if (is.na(score)) NA else score
       }, FUN.VALUE = numeric(1))
+
+      if (is_clonal_col) {
+        scores_mixing[is.na(meta_group) | clone_size < min_clone_size] <- NA
+      }
 
       if (any(scores_mixing > 1, na.rm = TRUE)) {
         cli::cli_abort("Scores are too high, please check the \\
