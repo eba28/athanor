@@ -19,6 +19,7 @@ Imports:
     alakazam,
     ape,
     biomaRt,
+    callr,
     clevr,
     cli,
     cluster,

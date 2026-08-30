@@ -150,12 +150,20 @@ object_overview <- function(seurat_obj) {
 #' @param assay Name of the assay to use for neighbor finding and UMAP.
 #' @param num_dims Number of PCA dimensions to use for neighbor finding.
 #' @param k_param Number of nearest neighbors.
+#' @param umap_timeout Maximum wall-clock time, in seconds, to allow
+#'   [Seurat::RunUMAP()] to run before killing it. `RunUMAP()`'s
+#'   spectral initialization can hang indefinitely on a degenerate or
+#'   near-degenerate neighbor graph (e.g. many duplicate/near-duplicate
+#'   embeddings in `pca_name`); running it in a subprocess with this timeout
+#'   turns that hang into an informative warning instead. On timeout the
+#'   object is still returned, just without the UMAP reduction.
 #' @param verbose Logical indicating whether or not to print messages.
 #'
 #' @returns A processed Seurat object with the `graphs`, `neighbors`, and `reductions` slots filled in or updated.
 #' @export
 regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
-                        num_dims = 20, k_param = 20, verbose = TRUE) {
+                        num_dims = 20, k_param = 20, umap_timeout = 300,
+                        verbose = TRUE) {
   # TODO: regenerate PCA too?
   # TODO: integrate this into other functions e.g. seurat_pipeline, run_wnn?
   # TODO: just reuse seurat_pipeline and bcr_embeddings_pipeline???
@@ -221,10 +229,47 @@ regen_reduc <- function(seurat_obj, pca_name = "rpca", assay = "RNA",
   # so that the command is recorded properly (it will use the default assay otherwise)
   umap_name <- paste0(tolower(assay), ".umap")
   umap_key <- paste0(gsub("_", "", tolower(assay)), "UMAP_")
-  seurat_obj <- RunUMAP(seurat_obj, reduction = pca_name, assay = assay,
-                        nn.name = nn_name, n.neighbors = k_param,
-                        reduction.name = umap_name, reduction.key = umap_key,
-                        verbose = verbose)
+
+  # RunUMAP()'s spectral (Laplacian eigenmap) initialization, via RSpectra's
+  # ARPACK-based eigs(), can hang indefinitely on a degenerate or
+  # near-degenerate neighbor graph (e.g. many duplicate/near-duplicate
+  # embeddings). It blocks inside compiled Fortran code, so it doesn't
+  # respond to R-level interrupts or setTimeLimit(). Run it in a subprocess
+  # with a hard wall-clock timeout instead, so a hang surfaces as an
+  # informative error here rather than hanging this R session.
+  nn <- seurat_obj@neighbors[[nn_name]]
+  umap_reduc <- tryCatch({
+    callr::r(function(nn, n_neighbors, reduction.name, reduction.key,
+                      assay, verbose) {
+      Seurat::RunUMAP(nn, reduction.model = NULL, n.neighbors = n_neighbors,
+                      reduction.name = reduction.name,
+                      reduction.key = reduction.key, assay = assay,
+                      verbose = verbose)
+    }, args = list(nn = nn, n_neighbors = k_param,
+                   reduction.name = umap_name, reduction.key = umap_key,
+                   assay = assay, verbose = verbose),
+    timeout = umap_timeout)
+  }, error = function(e) {
+    if (inherits(e, "callr_timeout_error")) {
+      # don't abort on timeout: warn and return the object without the UMAP
+      # reduction so the caller still gets the graphs/neighbors work back
+      cli::cli_warn(c(
+        "x" = "{.fn RunUMAP} did not finish within {umap_timeout} \\
+               second{?s} and was killed.",
+        "i" = "This usually means spectral initialization is hanging on a \\
+               degenerate or near-degenerate {.val {pca_name}} neighbor \\
+               graph (e.g. many cells with duplicate or near-duplicate \\
+               embeddings).",
+        ">" = "Returning the object without the {.val {umap_name}} reduction. \\
+               Increase {.arg umap_timeout}, or deduplicate cells with \\
+               identical {.val {pca_name}} embeddings before calling \\
+               {.fn regen_reduc}."
+      ))
+      return(NULL)
+    }
+    cli::cli_abort(conditionMessage(e))
+  })
+  if (!is.null(umap_reduc)) seurat_obj[[umap_name]] <- umap_reduc
 
   seurat_obj
 }

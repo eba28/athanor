@@ -10,6 +10,7 @@ regen_reduc(
   assay = "RNA",
   num_dims = 20,
   k_param = 20,
+  umap_timeout = 300,
   verbose = TRUE
 )
 }
@@ -23,6 +24,14 @@ regen_reduc(
 \item{num_dims}{Number of PCA dimensions to use for neighbor finding.}
 
 \item{k_param}{Number of nearest neighbors.}
+
+\item{umap_timeout}{Maximum wall-clock time, in seconds, to allow
+\code{\link[Seurat:RunUMAP]{Seurat::RunUMAP()}} to run before killing it. \code{RunUMAP()}'s
+spectral initialization can hang indefinitely on a degenerate or
+near-degenerate neighbor graph (e.g. many duplicate/near-duplicate
+embeddings in \code{pca_name}); running it in a subprocess with this timeout
+turns that hang into an informative warning instead. On timeout the
+object is still returned, just without the UMAP reduction.}
 
 \item{verbose}{Logical indicating whether or not to print messages.}
 }
