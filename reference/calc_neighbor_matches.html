@@ -61,6 +61,8 @@ the same value for each metadata column.</p>
 <span>    <span class="st">"clone_id_unique"</span>, <span class="st">"isotype_stage"</span>, <span class="st">"locus_light"</span>, <span class="st">"mu_freq_bins_binary"</span>,</span>
 <span>    <span class="st">"v_call_family"</span><span class="op">)</span>,</span>
 <span>  cdr3_length_range <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  clonal_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  min_clone_size <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  return_mean <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  drop_self <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
@@ -88,6 +90,23 @@ Defaults to all graphs in the object.</p></dd>
 <dd><p>Integer range for <code>cdr3_aa_length</code> matching.
 Neighbors within this many amino acids of the query cell are counted as
 matches.</p></dd>
+
+
+<dt id="arg-clonal-cols">clonal_cols<a class="anchor" aria-label="anchor" href="#arg-clonal-cols"></a></dt>
+<dd><p>Character vector of <code>meta_cols</code> (typically
+<code>"clone_id_unique"</code>) that should be scored as clone-size-weighted matches
+instead of the usual proportion-of-k. For these columns, the score is the
+number of matching neighbors divided by <code>min(clone_size - 1, k)</code>, i.e.
+normalized by the number of same-clone cells actually available to be
+found (capped at k) rather than by k itself. This avoids penalizing
+small clones that can never fill all k neighbor slots. Cells whose clone
+is smaller than <code>min_clone_size</code> get a score of NA.</p></dd>
+
+
+<dt id="arg-min-clone-size">min_clone_size<a class="anchor" aria-label="anchor" href="#arg-min-clone-size"></a></dt>
+<dd><p>Minimum clone size (inclusive) for a cell to receive
+a score on a <code>clonal_cols</code> column; smaller clones get NA. Ignored for
+columns not listed in <code>clonal_cols</code>.</p></dd>
 
 
 <dt id="arg-return-mean">return_mean<a class="anchor" aria-label="anchor" href="#arg-return-mean"></a></dt>

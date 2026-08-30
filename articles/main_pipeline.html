@@ -232,12 +232,12 @@ must have one row per cluster in the same order as
 <span><span class="co">#&gt; [1]  256 2000</span></span>
 <span><span class="va">embeddings</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
 <span><span class="co">#&gt; 5 x 5 sparse Matrix of class "dgCMatrix"</span></span>
-<span><span class="co">#&gt;            Cell1       Cell2      Cell3      Cell4      Cell5</span></span>
-<span><span class="co">#&gt; Dim-1 -0.5109210  0.05352389 -0.5671974 -0.4843711 -0.1790951</span></span>
-<span><span class="co">#&gt; Dim-2  0.5139805 -0.40801619  0.3460265 -0.4950914  0.2179880</span></span>
-<span><span class="co">#&gt; Dim-3 -0.1186212 -0.32737616 -0.5715728  0.3838005 -0.2196047</span></span>
-<span><span class="co">#&gt; Dim-4  0.1984502 -0.25955410  0.3020567 -0.1084960 -0.3279383</span></span>
-<span><span class="co">#&gt; Dim-5 -0.5700390 -0.37497147 -0.3364119  0.5444899  0.0115477</span></span></code></pre></div>
+<span><span class="co">#&gt;              Cell1      Cell2      Cell3      Cell4      Cell5</span></span>
+<span><span class="co">#&gt; Dim-1 -0.005372051  0.2092985  0.1371510 -0.3377547 -0.1339751</span></span>
+<span><span class="co">#&gt; Dim-2 -0.591098972 -0.5501158 -0.5942936 -0.1688978 -0.4419269</span></span>
+<span><span class="co">#&gt; Dim-3  0.417951867  0.1722756  0.1963192 -0.4843128  0.3692621</span></span>
+<span><span class="co">#&gt; Dim-4 -0.524704402 -0.2404746 -0.4612162  0.4407691  0.2234996</span></span>
+<span><span class="co">#&gt; Dim-5  0.383814105 -0.1278827  0.4827535  0.5947780 -0.2482818</span></span></code></pre></div>
 <p>Let’s make a Seurat object out of the embeddings:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">embeddings_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bcr_embeddings_pipeline.html">bcr_embeddings_pipeline</a></span><span class="op">(</span>embeddings <span class="op">=</span> <span class="va">embeddings</span>,</span>
@@ -290,11 +290,11 @@ self-contained.</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">mu_freq</span>, <span class="va">cdr3_aa_length</span>, <span class="va">isotype</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     mu_freq       cdr3_aa_length isotype  </span></span>
-<span><span class="co">#&gt;  Min.   :0.0000   Short :683     IgA:303  </span></span>
-<span><span class="co">#&gt;  1st Qu.:0.0710   Medium:641     IgD:304  </span></span>
-<span><span class="co">#&gt;  Median :0.1500   Long  :676     IgG:697  </span></span>
-<span><span class="co">#&gt;  Mean   :0.1484                  IgM:696  </span></span>
-<span><span class="co">#&gt;  3rd Qu.:0.2220                           </span></span>
+<span><span class="co">#&gt;  Min.   :0.0000   Short :654     IgA:313  </span></span>
+<span><span class="co">#&gt;  1st Qu.:0.0740   Medium:648     IgD:320  </span></span>
+<span><span class="co">#&gt;  Median :0.1520   Long  :698     IgG:697  </span></span>
+<span><span class="co">#&gt;  Mean   :0.1494                  IgM:670  </span></span>
+<span><span class="co">#&gt;  3rd Qu.:0.2250                           </span></span>
 <span><span class="co">#&gt;  Max.   :0.3000</span></span>
 <span></span>
 <span><span class="co"># let's say that this object's cells all have paired BCRs too</span></span>

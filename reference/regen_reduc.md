@@ -15,6 +15,7 @@ regen_reduc(
   assay = "RNA",
   num_dims = 20,
   k_param = 20,
+  umap_timeout = 300,
   verbose = TRUE
 )
 ```
@@ -42,6 +43,17 @@ regen_reduc(
 - k_param:
 
   Number of nearest neighbors.
+
+- umap_timeout:
+
+  Maximum wall-clock time, in seconds, to allow
+  [`Seurat::RunUMAP()`](https://satijalab.org/seurat/reference/RunUMAP.html)
+  to run before killing it. `RunUMAP()`'s spectral initialization can
+  hang indefinitely on a degenerate or near-degenerate neighbor graph
+  (e.g. many duplicate/near-duplicate embeddings in `pca_name`); running
+  it in a subprocess with this timeout turns that hang into an
+  informative warning instead. On timeout the object is still returned,
+  just without the UMAP reduction.
 
 - verbose:
 

@@ -174,12 +174,12 @@ dim(embeddings) # dimensions by cells
 #> [1]  256 2000
 embeddings[1:5, 1:5]
 #> 5 x 5 sparse Matrix of class "dgCMatrix"
-#>            Cell1       Cell2      Cell3      Cell4      Cell5
-#> Dim-1 -0.5109210  0.05352389 -0.5671974 -0.4843711 -0.1790951
-#> Dim-2  0.5139805 -0.40801619  0.3460265 -0.4950914  0.2179880
-#> Dim-3 -0.1186212 -0.32737616 -0.5715728  0.3838005 -0.2196047
-#> Dim-4  0.1984502 -0.25955410  0.3020567 -0.1084960 -0.3279383
-#> Dim-5 -0.5700390 -0.37497147 -0.3364119  0.5444899  0.0115477
+#>              Cell1      Cell2      Cell3      Cell4      Cell5
+#> Dim-1 -0.005372051  0.2092985  0.1371510 -0.3377547 -0.1339751
+#> Dim-2 -0.591098972 -0.5501158 -0.5942936 -0.1688978 -0.4419269
+#> Dim-3  0.417951867  0.1722756  0.1963192 -0.4843128  0.3692621
+#> Dim-4 -0.524704402 -0.2404746 -0.4612162  0.4407691  0.2234996
+#> Dim-5  0.383814105 -0.1278827  0.4827535  0.5947780 -0.2482818
 ```
 
 Let’s make a Seurat object out of the embeddings:
@@ -234,11 +234,11 @@ obj[[]] %>%
   select(mu_freq, cdr3_aa_length, isotype) %>%
   summary()
 #>     mu_freq       cdr3_aa_length isotype  
-#>  Min.   :0.0000   Short :683     IgA:303  
-#>  1st Qu.:0.0710   Medium:641     IgD:304  
-#>  Median :0.1500   Long  :676     IgG:697  
-#>  Mean   :0.1484                  IgM:696  
-#>  3rd Qu.:0.2220                           
+#>  Min.   :0.0000   Short :654     IgA:313  
+#>  1st Qu.:0.0740   Medium:648     IgD:320  
+#>  Median :0.1520   Long  :698     IgG:697  
+#>  Mean   :0.1494                  IgM:670  
+#>  3rd Qu.:0.2250                           
 #>  Max.   :0.3000
 
 # let's say that this object's cells all have paired BCRs too
