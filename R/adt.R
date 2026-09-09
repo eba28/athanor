@@ -4,8 +4,10 @@
 #' @param nn_idx An integer matrix of nearest-neighbor indices (cells by k).
 #' @param distance_metric One of `"euclidean"`, `"manhattan"`, `"mean_abs"`,
 #'   or `"cosine"`.
-#' @param exclude_self Logical; whether to drop a cell from its own neighbor
-#'   list before computing distances.
+#' @param drop_self Logical indicating whether to drop one neighbor per cell
+#'   (the self-match if present, else the farthest neighbor) so `k` is fixed
+#'   across cells regardless of whether self-matches are present. See
+#'   [drop_self_neighbors()] for details.
 #' @param return_mean Logical; if `TRUE` returns a single grand mean instead of
 #'   a per-cell vector.
 #'
@@ -13,14 +15,16 @@
 #'   `return_mean = TRUE`.
 #' @keywords internal
 adt_dists_core <- function(adt_mat, nn_idx, distance_metric = "euclidean",
-                           exclude_self = TRUE, return_mean = FALSE) {
+                           drop_self = TRUE, return_mean = FALSE) {
+  # a cell can appear as its own neighbor (e.g. distance-0 self match);
+  # drop one neighbor per cell up front (self if present, else the farthest)
+  # so it isn't compared against itself and k stays fixed across cells
+  if (drop_self) {
+    nn_idx <- drop_self_neighbors(nn_idx)
+  }
+
   k_dist <- vapply(seq_len(nrow(adt_mat)), function(cell_i) {
     idx <- nn_idx[cell_i, ]
-
-    if (exclude_self) {
-      idx <- idx[idx != cell_i]
-      if (length(idx) == 0) return(NA)
-    }
 
     xi <- adt_mat[cell_i, , drop = FALSE]
     nbrs <- adt_mat[idx, , drop = FALSE]

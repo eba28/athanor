@@ -132,7 +132,10 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
 #'   "cosine")`.
 #' @param return_mean If TRUE, return the mean across all cells; else return
 #'   per-cell values.
-#' @param exclude_self Drop the cell itself from its neighbor list if present.
+#' @param drop_self Logical indicating whether to drop one neighbor per cell
+#'   (the self-match if present, else the farthest neighbor) so `k` is fixed
+#'   across cells regardless of whether self-matches are present. See
+#'   [drop_self_neighbors()] for details.
 #'
 #' @returns A single numeric value if `return_mean = TRUE`, or a named numeric
 #'   vector of per-cell distances if `return_mean = FALSE`.
@@ -140,7 +143,7 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
 calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
                            layer = "data", features_adt = NULL, k,
                            distance_metric = "mean_abs",
-                           return_mean = TRUE, exclude_self = TRUE) {
+                           return_mean = TRUE, drop_self = TRUE) {
   adt_mat <- get_adt_matrix(seurat_obj, adt_assay, layer, features_adt)
   nn_idx <- resolve_neighbors(seurat_obj, base_assay)
 
@@ -150,7 +153,7 @@ calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
          "Cells(seurat_obj).")
   }
 
-  adt_dists_core(adt_mat, nn_idx, distance_metric, exclude_self, return_mean)
+  adt_dists_core(adt_mat, nn_idx, distance_metric, drop_self, return_mean)
 }
 
 
@@ -171,6 +174,10 @@ calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
 #' @param adt_assay Name of the ADT assay.
 #' @param return_mean If TRUE, return the mean across all cells; else return
 #'   per-cell values.
+#' @param drop_self Logical indicating whether to drop one neighbor per cell
+#'   (the self-match if present, else the farthest neighbor) so `k` is fixed
+#'   across cells regardless of whether self-matches are present. See
+#'   [drop_self_neighbors()] for details.
 #' @param verbose If TRUE, print progress messages.
 #'
 #' @return Data frame with columns: Graph, Assay, Feature, Method, Score.
@@ -180,7 +187,8 @@ calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
 calc_adt_mean_absolute <- function(seurat_obj,
                                    nn_names = names(seurat_obj@neighbors),
                                    features_adt, adt_assay = "ADT",
-                                   return_mean = TRUE, verbose = FALSE) {
+                                   return_mean = TRUE, drop_self = TRUE,
+                                   verbose = FALSE) {
   if (length(seurat_obj@neighbors) == 0) {
     cli::cli_abort("No neighbor graphs found in object. \\
                    Please run `FindNeighbors()` first.")
@@ -209,7 +217,7 @@ calc_adt_mean_absolute <- function(seurat_obj,
                        base_assay = assay_name, adt_assay = adt_assay,
                        features_adt = feat, k = k,
                        distance_metric = "mean_abs",
-                       return_mean = FALSE)
+                       return_mean = FALSE, drop_self = drop_self)
 
       results_list[[i]] <-
         data.frame(cell_id = seurat_obj$cell_id, Graph = nn_name,
@@ -301,6 +309,10 @@ calc_adt_moran <- function(seurat_obj, features_adt, adt_assay = "ADT",
 #'   +/-20% of the cell's expression are counted as matches.
 #' @param return_mean If TRUE, return the mean across all cells; else return
 #'   per-cell values.
+#' @param drop_self Logical indicating whether to drop one neighbor per cell
+#'   (the self-match if present, else the farthest neighbor) so `k` is fixed
+#'   across cells regardless of whether self-matches are present. See
+#'   [drop_self_neighbors()] for details.
 #' @param verbose If TRUE, print progress messages.
 #'
 #' @return Data frame with columns: Graph, Assay, Feature, Method, Score.
@@ -312,7 +324,8 @@ calc_adt_nn_within_range <- function(seurat_obj,
                                      features_adt,
                                      adt_assay = "ADT",
                                      range = 0.20,
-                                     return_mean = TRUE, verbose = FALSE) {
+                                     return_mean = TRUE, drop_self = TRUE,
+                                     verbose = FALSE) {
   if (length(seurat_obj@neighbors) == 0) {
     cli::cli_abort("No neighbor graphs found in object. \\
                    Please run `FindNeighbors()` first.")
@@ -330,6 +343,21 @@ calc_adt_nn_within_range <- function(seurat_obj,
 
   for (nn_name in nn_names) {
     nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
+
+    # a cell can appear as its own neighbor (e.g. distance-0 self match);
+    # exclude it so a cell isn't counted as an in-range neighbor of itself.
+    # drop_self_neighbors() always drops one neighbor per cell (self if
+    # present, else the farthest) so k stays fixed across cells regardless
+    # of whether self was present for all, some, or none of them.
+    if (drop_self) {
+      if (verbose) {
+        cli::cli_inform("Dropping one neighbor per cell from the '{nn_name}' \\
+                        neighbor graph (self-match if present, else the \\
+                        farthest neighbor); k reduced from {ncol(nn_idx)} to \\
+                        {ncol(nn_idx) - 1}.")
+      }
+      nn_idx <- drop_self_neighbors(nn_idx)
+    }
     n_cells <- nrow(nn_idx)
     k <- ncol(nn_idx)
     results_list <- vector("list", length(features_adt))
@@ -396,6 +424,10 @@ calc_adt_nn_within_range <- function(seurat_obj,
 #'   same quantile bin (only applies to `method = "quantile"`). If FALSE,
 #'   returns the proportion (count/k). Ignored when
 #'   `method = "percentile_diff"`.
+#' @param drop_self Logical indicating whether to drop one neighbor per cell
+#'   (the self-match if present, else the farthest neighbor) so `k` is fixed
+#'   across cells regardless of whether self-matches are present. When TRUE,
+#'   `k` is reduced by one to match. See [drop_self_neighbors()] for details.
 #'
 #' @return A named numeric vector with one value per cell in the Seurat object.
 #'   For `method = "quantile"`: count or proportion of neighbors in the same
@@ -405,7 +437,7 @@ calc_adt_nn_within_range <- function(seurat_obj,
 calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
                               base_assay, k = 20, n_quantile = 10,
                               method = c("quantile", "percentile_diff"),
-                              return_counts = FALSE) {
+                              drop_self = TRUE, return_counts = FALSE) {
   # TODO: update this to match the style and output of adt_correlation
   # TODO: use easystats instead (https://easystats.github.io/datawizard/reference/categorize.html)?
 
@@ -433,6 +465,15 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
 
   if (rlang::is_missing(base_assay)) base_assay <- DefaultAssay(seurat_obj)
   nn_idx <- resolve_neighbors(seurat_obj, base_assay)
+
+  # a cell can appear as its own neighbor (e.g. distance-0 self match);
+  # exclude it so a cell isn't counted as sharing its own quantile.
+  # drop_self_neighbors() always drops one neighbor per cell (self if
+  # present, else the farthest), so reduce k to match the new width.
+  if (drop_self) {
+    nn_idx <- drop_self_neighbors(nn_idx)
+    k <- ncol(nn_idx)
+  }
 
   adt_expr <- GetAssayData(seurat_obj, assay = adt_assay, layer = "data")[features_adt, ]
   adt_expr <- as.numeric(adt_expr)
@@ -652,16 +693,18 @@ calc_neighbor_matches <- function(seurat_obj,
 #' @param seurat_obj A Seurat object.
 #' @param nn1 Name of the first neighbor graph (e.g. "RNA.nn").
 #' @param nn2 Name of the second neighbor graph (e.g. "BCR.nn").
-#' @param exclude_self If TRUE, remove the cell's own index from each
-#'   neighbor list before counting shared neighbors.
 #' @param return_mean If TRUE, return the mean shared neighbor count across all
 #'   cells; else return a named numeric vector of per-cell counts.
+#' @param drop_self Logical indicating whether to drop one neighbor per cell
+#'   (the self-match if present, else the farthest neighbor) from each graph
+#'   so `k` is fixed across cells regardless of whether self-matches are
+#'   present. See [drop_self_neighbors()] for details.
 #' @param verbose If TRUE, print a summary message.
 #'
 #' @return A single numeric value if `return_mean = TRUE`, or a named numeric
 #'   vector of per-cell shared neighbor counts if `return_mean = FALSE`.
 #' @export
-calc_neighbor_overlap <- function(seurat_obj, nn1, nn2, exclude_self = FALSE,
+calc_neighbor_overlap <- function(seurat_obj, nn1, nn2, drop_self = TRUE,
                                   return_mean = TRUE, verbose = FALSE) {
   if (length(seurat_obj@neighbors) == 0) {
     cli::cli_abort("No neighbor graphs found in object. \\
@@ -692,14 +735,21 @@ calc_neighbor_overlap <- function(seurat_obj, nn1, nn2, exclude_self = FALSE,
                    ({nrow(nn_idx1)} vs {nrow(nn_idx2)}).")
   }
 
-  shared_counts <- vapply(seq_len(ncol(seurat_obj)), function(i) {
-    n1 <- nn_idx1[i, ]
-    n2 <- nn_idx2[i, ]
-    if (exclude_self) {
-      n1 <- n1[n1 != i]
-      n2 <- n2[n2 != i]
+  # a cell can appear as its own neighbor (e.g. distance-0 self match);
+  # drop one neighbor per cell (self if present, else the farthest) from
+  # each graph so self-matches don't inflate the shared count and k stays
+  # fixed across cells regardless of whether self was present.
+  if (drop_self) {
+    if (verbose) {
+      cli::cli_inform("Dropping one neighbor per cell from {nn1} and {nn2} \\
+                      (self-match if present, else the farthest neighbor).")
     }
-    length(intersect(n1, n2))
+    nn_idx1 <- drop_self_neighbors(nn_idx1)
+    nn_idx2 <- drop_self_neighbors(nn_idx2)
+  }
+
+  shared_counts <- vapply(seq_len(ncol(seurat_obj)), function(i) {
+    length(intersect(nn_idx1[i, ], nn_idx2[i, ]))
   }, FUN.VALUE = numeric(1))
   names(shared_counts) <- Cells(seurat_obj)
 
@@ -729,6 +779,10 @@ calc_neighbor_overlap <- function(seurat_obj, nn1, nn2, exclude_self = FALSE,
 #' @param n_permutations Number of permutations to run.
 #' @param return_mean If TRUE, return the mean across all cells; else return
 #'   per-cell values (averaged across permutations).
+#' @param drop_self Logical indicating whether to drop one neighbor per cell
+#'   (the self-match if present, else the farthest neighbor) so `k` is fixed
+#'   across cells regardless of whether self-matches are present. See
+#'   [drop_self_neighbors()] for details.
 #' @param verbose If TRUE, print progress messages.
 #'
 #' @return Data frame in the same format as `calc_adt_mean_absolute()` and
@@ -738,7 +792,7 @@ permute_adt <- function(seurat_obj, nn_names = names(seurat_obj@neighbors),
                         features_adt, adt_assay = "ADT", adt_range = 0.1,
                         methods = c("mean_abs", "range"),
                         n_permutations = 10, return_mean = TRUE,
-                        verbose = FALSE) {
+                        drop_self = TRUE, verbose = FALSE) {
   if (length(seurat_obj@neighbors) == 0) {
     cli::cli_abort("No neighbor graphs found in object. \\
                    Please run `FindNeighbors()` first.")
@@ -756,6 +810,19 @@ permute_adt <- function(seurat_obj, nn_names = names(seurat_obj@neighbors),
 
   for (nn_name in nn_names) {
     nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
+
+    # a cell can appear as its own neighbor (e.g. distance-0 self match);
+    # drop one neighbor per cell (self if present, else the farthest) so
+    # k stays fixed across cells regardless of whether self was present.
+    if (drop_self) {
+      if (verbose) {
+        cli::cli_inform("Dropping one neighbor per cell from the '{nn_name}' \\
+                        neighbor graph (self-match if present, else the \\
+                        farthest neighbor); k reduced from {ncol(nn_idx)} to \\
+                        {ncol(nn_idx) - 1}.")
+      }
+      nn_idx <- drop_self_neighbors(nn_idx)
+    }
     n_cells <- nrow(nn_idx)
     k <- ncol(nn_idx)
 
@@ -771,7 +838,7 @@ permute_adt <- function(seurat_obj, nn_names = names(seurat_obj@neighbors),
 
         if ("mean_abs" %in% methods) {
           scores_adt <- vapply(seq_len(n_cells), function(j) {
-            idx <- nn_idx[j, nn_idx[j, ] != j]
+            idx <- nn_idx[j, ]
             if (length(idx) == 0) return(NA)
             mean(abs(adt_expr[idx] - adt_expr[j]))
           }, FUN.VALUE = numeric(1))
@@ -785,7 +852,7 @@ permute_adt <- function(seurat_obj, nn_names = names(seurat_obj@neighbors),
 
         if ("range" %in% methods) {
           scores_adt <- vapply(seq_len(n_cells), function(j) {
-            idx <- nn_idx[j, nn_idx[j, ] != j]
+            idx <- nn_idx[j, ]
             if (length(idx) == 0) return(NA)
             sum(adt_expr[idx] >= adt_expr[j] * (1 - adt_range) &
                   adt_expr[idx] <= adt_expr[j] * (1 + adt_range)) / k
@@ -837,6 +904,10 @@ permute_adt <- function(seurat_obj, nn_names = names(seurat_obj@neighbors),
 #' @param n_permutations Number of permutations to run.
 #' @param return_mean If TRUE, return the mean across all cells; else return
 #'   per-cell values (averaged across permutations).
+#' @param drop_self Logical indicating whether to drop one neighbor per cell
+#'   (the self-match if present, else the farthest neighbor) so `k` is fixed
+#'   across cells regardless of whether self-matches are present. See
+#'   [drop_self_neighbors()] for details.
 #' @param verbose If TRUE, print progress messages.
 #'
 #' @return Data frame in the same format as `calc_neighbor_matches()`.
@@ -852,7 +923,8 @@ permute_neighbor_matches <- function(seurat_obj,
                                          "isotype_stage", "locus_light",
                                          "mu_freq_bins_binary", "v_call_family"),
                                      n_permutations = 10,
-                                     return_mean = TRUE, verbose = FALSE) {
+                                     return_mean = TRUE, drop_self = TRUE,
+                                     verbose = FALSE) {
   if (length(seurat_obj@neighbors) == 0) {
     cli::cli_abort("No neighbor graphs found in object. \\
                    Please run `FindNeighbors()` first.")
@@ -868,6 +940,22 @@ permute_neighbor_matches <- function(seurat_obj,
 
   for (nn_name in nn_names) {
     nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
+
+    # a cell can appear as its own neighbor (e.g. distance-0 self match);
+    # exclude it so it doesn't trivially "match" itself and inflate the
+    # mixing score. drop_self_neighbors() always drops one neighbor per
+    # cell (self if present, else the farthest) so k stays fixed across
+    # cells regardless of whether self was present for all, some, or none
+    # of them.
+    if (drop_self) {
+      if (verbose) {
+        cli::cli_inform("Dropping one neighbor per cell from the '{nn_name}' \\
+                        neighbor graph (self-match if present, else the \\
+                        farthest neighbor); k reduced from {ncol(nn_idx)} to \\
+                        {ncol(nn_idx) - 1}.")
+      }
+      nn_idx <- drop_self_neighbors(nn_idx)
+    }
     n_cells <- nrow(nn_idx)
     k <- ncol(nn_idx)
 

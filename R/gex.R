@@ -25,6 +25,8 @@ add_annotations <- function(seurat_obj, annotations_df,
                             relabel = TRUE, relocate = TRUE, alphabetize = TRUE,
                             clusters_col = "seurat_clusters",
                             annotations_col = "annotated_clusters") {
+   # TODO: make this able to match regardless of original factor level
+
    # prepare the annotation mapping: cluster -> cell type
    annotations <- annotations_df[[cell_types_col]]
    if (!is.factor(seurat_obj[[]][[clusters_col]])) {
