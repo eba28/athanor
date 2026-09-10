@@ -255,6 +255,7 @@ plot_dimplot <- function(seurat_obj, data_source = "", clrs_specific,
   # TODO: check if rownames(seurat_obj@meta.data) are the cell ids
   # TODO: make an option for plotting that removes all titles, but adds titles for the left sides and top sides
   # TODO: don't plot highlights that don't exist in meta_col
+  # TODO: wrap title if it is too long
 
   # check parameters
   if (!meta_col %in% names(seurat_obj[[]])) {
@@ -658,7 +659,8 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
     obj_data_source <- obj_titles[[obj_name]]
 
     if (!reduction %in% names(seurat_obj@reductions)) {
-      cli::cli_abort("Reduction {reduction} not found in Seurat object {obj_name}. Please make sure it is present and try again.")
+      cli::cli_inform("Reduction {reduction} not found in Seurat object {obj_name}. Skipping it.")
+      next
     }
 
     # plot an informative subtitle if possible
@@ -858,6 +860,10 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
         }
       }
     }
+  }
+
+  if (length(plots_overview) == 0) {
+    cli::cli_abort("Reduction {reduction} was not found in any of the Seurat objects, so there is nothing to plot.")
   }
 
   # reorder plots to match the order of comparisons given
