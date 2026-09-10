@@ -11,8 +11,11 @@ permute_neighbor_matches(
     "annotated_clusters_gex_bcr", "annotated_clusters_simpler", "cdr3_aa_length",
     "clone_id_unique", "isotype_stage", "locus_light", "mu_freq_bins_binary",
     "v_call_family"),
+  gex_cols = c("annotated_clusters_binary", "annotated_clusters_gex_bcr",
+    "annotated_clusters_simpler", "seurat_clusters"),
   n_permutations = 10,
   return_mean = TRUE,
+  drop_self = TRUE,
   verbose = FALSE
 )
 }
@@ -24,10 +27,20 @@ Defaults to all graphs in the object.}
 
 \item{meta_cols}{Character vector of metadata columns to evaluate.}
 
+\item{gex_cols}{Character vector of \code{meta_cols} that describe GEX-derived
+groupings; these get \code{Assay = "GEX"} in the output and every other column
+gets \code{Assay = "BCR"}. Defaults to the known GEX cluster columns plus
+\code{"seurat_clusters"}.}
+
 \item{n_permutations}{Number of permutations to run.}
 
 \item{return_mean}{If TRUE, return the mean across all cells; else return
 per-cell values (averaged across permutations).}
+
+\item{drop_self}{Logical indicating whether to drop one neighbor per cell
+(the self-match if present, else the farthest neighbor) so \code{k} is fixed
+across cells regardless of whether self-matches are present. See
+\code{\link[=drop_self_neighbors]{drop_self_neighbors()}} for details.}
 
 \item{verbose}{If TRUE, print progress messages.}
 }

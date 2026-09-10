@@ -53,6 +53,7 @@
 #' @importFrom ggplot2 aes
 #' @importFrom ggplot2 after_stat
 #' @importFrom ggplot2 cut_interval
+#' @importFrom ggplot2 cut_number
 #' @importFrom ggplot2 element_blank
 #' @importFrom ggplot2 element_line
 #' @importFrom ggplot2 element_rect

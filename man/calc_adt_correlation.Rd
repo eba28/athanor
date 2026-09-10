@@ -31,7 +31,9 @@ across cells regardless of whether self-matches are present. See
 \item{verbose}{Logical indicating whether or not to print messages.}
 }
 \value{
-A data frame with columns: Graph, Feature, Score.
+A data frame with columns: Graph, Assay, Feature, Method, Score
+(the canonical schema shared by the \verb{calc_*} evaluation functions).
+\code{Method} records the correlation method (e.g. "Spearman").
 }
 \description{
 Calculate the correlation between each cell's expression and the mean of

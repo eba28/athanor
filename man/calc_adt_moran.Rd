@@ -27,7 +27,9 @@ matrix (e.g. "RNA.nn", "BCR.nn", "w.nn").}
 make each row sum to 1).}
 }
 \value{
-A single numeric value representing the observed Moran's i.
+A one-row data frame with columns: Graph, Assay, Feature, Method,
+Score (the canonical schema shared by the \verb{calc_*} evaluation functions),
+where \code{Score} is the observed Moran's i and \code{Method} is "Moran_I".
 }
 \description{
 Calculates the global Moran's i index for an ADT feature given a neighbor

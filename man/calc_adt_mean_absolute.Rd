@@ -10,6 +10,7 @@ calc_adt_mean_absolute(
   features_adt,
   adt_assay = "ADT",
   return_mean = TRUE,
+  drop_self = TRUE,
   verbose = FALSE
 )
 }
@@ -25,6 +26,11 @@ Defaults to all graphs in the object.}
 
 \item{return_mean}{If TRUE, return the mean across all cells; else return
 per-cell values.}
+
+\item{drop_self}{Logical indicating whether to drop one neighbor per cell
+(the self-match if present, else the farthest neighbor) so \code{k} is fixed
+across cells regardless of whether self-matches are present. See
+\code{\link[=drop_self_neighbors]{drop_self_neighbors()}} for details.}
 
 \item{verbose}{If TRUE, print progress messages.}
 }

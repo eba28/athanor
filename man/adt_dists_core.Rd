@@ -8,7 +8,7 @@ adt_dists_core(
   adt_mat,
   nn_idx,
   distance_metric = "euclidean",
-  exclude_self = TRUE,
+  drop_self = TRUE,
   return_mean = FALSE
 )
 }
@@ -20,8 +20,10 @@ adt_dists_core(
 \item{distance_metric}{One of \code{"euclidean"}, \code{"manhattan"}, \code{"mean_abs"},
 or \code{"cosine"}.}
 
-\item{exclude_self}{Logical; whether to drop a cell from its own neighbor
-list before computing distances.}
+\item{drop_self}{Logical indicating whether to drop one neighbor per cell
+(the self-match if present, else the farthest neighbor) so \code{k} is fixed
+across cells regardless of whether self-matches are present. See
+\code{\link[=drop_self_neighbors]{drop_self_neighbors()}} for details.}
 
 \item{return_mean}{Logical; if \code{TRUE} returns a single grand mean instead of
 a per-cell vector.}

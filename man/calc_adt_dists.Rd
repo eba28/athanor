@@ -13,7 +13,7 @@ calc_adt_dists(
   k,
   distance_metric = "mean_abs",
   return_mean = TRUE,
-  exclude_self = TRUE
+  drop_self = TRUE
 )
 }
 \arguments{
@@ -35,11 +35,20 @@ features present.}
 \item{return_mean}{If TRUE, return the mean across all cells; else return
 per-cell values.}
 
-\item{exclude_self}{Drop the cell itself from its neighbor list if present.}
+\item{drop_self}{Logical indicating whether to drop one neighbor per cell
+(the self-match if present, else the farthest neighbor) so \code{k} is fixed
+across cells regardless of whether self-matches are present. See
+\code{\link[=drop_self_neighbors]{drop_self_neighbors()}} for details.}
 }
 \value{
-A single numeric value if \code{return_mean = TRUE}, or a named numeric
-vector of per-cell distances if \code{return_mean = FALSE}.
+A data frame with columns: Graph, Assay, Feature, Method, Score
+(the canonical schema shared by the \verb{calc_*} evaluation functions).
+Distances are computed jointly across all requested features, so
+\code{Feature} is the "+"-joined set of features used (or "all" when
+\code{features_adt} is NULL) rather than one row per feature. \code{Method} records
+the distance metric. If \code{return_mean = TRUE}, \code{Score} is the mean across
+all cells; else it contains per-cell values with an additional \code{cell_id}
+column.
 }
 \description{
 Calculates the mean distance of each cell's ADT profile to its k nearest

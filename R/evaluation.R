@@ -16,13 +16,14 @@
 #'   [drop_self_neighbors()] for details.
 #' @param verbose Logical indicating whether or not to print messages.
 #'
-#' @returns A data frame with columns: Graph, Feature, Score.
+#' @returns A data frame with columns: Graph, Assay, Feature, Method, Score
+#'   (the canonical schema shared by the `calc_*` evaluation functions).
+#'   `Method` records the correlation method (e.g. "Spearman").
 #' @export
 calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
                                  cor_method = "spearman", drop_self = TRUE,
                                  verbose = FALSE) {
   # TODO: only calculate on a subset of the neighbors if desired
-  # TODO: print a list of graphs used
 
   if (rlang::is_missing(features_adt)) {
     features_adt <- rownames(seurat_obj@assays[[adt_assay]])
@@ -51,8 +52,6 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
     cli::cli_abort("No neighbor graphs found in object. \\
                    Please run `FindNeighbors()` first.")
   }
-
-  # TODO: throw an error if no RNA graph is found
 
   adt_data <- GetAssayData(seurat_obj, assay = adt_assay, layer = "data")
   metrics_df <- c()
@@ -85,9 +84,10 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
       cell_expr <- adt_data[feat, ]
       neighbor_expr <- neighbor_adt_mean[feat, ]
       correlation <- cor(cell_expr, neighbor_expr, method = cor_method)
-      # TODO: include Method?
       metrics_df <- bind_rows(metrics_df,
-                              data.frame(Graph = nn_name, Feature = feat,
+                              data.frame(Graph = nn_name, Assay = adt_assay,
+                                         Feature = feat,
+                                         Method = str_to_title(cor_method),
                                          Score = correlation))
     }
   }
@@ -101,7 +101,6 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
     #                 {length(seurat_obj@neighbors)} neighbor graphs.")
   }
 
-  # TODO: return with a column for Type = "Correlation" # spearman too
   metrics_df
 }
 
@@ -137,8 +136,14 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
 #'   across cells regardless of whether self-matches are present. See
 #'   [drop_self_neighbors()] for details.
 #'
-#' @returns A single numeric value if `return_mean = TRUE`, or a named numeric
-#'   vector of per-cell distances if `return_mean = FALSE`.
+#' @returns A data frame with columns: Graph, Assay, Feature, Method, Score
+#'   (the canonical schema shared by the `calc_*` evaluation functions).
+#'   Distances are computed jointly across all requested features, so
+#'   `Feature` is the "+"-joined set of features used (or "all" when
+#'   `features_adt` is NULL) rather than one row per feature. `Method` records
+#'   the distance metric. If `return_mean = TRUE`, `Score` is the mean across
+#'   all cells; else it contains per-cell values with an additional `cell_id`
+#'   column.
 #' @export
 calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
                            layer = "data", features_adt = NULL, k,
@@ -153,7 +158,31 @@ calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
          "Cells(seurat_obj).")
   }
 
-  adt_dists_core(adt_mat, nn_idx, distance_metric, drop_self, return_mean)
+  scores <- adt_dists_core(adt_mat, nn_idx, distance_metric, drop_self,
+                           return_mean = FALSE)
+
+  method_labels <- c(mean_abs = "Mean_Absolute", manhattan = "Manhattan",
+                     euclidean = "Euclidean", cosine = "Cosine")
+  feature_label <- if (is.null(features_adt)) {
+    "all"
+  } else {
+    paste(sort(colnames(adt_mat)), collapse = "+")
+  }
+
+  result <- data.frame(cell_id = rownames(adt_mat),
+                       Graph = paste0(map_assay_name(base_assay), ".nn"),
+                       Assay = adt_assay, Feature = feature_label,
+                       Method = method_labels[[distance_metric]],
+                       Score = unname(scores)) %>%
+    remove_rownames()
+
+  if (return_mean) {
+    result <- result %>%
+      group_by(Graph, Assay, Feature, Method) %>%
+      summarize(Score = mean(Score, na.rm = TRUE), .groups = "drop")
+  }
+
+  result
 }
 
 
@@ -206,23 +235,32 @@ calc_adt_mean_absolute <- function(seurat_obj,
 
   for (nn_name in nn_names) {
     nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
-    k <- ncol(nn_idx)
-    assay_name <- substr(nn_name, 1, nchar(nn_name) - 3)
+
+    # a cell can appear as its own neighbor (e.g. distance-0 self match);
+    # drop one neighbor per cell (self if present, else the farthest) so k
+    # stays fixed across cells regardless of whether self was present.
+    if (drop_self) {
+      if (verbose) {
+        cli::cli_inform("Dropping one neighbor per cell from the '{nn_name}' \\
+                        neighbor graph (self-match if present, else the \\
+                        farthest neighbor); k reduced from {ncol(nn_idx)} to \\
+                        {ncol(nn_idx) - 1}.")
+      }
+      nn_idx <- drop_self_neighbors(nn_idx)
+    }
     results_list <- vector("list", length(features_adt))
 
     for (i in seq_along(features_adt)) {
       feat <- features_adt[[i]]
-      scores_adt <-
-        calc_adt_dists(seurat_obj = seurat_obj,
-                       base_assay = assay_name, adt_assay = adt_assay,
-                       features_adt = feat, k = k,
-                       distance_metric = "mean_abs",
-                       return_mean = FALSE, drop_self = drop_self)
+      adt_mat <- get_adt_matrix(seurat_obj, adt_assay, "data", feat)
+      scores_adt <- adt_dists_core(adt_mat, nn_idx,
+                                   distance_metric = "mean_abs",
+                                   drop_self = FALSE, return_mean = FALSE)
 
       results_list[[i]] <-
         data.frame(cell_id = seurat_obj$cell_id, Graph = nn_name,
                    Assay = adt_assay, Feature = feat,
-                   Method = "Mean_Absolute", Score = scores_adt)
+                   Method = "Mean_Absolute", Score = unname(scores_adt))
     }
 
     all_graph_results[[nn_name]] <- do.call(rbind, results_list)
@@ -265,7 +303,9 @@ calc_adt_mean_absolute <- function(seurat_obj,
 #' @param row_standardize Whether to row-standardize the weights matrix (i.e.
 #'   make each row sum to 1).
 #'
-#' @returns A single numeric value representing the observed Moran's i.
+#' @returns A one-row data frame with columns: Graph, Assay, Feature, Method,
+#'   Score (the canonical schema shared by the `calc_*` evaluation functions),
+#'   where `Score` is the observed Moran's i and `Method` is "Moran_I".
 #' @export
 calc_adt_moran <- function(seurat_obj, features_adt, adt_assay = "ADT",
                            graph_name, row_standardize = TRUE) {
@@ -287,7 +327,9 @@ calc_adt_moran <- function(seurat_obj, features_adt, adt_assay = "ADT",
   if (row_standardize) w <- w / rowSums(w)
 
   moran <- ape::Moran.I(x, w)
-  moran[["observed"]]
+
+  data.frame(Graph = graph_name, Assay = adt_assay, Feature = features_adt,
+             Method = "Moran_I", Score = moran[["observed"]])
 }
 
 
@@ -409,39 +451,48 @@ calc_adt_nn_within_range <- function(seurat_obj,
 #' @param seurat_obj A Seurat object containing ADT data and computed neighbor
 #'   graphs.
 #' @param adt_assay Name of the assay containing ADT data.
-#' @param features_adt Name of the ADT feature to evaluate (e.g. "CD27.1").
+#' @param features_adt Name(s) of the ADT feature(s) to evaluate (e.g.
+#'   "CD27.1"); one row group per feature is returned.
 #' @param base_assay The assay used to compute neighbors. One of
 #'   "RNA", "GEX", "BCR", or "WNN".
 #' @param k Number of nearest neighbors to evaluate. Must match the k used
 #'   when computing the neighbor graph.
-#' @param n_quantile The number of quantiles to divide ADT expression into.
-#'   Neighbors are considered "within range" if they fall into the same
-#'   quantile as the cell.
+#' @param n_quantile The number of bins to divide ADT expression into.
+#'   Neighbors count as "within range" when they fall in the same bin as the
+#'   cell.
 #' @param method One of `c("quantile", "percentile_diff")`. `"quantile"`
-#'   compares discrete quantile bins. `"percentile_diff"` returns mean
-#'   absolute percentile rank difference per cell.
-#' @param return_counts If TRUE, returns the count of neighbors within the
-#'   same quantile bin (only applies to `method = "quantile"`). If FALSE,
-#'   returns the proportion (count/k). Ignored when
-#'   `method = "percentile_diff"`.
+#'   compares discrete bins. `"percentile_diff"` returns the mean absolute
+#'   percentile rank difference per cell.
+#' @param binning How the `n_quantile` bins are defined for
+#'   `method = "quantile"`. `"frequency"` (the default) makes bins holding
+#'   roughly equal numbers of cells (true quantiles, via
+#'   [ggplot2::cut_number()]); `"width"` makes bins of equal expression range
+#'   (via [ggplot2::cut_interval()]). Ignored for `method = "percentile_diff"`.
+#' @param return_counts If TRUE, `Score` is the count of neighbors in the same
+#'   bin (only for `method = "quantile"`); if FALSE, the proportion
+#'   (count / k). Ignored for `method = "percentile_diff"`.
 #' @param drop_self Logical indicating whether to drop one neighbor per cell
 #'   (the self-match if present, else the farthest neighbor) so `k` is fixed
 #'   across cells regardless of whether self-matches are present. When TRUE,
 #'   `k` is reduced by one to match. See [drop_self_neighbors()] for details.
+#' @param return_mean If TRUE, return the mean across all cells; else return
+#'   per-cell values.
+#' @param verbose If TRUE, print progress messages.
 #'
-#' @return A named numeric vector with one value per cell in the Seurat object.
-#'   For `method = "quantile"`: count or proportion of neighbors in the same
-#'   quantile bin. For `method = "percentile_diff"`: mean absolute percentile
-#'   rank difference per cell (0 to 1).
+#' @return Data frame with columns: Graph, Assay, Feature, Method, Score (the
+#'   canonical schema shared by the `calc_*` evaluation functions). `Method`
+#'   is "Quantile" or "Percentile_Diff". If `return_mean = TRUE`, `Score` is
+#'   the mean across all cells; else it contains per-cell values with an
+#'   additional `cell_id` column.
 #' @export
 calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
                               base_assay, k = 20, n_quantile = 10,
                               method = c("quantile", "percentile_diff"),
-                              drop_self = TRUE, return_counts = FALSE) {
-  # TODO: update this to match the style and output of adt_correlation
-  # TODO: use easystats instead (https://easystats.github.io/datawizard/reference/categorize.html)?
-
+                              binning = c("frequency", "width"),
+                              drop_self = TRUE, return_counts = FALSE,
+                              return_mean = TRUE, verbose = FALSE) {
   method <- match.arg(method)
+  binning <- match.arg(binning)
 
   if (any(!(features_adt %in% rownames(seurat_obj@assays[[adt_assay]])))) {
     available_features <- rownames(seurat_obj@assays[[adt_assay]])
@@ -450,76 +501,96 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
     # only use features that are present in the object
     features_adt <- intersect(features_adt, available_features)
 
-    # just for formatting
-    available_features <- paste(sort(available_features), collapse = ", ")
-    unavailable_features <- paste(sort(unavailable_features), collapse = ", ")
-
-    # pass the pre-formatted strings to cli_inform
-    cli::cli_inform(c(
-      "i" = "Available features: {available_features}",
-      "i" = "Unavailable features: {unavailable_features}",
-      "v" = "Proceeding with: {features_adt}\n"
-    ))
-    # TODO: make having a print-out optional?
+    if (verbose) {
+      available_features <- paste(sort(available_features), collapse = ", ")
+      unavailable_features <- paste(sort(unavailable_features), collapse = ", ")
+      cli::cli_inform(c(
+        "i" = "Available features: {available_features}",
+        "i" = "Unavailable features: {unavailable_features}",
+        "v" = "Proceeding with: {features_adt}\n"
+      ))
+    }
   }
 
-  if (rlang::is_missing(base_assay)) base_assay <- DefaultAssay(seurat_obj)
-  nn_idx <- resolve_neighbors(seurat_obj, base_assay)
-
-  # a cell can appear as its own neighbor (e.g. distance-0 self match);
-  # exclude it so a cell isn't counted as sharing its own quantile.
-  # drop_self_neighbors() always drops one neighbor per cell (self if
-  # present, else the farthest), so reduce k to match the new width.
-  if (drop_self) {
-    nn_idx <- drop_self_neighbors(nn_idx)
-    k <- ncol(nn_idx)
-  }
-
-  adt_expr <- GetAssayData(seurat_obj, assay = adt_assay, layer = "data")[features_adt, ]
-  adt_expr <- as.numeric(adt_expr)
-
-  if (method == "quantile") {
-    adt_quantiles <- cut_interval(adt_expr, n = n_quantile)
-    adt_quantiles <- as.numeric(adt_quantiles)
-
-    results <- vapply(seq_len(nrow(nn_idx)), function(i) {
-      cell_quantile <- adt_quantiles[i]
-      neighbor_quantile <- adt_quantiles[nn_idx[i, ]]
-      within_range <- sum(neighbor_quantile == cell_quantile, na.rm = TRUE)
-      if (return_counts) within_range else within_range / k
-    }, FUN.VALUE = numeric(1))
-
-    names(results) <- Cells(seurat_obj)
-    return(results)
-  }
-
-  # percentile_diff: empirical percentile rank in [0, 1]
-  adt_percentiles <- rep(NA, length(adt_expr))
-  valid <- !is.na(adt_expr)
-  n_valid <- sum(valid)
-
-  if (n_valid <= 1) {
-    adt_percentiles[valid] <- 0
-  } else {
-    ranked <- rank(adt_expr[valid], ties.method = "average")
-    adt_percentiles[valid] <- (ranked - 1) / (n_valid - 1)
-  }
-
-  if (return_counts) {
+  if (return_counts && method == "percentile_diff") {
     warning("return_counts = TRUE is not applicable for ",
             "method = 'percentile_diff'. Returning mean absolute percentile ",
             "rank difference instead.")
   }
 
-  results <- vapply(seq_len(nrow(nn_idx)), function(i) {
-    cell_pct <- adt_percentiles[i]
-    if (is.na(cell_pct)) return(NA)
-    neighbor_pct <- adt_percentiles[nn_idx[i, ]]
-    mean(abs(neighbor_pct - cell_pct), na.rm = TRUE)
-  }, FUN.VALUE = numeric(1))
+  if (rlang::is_missing(base_assay)) base_assay <- DefaultAssay(seurat_obj)
+  nn_idx <- resolve_neighbors(seurat_obj, base_assay)
+  nn_name <- paste0(map_assay_name(base_assay), ".nn")
 
-  names(results) <- Cells(seurat_obj)
-  results
+  # a cell can appear as its own neighbor (e.g. distance-0 self match);
+  # exclude it so a cell isn't counted as sharing its own bin.
+  # drop_self_neighbors() always drops one neighbor per cell (self if
+  # present, else the farthest), so reduce k to match the new width.
+  if (drop_self) {
+    if (verbose) {
+      cli::cli_inform("Dropping one neighbor per cell from the '{nn_name}' \\
+                      neighbor graph; k reduced from {ncol(nn_idx)} to \\
+                      {ncol(nn_idx) - 1}.")
+    }
+    nn_idx <- drop_self_neighbors(nn_idx)
+    k <- ncol(nn_idx)
+  }
+
+  adt_data <- GetAssayData(seurat_obj, assay = adt_assay, layer = "data")
+  method_label <- if (method == "quantile") "Quantile" else "Percentile_Diff"
+
+  results_list <- vector("list", length(features_adt))
+  for (fi in seq_along(features_adt)) {
+    feat <- features_adt[[fi]]
+    adt_expr <- as.numeric(adt_data[feat, ])
+
+    if (method == "quantile") {
+      # "frequency" -> equal-count bins (true quantiles); "width" -> equal-range
+      bin_fun <- if (binning == "frequency") cut_number else cut_interval
+      bins <- as.numeric(bin_fun(adt_expr, n = n_quantile))
+
+      scores <- vapply(seq_len(nrow(nn_idx)), function(i) {
+        n_same <- sum(bins[nn_idx[i, ]] == bins[i], na.rm = TRUE)
+        if (return_counts) n_same else n_same / k
+      }, FUN.VALUE = numeric(1))
+    } else {
+      # percentile_diff: empirical percentile rank in [0, 1]
+      adt_percentiles <- rep(NA_real_, length(adt_expr))
+      valid <- !is.na(adt_expr)
+      n_valid <- sum(valid)
+      if (n_valid <= 1) {
+        adt_percentiles[valid] <- 0
+      } else {
+        ranked <- rank(adt_expr[valid], ties.method = "average")
+        adt_percentiles[valid] <- (ranked - 1) / (n_valid - 1)
+      }
+
+      scores <- vapply(seq_len(nrow(nn_idx)), function(i) {
+        cell_pct <- adt_percentiles[i]
+        if (is.na(cell_pct)) return(NA_real_)
+        mean(abs(adt_percentiles[nn_idx[i, ]] - cell_pct), na.rm = TRUE)
+      }, FUN.VALUE = numeric(1))
+    }
+
+    results_list[[fi]] <-
+      data.frame(cell_id = seurat_obj$cell_id, Graph = nn_name,
+                 Assay = adt_assay, Feature = feat, Method = method_label,
+                 Score = scores)
+  }
+
+  result <- do.call(rbind, results_list) %>% remove_rownames()
+
+  if (return_mean) {
+    result <- result %>%
+      group_by(Graph, Assay, Feature, Method) %>%
+      summarize(Score = mean(Score, na.rm = TRUE), .groups = "drop")
+  }
+
+  if (verbose) {
+    cli::cli_inform("Calculated ADT {method_label} scores for '{nn_name}'.")
+  }
+
+  result
 }
 
 
@@ -551,6 +622,10 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
 #' @param min_clone_size Minimum clone size (inclusive) for a cell to receive
 #'   a score on a `clonal_cols` column; smaller clones get NA. Ignored for
 #'   columns not listed in `clonal_cols`.
+#' @param gex_cols Character vector of `meta_cols` that describe GEX-derived
+#'   groupings (e.g. transcriptomic clusters). These get `Assay = "GEX"` in
+#'   the output; every other column gets `Assay = "BCR"`. Defaults to the
+#'   known GEX cluster columns plus `"seurat_clusters"`.
 #' @param return_mean If TRUE, return the mean across all cells; else return
 #'   per-cell values.
 #' @param drop_self Logical indicating whether to drop one neighbor per cell
@@ -576,6 +651,10 @@ calc_neighbor_matches <- function(seurat_obj,
                                   cdr3_length_range = 0,
                                   clonal_cols = character(0),
                                   min_clone_size = 2,
+                                  gex_cols = c("annotated_clusters_binary",
+                                               "annotated_clusters_gex_bcr",
+                                               "annotated_clusters_simpler",
+                                               "seurat_clusters"),
                                   return_mean = TRUE, drop_self = TRUE,
                                   verbose = FALSE) {
   # input validation
@@ -620,10 +699,7 @@ calc_neighbor_matches <- function(seurat_obj,
     for (i in seq_along(meta_cols)) {
       meta_col <- meta_cols[[i]]
       meta_group <- seurat_obj@meta.data[[meta_col]]
-      # TODO: update this e.g. seurat_clusters should be GEX
-      assay <- ifelse(meta_col %in% str_c("annotated_clusters_",
-                                          c("binary", "gex_bcr", "simpler")),
-                      "GEX", "BCR")
+      assay <- if (meta_col %in% gex_cols) "GEX" else "BCR"
 
       is_length_col <- meta_col == "cdr3_aa_length"
       is_clonal_col <- meta_col %in% clonal_cols
@@ -701,8 +777,12 @@ calc_neighbor_matches <- function(seurat_obj,
 #'   present. See [drop_self_neighbors()] for details.
 #' @param verbose If TRUE, print a summary message.
 #'
-#' @return A single numeric value if `return_mean = TRUE`, or a named numeric
-#'   vector of per-cell shared neighbor counts if `return_mean = FALSE`.
+#' @return Data frame with columns: Graph, Assay, Feature, Method, Score (the
+#'   canonical schema shared by the `calc_*` evaluation functions). `Graph` is
+#'   `"{nn1} vs {nn2}"`, `Assay` and `Feature` are NA (no ADT feature is
+#'   involved), and `Method` is "Overlap". If `return_mean = TRUE`, `Score` is
+#'   the mean shared-neighbor count across all cells; else it contains
+#'   per-cell counts with an additional `cell_id` column.
 #' @export
 calc_neighbor_overlap <- function(seurat_obj, nn1, nn2, drop_self = TRUE,
                                   return_mean = TRUE, verbose = FALSE) {
@@ -751,13 +831,24 @@ calc_neighbor_overlap <- function(seurat_obj, nn1, nn2, drop_self = TRUE,
   shared_counts <- vapply(seq_len(ncol(seurat_obj)), function(i) {
     length(intersect(nn_idx1[i, ], nn_idx2[i, ]))
   }, FUN.VALUE = numeric(1))
-  names(shared_counts) <- Cells(seurat_obj)
 
   if (verbose) {
     cli::cli_inform("Calculated shared neighbor counts between {nn1} and {nn2}.")
   }
 
-  if (return_mean) mean(shared_counts, na.rm = TRUE) else shared_counts
+  result <- data.frame(cell_id = seurat_obj$cell_id,
+                       Graph = paste(nn1, "vs", nn2),
+                       Assay = NA_character_, Feature = NA_character_,
+                       Method = "Overlap", Score = shared_counts) %>%
+    remove_rownames()
+
+  if (return_mean) {
+    result <- result %>%
+      group_by(Graph, Assay, Feature, Method) %>%
+      summarize(Score = mean(Score, na.rm = TRUE), .groups = "drop")
+  }
+
+  result
 }
 
 
@@ -901,6 +992,10 @@ permute_adt <- function(seurat_obj, nn_names = names(seurat_obj@neighbors),
 #' @param nn_names Character vector of neighbor graph names to evaluate.
 #'   Defaults to all graphs in the object.
 #' @param meta_cols Character vector of metadata columns to evaluate.
+#' @param gex_cols Character vector of `meta_cols` that describe GEX-derived
+#'   groupings; these get `Assay = "GEX"` in the output and every other column
+#'   gets `Assay = "BCR"`. Defaults to the known GEX cluster columns plus
+#'   `"seurat_clusters"`.
 #' @param n_permutations Number of permutations to run.
 #' @param return_mean If TRUE, return the mean across all cells; else return
 #'   per-cell values (averaged across permutations).
@@ -922,6 +1017,10 @@ permute_neighbor_matches <- function(seurat_obj,
                                          "cdr3_aa_length", "clone_id_unique",
                                          "isotype_stage", "locus_light",
                                          "mu_freq_bins_binary", "v_call_family"),
+                                     gex_cols = c("annotated_clusters_binary",
+                                                  "annotated_clusters_gex_bcr",
+                                                  "annotated_clusters_simpler",
+                                                  "seurat_clusters"),
                                      n_permutations = 10,
                                      return_mean = TRUE, drop_self = TRUE,
                                      verbose = FALSE) {
@@ -967,9 +1066,7 @@ permute_neighbor_matches <- function(seurat_obj,
       for (i in seq_along(meta_cols)) {
         meta_col <- meta_cols[[i]]
         meta_group <- seurat_obj@meta.data[[meta_col]][sample(n_cells)]
-        assay <- ifelse(meta_col %in% str_c("annotated_clusters_",
-                                            c("binary", "gex_bcr", "simpler")),
-                        "GEX", "BCR")
+        assay <- if (meta_col %in% gex_cols) "GEX" else "BCR"
 
         scores_mixing <- vapply(seq_len(n_cells), function(j) {
           score <- sum(meta_group[nn_idx[j, ]] == meta_group[j], na.rm = TRUE) / k

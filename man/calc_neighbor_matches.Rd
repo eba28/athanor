@@ -14,6 +14,8 @@ calc_neighbor_matches(
   cdr3_length_range = 0,
   clonal_cols = character(0),
   min_clone_size = 2,
+  gex_cols = c("annotated_clusters_binary", "annotated_clusters_gex_bcr",
+    "annotated_clusters_simpler", "seurat_clusters"),
   return_mean = TRUE,
   drop_self = TRUE,
   verbose = FALSE
@@ -43,6 +45,11 @@ is smaller than \code{min_clone_size} get a score of NA.}
 \item{min_clone_size}{Minimum clone size (inclusive) for a cell to receive
 a score on a \code{clonal_cols} column; smaller clones get NA. Ignored for
 columns not listed in \code{clonal_cols}.}
+
+\item{gex_cols}{Character vector of \code{meta_cols} that describe GEX-derived
+groupings (e.g. transcriptomic clusters). These get \code{Assay = "GEX"} in
+the output; every other column gets \code{Assay = "BCR"}. Defaults to the
+known GEX cluster columns plus \code{"seurat_clusters"}.}
 
 \item{return_mean}{If TRUE, return the mean across all cells; else return
 per-cell values.}

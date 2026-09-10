@@ -8,7 +8,7 @@ calc_neighbor_overlap(
   seurat_obj,
   nn1,
   nn2,
-  exclude_self = FALSE,
+  drop_self = TRUE,
   return_mean = TRUE,
   verbose = FALSE
 )
@@ -20,8 +20,10 @@ calc_neighbor_overlap(
 
 \item{nn2}{Name of the second neighbor graph (e.g. "BCR.nn").}
 
-\item{exclude_self}{If TRUE, remove the cell's own index from each
-neighbor list before counting shared neighbors.}
+\item{drop_self}{Logical indicating whether to drop one neighbor per cell
+(the self-match if present, else the farthest neighbor) from each graph
+so \code{k} is fixed across cells regardless of whether self-matches are
+present. See \code{\link[=drop_self_neighbors]{drop_self_neighbors()}} for details.}
 
 \item{return_mean}{If TRUE, return the mean shared neighbor count across all
 cells; else return a named numeric vector of per-cell counts.}
@@ -29,8 +31,12 @@ cells; else return a named numeric vector of per-cell counts.}
 \item{verbose}{If TRUE, print a summary message.}
 }
 \value{
-A single numeric value if \code{return_mean = TRUE}, or a named numeric
-vector of per-cell shared neighbor counts if \code{return_mean = FALSE}.
+Data frame with columns: Graph, Assay, Feature, Method, Score (the
+canonical schema shared by the \verb{calc_*} evaluation functions). \code{Graph} is
+\code{"{nn1} vs {nn2}"}, \code{Assay} and \code{Feature} are NA (no ADT feature is
+involved), and \code{Method} is "Overlap". If \code{return_mean = TRUE}, \code{Score} is
+the mean shared-neighbor count across all cells; else it contains
+per-cell counts with an additional \code{cell_id} column.
 }
 \description{
 For each cell in a Seurat object, counts how many of its nearest neighbors

@@ -13,7 +13,11 @@ calc_adt_quantile(
   k = 20,
   n_quantile = 10,
   method = c("quantile", "percentile_diff"),
-  return_counts = FALSE
+  binning = c("frequency", "width"),
+  drop_self = TRUE,
+  return_counts = FALSE,
+  return_mean = TRUE,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -22,7 +26,8 @@ graphs.}
 
 \item{adt_assay}{Name of the assay containing ADT data.}
 
-\item{features_adt}{Name of the ADT feature to evaluate (e.g. "CD27.1").}
+\item{features_adt}{Name(s) of the ADT feature(s) to evaluate (e.g.
+"CD27.1"); one row group per feature is returned.}
 
 \item{base_assay}{The assay used to compute neighbors. One of
 "RNA", "GEX", "BCR", or "WNN".}
@@ -30,24 +35,40 @@ graphs.}
 \item{k}{Number of nearest neighbors to evaluate. Must match the k used
 when computing the neighbor graph.}
 
-\item{n_quantile}{The number of quantiles to divide ADT expression into.
-Neighbors are considered "within range" if they fall into the same
-quantile as the cell.}
+\item{n_quantile}{The number of bins to divide ADT expression into.
+Neighbors count as "within range" when they fall in the same bin as the
+cell.}
 
 \item{method}{One of \code{c("quantile", "percentile_diff")}. \code{"quantile"}
-compares discrete quantile bins. \code{"percentile_diff"} returns mean
-absolute percentile rank difference per cell.}
+compares discrete bins. \code{"percentile_diff"} returns the mean absolute
+percentile rank difference per cell.}
 
-\item{return_counts}{If TRUE, returns the count of neighbors within the
-same quantile bin (only applies to \code{method = "quantile"}). If FALSE,
-returns the proportion (count/k). Ignored when
-\code{method = "percentile_diff"}.}
+\item{binning}{How the \code{n_quantile} bins are defined for
+\code{method = "quantile"}. \code{"frequency"} (the default) makes bins holding
+roughly equal numbers of cells (true quantiles, via
+\code{\link[ggplot2:cut_interval]{ggplot2::cut_number()}}); \code{"width"} makes bins of equal expression range
+(via \code{\link[ggplot2:cut_interval]{ggplot2::cut_interval()}}). Ignored for \code{method = "percentile_diff"}.}
+
+\item{drop_self}{Logical indicating whether to drop one neighbor per cell
+(the self-match if present, else the farthest neighbor) so \code{k} is fixed
+across cells regardless of whether self-matches are present. When TRUE,
+\code{k} is reduced by one to match. See \code{\link[=drop_self_neighbors]{drop_self_neighbors()}} for details.}
+
+\item{return_counts}{If TRUE, \code{Score} is the count of neighbors in the same
+bin (only for \code{method = "quantile"}); if FALSE, the proportion
+(count / k). Ignored for \code{method = "percentile_diff"}.}
+
+\item{return_mean}{If TRUE, return the mean across all cells; else return
+per-cell values.}
+
+\item{verbose}{If TRUE, print progress messages.}
 }
 \value{
-A named numeric vector with one value per cell in the Seurat object.
-For \code{method = "quantile"}: count or proportion of neighbors in the same
-quantile bin. For \code{method = "percentile_diff"}: mean absolute percentile
-rank difference per cell (0 to 1).
+Data frame with columns: Graph, Assay, Feature, Method, Score (the
+canonical schema shared by the \verb{calc_*} evaluation functions). \code{Method}
+is "Quantile" or "Percentile_Diff". If \code{return_mean = TRUE}, \code{Score} is
+the mean across all cells; else it contains per-cell values with an
+additional \code{cell_id} column.
 }
 \description{
 For each cell in a Seurat object, calculates how many of its k nearest
