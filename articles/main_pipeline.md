@@ -1,5 +1,7 @@
 # Main processing pipeline: GEX, BCR, concatenation, and WNN
 
+Last Updated: 2026-09-14
+
 This vignette walks through the full `athanor` pipeline on simulated
 data:
 
@@ -22,8 +24,6 @@ data:
 ## Setup
 
 ``` r
-
-# TODO: switch to using real data
 
 library(athanor)
 library(dplyr)

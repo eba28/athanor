@@ -11,7 +11,8 @@ calc_adt_moran(
   features_adt,
   adt_assay = "ADT",
   graph_name,
-  row_standardize = TRUE
+  row_standardize = TRUE,
+  verbose = FALSE
 )
 ```
 
@@ -38,6 +39,10 @@ calc_adt_moran(
 
   Whether to row-standardize the weights matrix (i.e. make each row sum
   to 1).
+
+- verbose:
+
+  If TRUE, print progress messages.
 
 ## Value
 

@@ -1,6 +1,6 @@
-# Clean theme for DimPlots
+# Clean theme for DimPlots (with a square aspect ratio)
 
-Clean theme for DimPlots
+Clean theme for DimPlots (with a square aspect ratio)
 
 ## Usage
 

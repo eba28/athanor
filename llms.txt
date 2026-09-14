@@ -280,7 +280,7 @@ Utilities for various tasks.
 - [`clean_dimplot`](https://eba28.github.io/athanor/reference/clean_dimplot.md)
   : Clean theme for DimPlots
 - [`clean_dimplot2`](https://eba28.github.io/athanor/reference/clean_dimplot2.md)
-  : Clean theme for DimPlots
+  : Clean theme for DimPlots (with a square aspect ratio)
 - [`labels_rotate_x`](https://eba28.github.io/athanor/reference/labels_rotate_x.md)
   : Rotate x-axis labels 45 degrees
 - [`labels_standard`](https://eba28.github.io/athanor/reference/labels_standard.md)
@@ -289,8 +289,6 @@ Utilities for various tasks.
   : Standard label sizes for violin plots
 - [`labels_standard_vln_rotate`](https://eba28.github.io/athanor/reference/labels_standard_vln_rotate.md)
   : Violin plot labels with horizontal x-axis text
-- [`plot_anno`](https://eba28.github.io/athanor/reference/plot_anno.md)
-  : Patchwork annotation with Roman numeral panel labels
 - [`theme_bw_custom`](https://eba28.github.io/athanor/reference/theme_bw_custom.md)
   : ggplot2 theme with horizontal grid lines only
 

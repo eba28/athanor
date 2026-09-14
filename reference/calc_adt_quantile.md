@@ -2,7 +2,9 @@
 
 For each cell in a Seurat object, calculates how many of its k nearest
 neighbors have ADT expression within the same quantile as the cell's own
-ADT expression for a given feature.
+ADT expression for a given feature. Note that the output of this
+function is a vector and not a data.frame like most of the other
+evaluation functions.
 
 ## Usage
 
@@ -15,7 +17,8 @@ calc_adt_quantile(
   k = 20,
   n_quantile = 10,
   method = c("quantile", "percentile_diff"),
-  return_counts = FALSE
+  return_counts = FALSE,
+  verbose = FALSE
 )
 ```
 
@@ -60,6 +63,10 @@ calc_adt_quantile(
   If TRUE, returns the count of neighbors within the same quantile bin
   (only applies to `method = "quantile"`). If FALSE, returns the
   proportion (count/k). Ignored when `method = "percentile_diff"`.
+
+- verbose:
+
+  If TRUE, print progress messages.
 
 ## Value
 

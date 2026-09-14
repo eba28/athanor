@@ -8,6 +8,7 @@ its neighbors' expression
 ``` r
 calc_adt_correlation(
   seurat_obj,
+  nn_names = names(seurat_obj@neighbors),
   features_adt,
   adt_assay = "ADT",
   cor_method = "spearman",
@@ -21,6 +22,11 @@ calc_adt_correlation(
 - seurat_obj:
 
   The Seurat object.
+
+- nn_names:
+
+  Character vector of neighbor graph names to evaluate. Defaults to all
+  graphs in the object.
 
 - features_adt:
 

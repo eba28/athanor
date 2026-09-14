@@ -17,7 +17,8 @@ calc_adt_dists(
   k,
   distance_metric = "mean_abs",
   return_mean = TRUE,
-  exclude_self = TRUE
+  exclude_self = TRUE,
+  verbose = FALSE
 )
 ```
 
@@ -59,6 +60,10 @@ calc_adt_dists(
 - exclude_self:
 
   Drop the cell itself from its neighbor list if present.
+
+- verbose:
+
+  If TRUE, print progress messages.
 
 ## Value
 
