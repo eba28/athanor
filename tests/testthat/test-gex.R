@@ -159,6 +159,8 @@ test_that("get_airr_genes returns the Ensembl version and unique genes", {
 })
 
 test_that("get_airr_genes returns correct structure", {
+  skip_if_not_installed("biomaRt")
+
   # Mocking biomaRt calls to avoid network dependency in CI/CD
   stub(get_airr_genes, "biomaRt::listEnsemblArchives",
        data.frame(name = "Ensembl 114", current_release = "*"))

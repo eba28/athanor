@@ -35,7 +35,8 @@ adt_dists_core <- function(adt_mat, nn_idx, distance_metric = "euclidean",
     } else if (distance_metric == "cosine") {
       xi_vec <- as.numeric(xi)
       vapply(seq_len(nrow(nbrs)), function(j) {
-        lsa::cosine(xi_vec, as.numeric(nbrs[j, ]))
+        nbr_vec <- as.numeric(nbrs[j, ])
+        sum(xi_vec * nbr_vec) / sqrt(sum(xi_vec^2) * sum(nbr_vec^2))
       }, numeric(1))
     } else {
       cli::cli_abort("Please choose a valid distance metric: mean_abs, manhattan, ",

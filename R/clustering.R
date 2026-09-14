@@ -41,7 +41,7 @@ calc_distances <- function(seurat_obj, reduction_name, criteria = "Within_Max",
     clusters_int <- clusters_int[valid_indices]
     # may also need to subset the distance matrix accordingly
   }
-  if (xfun::attr2(dist_matrix, "Size") != length(clusters_int)) {
+  if (attr(dist_matrix, "Size", exact = TRUE) != length(clusters_int)) {
     cli::cli_inform(c("i" = "Length mismatch between the distance matrix and the clustering."))
   }
 
