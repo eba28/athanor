@@ -70,7 +70,6 @@ adt_dists_core <- function(adt_mat, nn_idx, distance_metric = "euclidean",
 #' @keywords internal
 get_adt_matrix <- function(seurat_obj, adt_assay = "ADT", layer = "data",
                            features_adt = NULL) {
-  # TODO: deal with it not always having layers
   # check the arguments
   if (!adt_assay %in% names(seurat_obj@assays)) {
     cli::cli_abort("Assay '", adt_assay, "' not found in Seurat object. Available assays: ",
@@ -100,6 +99,7 @@ get_adt_matrix <- function(seurat_obj, adt_assay = "ADT", layer = "data",
 
 
 normalize_adt <- function(adt_mat, method = "log") {
+  # TODO: remove this function (it is unused)?
   if (method == "log") {
     log1p(adt_mat)
   } else if (method == "clr") {
@@ -111,6 +111,7 @@ normalize_adt <- function(adt_mat, method = "log") {
 
 
 batch_correct_adt <- function(adt_mat, batch_vec, method = "combat") {
+  # TODO: remove this function (it is unused)?
   if (method == "combat") {
     # Use ComBat from the sva package
     requireNamespace("sva", quietly = TRUE)

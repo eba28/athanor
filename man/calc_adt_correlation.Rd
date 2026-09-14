@@ -7,6 +7,7 @@ its neighbors' expression}
 \usage{
 calc_adt_correlation(
   seurat_obj,
+  nn_names = names(seurat_obj@neighbors),
   features_adt,
   adt_assay = "ADT",
   cor_method = "spearman",
@@ -16,6 +17,9 @@ calc_adt_correlation(
 }
 \arguments{
 \item{seurat_obj}{The Seurat object.}
+
+\item{nn_names}{Character vector of neighbor graph names to evaluate.
+Defaults to all graphs in the object.}
 
 \item{features_adt}{Name of the ADT features to evaluate (e.g. "CD27.1").}
 

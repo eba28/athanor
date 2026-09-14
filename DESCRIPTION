@@ -39,7 +39,6 @@ Imports:
     pals,
     patchwork,
     purrr,
-    qs2,
     readr,
     recipes,
     rlang,

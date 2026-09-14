@@ -7,6 +7,8 @@
 #' object.
 #'
 #' @param seurat_obj The Seurat object.
+#' @param nn_names Character vector of neighbor graph names to evaluate.
+#'   Defaults to all graphs in the object.
 #' @param features_adt Name of the ADT features to evaluate (e.g. "CD27.1").
 #' @param adt_assay Name of the assay containing ADT data.
 #' @param cor_method Correlation method to use (e.g. "pearson", "spearman").
@@ -18,12 +20,11 @@
 #'
 #' @returns A data frame with columns: Graph, Feature, Score.
 #' @export
-calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
+calc_adt_correlation <- function(seurat_obj,
+                                 nn_names = names(seurat_obj@neighbors),
+                                 features_adt, adt_assay = "ADT",
                                  cor_method = "spearman", drop_self = TRUE,
                                  verbose = FALSE) {
-  # TODO: only calculate on a subset of the neighbors if desired
-  # TODO: print a list of graphs used
-
   if (rlang::is_missing(features_adt)) {
     features_adt <- rownames(seurat_obj@assays[[adt_assay]])
   }
@@ -52,12 +53,20 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
                    Please run `FindNeighbors()` first.")
   }
 
-  # TODO: throw an error if no RNA graph is found
+  if (!"RNA.nn" %in% names(seurat_obj@neighbors)) {
+    cli::cli_abort("No RNA neighbor graph ('RNA.nn') found in object. \\
+                   Please run `FindNeighbors()` on the RNA assay first.")
+  }
+
+  invalid_nn <- setdiff(nn_names, names(seurat_obj@neighbors))
+  if (length(invalid_nn) > 0) {
+    cli::cli_abort("Neighbor graph(s) not found in object: {invalid_nn}")
+  }
 
   adt_data <- GetAssayData(seurat_obj, assay = adt_assay, layer = "data")
   metrics_df <- c()
 
-  for (nn_name in names(seurat_obj@neighbors)) {
+  for (nn_name in nn_names) {
     nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
 
     # a cell can appear as its own neighbor (e.g. distance-0 self match);
@@ -94,7 +103,7 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
 
   if (verbose) {
     cli::cli_inform("Calculated {cor_method} correlation for the \\
-                    {names(seurat_obj@neighbors)} neighbor graphs.")
+                    {nn_names} neighbor graphs.")
     # cli::cli_inform("Calculated {cor_method} correlation between each cell's \\
     #                 ADT expression and the mean of its neighbors' expression for \\
     #                 {length(features_adt)} features across \\
@@ -392,6 +401,7 @@ calc_adt_nn_within_range <- function(seurat_obj,
 #' For each cell in a Seurat object, calculates how many of its k nearest
 #' neighbors have ADT expression within the same quantile as the cell's own
 #' ADT expression for a given feature.
+#' Note that the output of this function is a vector and not a data.frame like most of the other evaluation functions.
 #'
 #' @param seurat_obj A Seurat object containing ADT data and computed neighbor
 #'   graphs.
@@ -422,7 +432,6 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
                               base_assay, k = 20, n_quantile = 10,
                               method = c("quantile", "percentile_diff"),
                               return_counts = FALSE, verbose = FALSE) {
-  # TODO: update this to match the style and output of adt_correlation
   # TODO: use easystats instead (https://easystats.github.io/datawizard/reference/categorize.html)?
 
   method <- match.arg(method)
