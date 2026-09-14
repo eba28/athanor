@@ -9,7 +9,8 @@ calc_adt_moran(
   features_adt,
   adt_assay = "ADT",
   graph_name,
-  row_standardize = TRUE
+  row_standardize = TRUE,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ matrix (e.g. "RNA.nn", "BCR.nn", "w.nn").}
 
 \item{row_standardize}{Whether to row-standardize the weights matrix (i.e.
 make each row sum to 1).}
+
+\item{verbose}{If TRUE, print progress messages.}
 }
 \value{
 A single numeric value representing the observed Moran's i.

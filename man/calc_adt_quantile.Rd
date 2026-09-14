@@ -13,7 +13,8 @@ calc_adt_quantile(
   k = 20,
   n_quantile = 10,
   method = c("quantile", "percentile_diff"),
-  return_counts = FALSE
+  return_counts = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -42,6 +43,8 @@ absolute percentile rank difference per cell.}
 same quantile bin (only applies to \code{method = "quantile"}). If FALSE,
 returns the proportion (count/k). Ignored when
 \code{method = "percentile_diff"}.}
+
+\item{verbose}{If TRUE, print progress messages.}
 }
 \value{
 A named numeric vector with one value per cell in the Seurat object.

@@ -13,7 +13,8 @@ calc_adt_dists(
   k,
   distance_metric = "mean_abs",
   return_mean = TRUE,
-  exclude_self = TRUE
+  exclude_self = TRUE,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -36,6 +37,8 @@ features present.}
 per-cell values.}
 
 \item{exclude_self}{Drop the cell itself from its neighbor list if present.}
+
+\item{verbose}{If TRUE, print progress messages.}
 }
 \value{
 A single numeric value if \code{return_mean = TRUE}, or a named numeric

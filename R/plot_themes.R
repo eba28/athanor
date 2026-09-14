@@ -57,18 +57,13 @@ clean_dimplot <- ggplot2::theme(plot.title = ggplot2::element_text(hjust = 0.5),
                                 axis.text.y = ggplot2::element_blank(),
                                 axis.ticks = ggplot2::element_blank())
 
-#' Clean theme for DimPlots
+#' Clean theme for DimPlots (with a square aspect ratio)
 #'
 #' @details
 #' Same as clean_dimplot but with a square aspect ratio.
 #'
 #' @export
 clean_dimplot2 <- clean_dimplot + ggplot2::theme(aspect.ratio = 1)
-
-#' Patchwork annotation with Roman numeral panel labels
-#'
-#' @export
-plot_anno <- patchwork::plot_annotation(tag_levels = "I")
 
 
 #' Named color palettes for athanor plots

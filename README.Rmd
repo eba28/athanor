@@ -11,8 +11,6 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>",
 
 # athanor
 
-**Last Updated:** `r system("git log -1 --format=%cd --date=short -- '*.Rmd' '*.md' man/ vignettes/ NEWS.md", intern=TRUE)`
-
 <!-- badges: start -->
 <!-- badges: end -->
 
@@ -20,7 +18,7 @@ The goal of `athanor` is to integrate gene expression (GEX) and B cell receptor 
 
 ## Installation
 
-You can install the development version of `athanor` from [GitHub](https://github.com/) with:
+You can install the development version of `athanor` from [GitHub](https://github.com/eba28/athanor) with:
 
 ``` r
 # install.packages("pak")
@@ -34,3 +32,4 @@ pak::pak("eba28/athanor")
 - `automated_annotation()` used to support Azimuth, but Azimuth is not currently available on CRAN and causes installation issues due to a hidden requirement of a Signac function that is no longer a part of Signac (`RunChromVAR()`)
 - The functions were designed to operate on v5 of Seurat. If you are using an older version, you may have to change `layer` to `slot` in some of the code.
 - Since the focus is on having multiple modalities, the GEX object created by `seurat_pipeline()` will have "rpca" and "rna.umap" as reductions instead of the usual "pca" and "umap" respectively. Similarly, `bcr_embeddings_pipeline()` will return an object with "bpca" and "bcr.umap" reductions instead of "pca" and "umap". This is to avoid confusion when the two objects are merged together in `merge_gex_bcr()`.
+- Although not implemented here so as to not add an additional dependency, we recommend using the `qs2` package over the default RDA/RDS format for saving and loading objects and data.frames. The `qs2` format is much faster and more size efficient, especially for large objects.

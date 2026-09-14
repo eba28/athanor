@@ -3,7 +3,7 @@
 \docType{data}
 \name{clean_dimplot2}
 \alias{clean_dimplot2}
-\title{Clean theme for DimPlots}
+\title{Clean theme for DimPlots (with a square aspect ratio)}
 \format{
 An object of class \code{theme} (inherits from \code{ggplot2::theme}, \code{gg}, \code{S7_object}) of length 5.
 }
@@ -11,7 +11,7 @@ An object of class \code{theme} (inherits from \code{ggplot2::theme}, \code{gg},
 clean_dimplot2
 }
 \description{
-Clean theme for DimPlots
+Clean theme for DimPlots (with a square aspect ratio)
 }
 \details{
 Same as clean_dimplot but with a square aspect ratio.

@@ -133,6 +133,7 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
 #' @param return_mean If TRUE, return the mean across all cells; else return
 #'   per-cell values.
 #' @param exclude_self Drop the cell itself from its neighbor list if present.
+#' @param verbose If TRUE, print progress messages.
 #'
 #' @returns A single numeric value if `return_mean = TRUE`, or a named numeric
 #'   vector of per-cell distances if `return_mean = FALSE`.
@@ -140,7 +141,8 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
 calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
                            layer = "data", features_adt = NULL, k,
                            distance_metric = "mean_abs",
-                           return_mean = TRUE, exclude_self = TRUE) {
+                           return_mean = TRUE, exclude_self = TRUE,
+                           verbose = FALSE) {
   adt_mat <- get_adt_matrix(seurat_obj, adt_assay, layer, features_adt)
   nn_idx <- resolve_neighbors(seurat_obj, base_assay)
 
@@ -148,6 +150,12 @@ calc_adt_dists <- function(seurat_obj, base_assay, adt_assay = "ADT",
     cli::cli_abort("Neighbor index rows (", nrow(nn_idx), ") do not match the number ",
          "of cells (", nrow(adt_mat), "). Please ensure cell order matches ",
          "Cells(seurat_obj).")
+  }
+
+  if (verbose) {
+    cli::cli_inform("Calculating {distance_metric} distance to {k} neighbors \\
+                    in the '{base_assay}' neighbor space across \\
+                    {ncol(adt_mat)} ADT feature{?s}.")
   }
 
   adt_dists_core(adt_mat, nn_idx, distance_metric, exclude_self, return_mean)
@@ -256,11 +264,13 @@ calc_adt_mean_absolute <- function(seurat_obj,
 #'   matrix (e.g. "RNA.nn", "BCR.nn", "w.nn").
 #' @param row_standardize Whether to row-standardize the weights matrix (i.e.
 #'   make each row sum to 1).
+#' @param verbose If TRUE, print progress messages.
 #'
 #' @returns A single numeric value representing the observed Moran's i.
 #' @export
 calc_adt_moran <- function(seurat_obj, features_adt, adt_assay = "ADT",
-                           graph_name, row_standardize = TRUE) {
+                           graph_name, row_standardize = TRUE,
+                           verbose = FALSE) {
   if (!features_adt %in% rownames(seurat_obj@assays[[adt_assay]])) {
     cli::cli_abort("The requested ADT feature is not present in assay '", adt_assay,
          "'. Available features: ",
@@ -277,6 +287,11 @@ calc_adt_moran <- function(seurat_obj, features_adt, adt_assay = "ADT",
 
   w <- as.matrix(seurat_obj@graphs[[graph_name]])
   if (row_standardize) w <- w / rowSums(w)
+
+  if (verbose) {
+    cli::cli_inform("Calculating Moran's I for feature '{features_adt}' using \\
+                    graph '{graph_name}' (row_standardize = {row_standardize}).")
+  }
 
   moran <- ape::Moran.I(x, w)
   moran[["observed"]]
@@ -396,6 +411,7 @@ calc_adt_nn_within_range <- function(seurat_obj,
 #'   same quantile bin (only applies to `method = "quantile"`). If FALSE,
 #'   returns the proportion (count/k). Ignored when
 #'   `method = "percentile_diff"`.
+#' @param verbose If TRUE, print progress messages.
 #'
 #' @return A named numeric vector with one value per cell in the Seurat object.
 #'   For `method = "quantile"`: count or proportion of neighbors in the same
@@ -405,7 +421,7 @@ calc_adt_nn_within_range <- function(seurat_obj,
 calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
                               base_assay, k = 20, n_quantile = 10,
                               method = c("quantile", "percentile_diff"),
-                              return_counts = FALSE) {
+                              return_counts = FALSE, verbose = FALSE) {
   # TODO: update this to match the style and output of adt_correlation
   # TODO: use easystats instead (https://easystats.github.io/datawizard/reference/categorize.html)?
 
@@ -423,12 +439,13 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
     unavailable_features <- paste(sort(unavailable_features), collapse = ", ")
 
     # pass the pre-formatted strings to cli_inform
-    cli::cli_inform(c(
-      "i" = "Available features: {available_features}",
-      "i" = "Unavailable features: {unavailable_features}",
-      "v" = "Proceeding with: {features_adt}\n"
-    ))
-    # TODO: make having a print-out optional?
+    if (verbose) {
+      cli::cli_inform(c(
+        "i" = "Available features: {available_features}",
+        "i" = "Unavailable features: {unavailable_features}",
+        "v" = "Proceeding with: {features_adt}\n"
+      ))
+    }
   }
 
   if (rlang::is_missing(base_assay)) base_assay <- DefaultAssay(seurat_obj)
@@ -449,6 +466,13 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
     }, FUN.VALUE = numeric(1))
 
     names(results) <- Cells(seurat_obj)
+
+    if (verbose) {
+      cli::cli_inform("Calculated quantile-match scores for feature \\
+                      '{features_adt}' ({n_quantile} quantile bins, \\
+                      k = {k}) using the '{base_assay}' neighbor space.")
+    }
+
     return(results)
   }
 
@@ -478,6 +502,13 @@ calc_adt_quantile <- function(seurat_obj, adt_assay = "ADT", features_adt,
   }, FUN.VALUE = numeric(1))
 
   names(results) <- Cells(seurat_obj)
+
+  if (verbose) {
+    cli::cli_inform("Calculated mean absolute percentile rank difference for \\
+                    feature '{features_adt}' using the '{base_assay}' \\
+                    neighbor space.")
+  }
+
   results
 }
 
