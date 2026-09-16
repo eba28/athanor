@@ -9,7 +9,7 @@ adt_dists_core(
   adt_mat,
   nn_idx,
   distance_metric = "euclidean",
-  exclude_self = TRUE,
+  drop_self = TRUE,
   return_mean = FALSE
 )
 ```
@@ -28,10 +28,13 @@ adt_dists_core(
 
   One of `"euclidean"`, `"manhattan"`, `"mean_abs"`, or `"cosine"`.
 
-- exclude_self:
+- drop_self:
 
-  Logical; whether to drop a cell from its own neighbor list before
-  computing distances.
+  Logical indicating whether to drop one neighbor per cell (the
+  self-match if present, else the farthest neighbor) so `k` is fixed
+  across cells regardless of whether self-matches are present. See
+  [`drop_self_neighbors()`](https://eba28.github.io/athanor/reference/drop_self_neighbors.md)
+  for details.
 
 - return_mean:
 

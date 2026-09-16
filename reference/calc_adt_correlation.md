@@ -54,7 +54,9 @@ calc_adt_correlation(
 
 ## Value
 
-A data frame with columns: Graph, Feature, Score.
+A data frame with columns: Graph, Assay, Feature, Method, Score (the
+canonical schema shared by the `calc_*` evaluation functions). `Method`
+records the correlation method (e.g. "Spearman").
 
 ## Details
 

@@ -17,8 +17,7 @@ calc_adt_dists(
   k,
   distance_metric = "mean_abs",
   return_mean = TRUE,
-  exclude_self = TRUE,
-  verbose = FALSE
+  drop_self = TRUE
 )
 ```
 
@@ -57,18 +56,23 @@ calc_adt_dists(
   If TRUE, return the mean across all cells; else return per-cell
   values.
 
-- exclude_self:
+- drop_self:
 
-  Drop the cell itself from its neighbor list if present.
-
-- verbose:
-
-  If TRUE, print progress messages.
+  Logical indicating whether to drop one neighbor per cell (the
+  self-match if present, else the farthest neighbor) so `k` is fixed
+  across cells regardless of whether self-matches are present. See
+  [`drop_self_neighbors()`](https://eba28.github.io/athanor/reference/drop_self_neighbors.md)
+  for details.
 
 ## Value
 
-A single numeric value if `return_mean = TRUE`, or a named numeric
-vector of per-cell distances if `return_mean = FALSE`.
+A data frame with columns: Graph, Assay, Feature, Method, Score (the
+canonical schema shared by the `calc_*` evaluation functions). Distances
+are computed jointly across all requested features, so `Feature` is the
+"+"-joined set of features used (or "all" when `features_adt` is NULL)
+rather than one row per feature. `Method` records the distance metric.
+If `return_mean = TRUE`, `Score` is the mean across all cells; else it
+contains per-cell values with an additional `cell_id` column.
 
 ## Details
 

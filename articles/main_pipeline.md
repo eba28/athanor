@@ -1,6 +1,6 @@
 # Main processing pipeline: GEX, BCR, concatenation, and WNN
 
-Last Updated: 2026-09-14
+Last Updated: 2026-09-16
 
 This vignette walks through the full `athanor` pipeline on simulated
 data:
@@ -429,8 +429,8 @@ names(obj_cat@reductions)
 
 plot_dimplot(seurat_obj = obj_cat, data_source = data_desc,
              clrs_specific = named_colors$cell_types_celltypist,
-             plot_title = "Concatenated GEX & BCR Features", reduc = "rna_bcr.umap",
-             meta_col = "annotated_clusters",
+             plot_title = "Concatenated GEX & BCR Features",
+             reduc = "rna_bcr.umap", meta_col = "annotated_clusters",
              plot_label = FALSE, legend_label = "Cell Type")
 ```
 

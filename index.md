@@ -1,7 +1,5 @@
 # athanor
 
-**Last Updated:** 2026-06-17
-
 The goal of `athanor` is to integrate gene expression (GEX) and B cell
 receptor (BCR) data. The package provides functions for data
 preprocessing, feature extraction, concatenation, weighted nearest
@@ -10,7 +8,7 @@ neighbors, and plotting.
 ## Installation
 
 You can install the development version of `athanor` from
-[GitHub](https://github.com/) with:
+[GitHub](https://github.com/eba28/athanor) with:
 
 ``` r
 
@@ -39,3 +37,8 @@ pak::pak("eba28/athanor")
   “pca” and “umap”. This is to avoid confusion when the two objects are
   merged together in
   [`merge_gex_bcr()`](https://eba28.github.io/athanor/reference/merge_gex_bcr.md).
+- Although not implemented here so as to not add an additional
+  dependency, we recommend using the `qs2` package over the default
+  RDA/RDS format for saving and loading objects and data.frames. The
+  `qs2` format is much faster and more size efficient, especially for
+  large objects.

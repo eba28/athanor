@@ -60,8 +60,11 @@ labels and returns the mean score across permutations as a random baseline.</p>
 <span>    <span class="st">"annotated_clusters_gex_bcr"</span>, <span class="st">"annotated_clusters_simpler"</span>, <span class="st">"cdr3_aa_length"</span>,</span>
 <span>    <span class="st">"clone_id_unique"</span>, <span class="st">"isotype_stage"</span>, <span class="st">"locus_light"</span>, <span class="st">"mu_freq_bins_binary"</span>,</span>
 <span>    <span class="st">"v_call_family"</span><span class="op">)</span>,</span>
+<span>  gex_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"annotated_clusters_binary"</span>, <span class="st">"annotated_clusters_gex_bcr"</span>,</span>
+<span>    <span class="st">"annotated_clusters_simpler"</span>, <span class="st">"seurat_clusters"</span><span class="op">)</span>,</span>
 <span>  n_permutations <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  return_mean <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  drop_self <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -83,6 +86,13 @@ Defaults to all graphs in the object.</p></dd>
 <dd><p>Character vector of metadata columns to evaluate.</p></dd>
 
 
+<dt id="arg-gex-cols">gex_cols<a class="anchor" aria-label="anchor" href="#arg-gex-cols"></a></dt>
+<dd><p>Character vector of <code>meta_cols</code> that describe GEX-derived
+groupings; these get <code>Assay = "GEX"</code> in the output and every other column
+gets <code>Assay = "BCR"</code>. Defaults to the known GEX cluster columns plus
+<code>"seurat_clusters"</code>.</p></dd>
+
+
 <dt id="arg-n-permutations">n_permutations<a class="anchor" aria-label="anchor" href="#arg-n-permutations"></a></dt>
 <dd><p>Number of permutations to run.</p></dd>
 
@@ -90,6 +100,13 @@ Defaults to all graphs in the object.</p></dd>
 <dt id="arg-return-mean">return_mean<a class="anchor" aria-label="anchor" href="#arg-return-mean"></a></dt>
 <dd><p>If TRUE, return the mean across all cells; else return
 per-cell values (averaged across permutations).</p></dd>
+
+
+<dt id="arg-drop-self">drop_self<a class="anchor" aria-label="anchor" href="#arg-drop-self"></a></dt>
+<dd><p>Logical indicating whether to drop one neighbor per cell
+(the self-match if present, else the farthest neighbor) so <code>k</code> is fixed
+across cells regardless of whether self-matches are present. See
+<code><a href="drop_self_neighbors.html">drop_self_neighbors()</a></code> for details.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>

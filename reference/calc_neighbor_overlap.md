@@ -10,7 +10,7 @@ calc_neighbor_overlap(
   seurat_obj,
   nn1,
   nn2,
-  exclude_self = FALSE,
+  drop_self = TRUE,
   return_mean = TRUE,
   verbose = FALSE
 )
@@ -30,10 +30,14 @@ calc_neighbor_overlap(
 
   Name of the second neighbor graph (e.g. "BCR.nn").
 
-- exclude_self:
+- drop_self:
 
-  If TRUE, remove the cell's own index from each neighbor list before
-  counting shared neighbors.
+  Logical indicating whether to drop one neighbor per cell (the
+  self-match if present, else the farthest neighbor) from each graph so
+  `k` is fixed across cells regardless of whether self-matches are
+  present. See
+  [`drop_self_neighbors()`](https://eba28.github.io/athanor/reference/drop_self_neighbors.md)
+  for details.
 
 - return_mean:
 
@@ -46,5 +50,9 @@ calc_neighbor_overlap(
 
 ## Value
 
-A single numeric value if `return_mean = TRUE`, or a named numeric
-vector of per-cell shared neighbor counts if `return_mean = FALSE`.
+Data frame with columns: Graph, Assay, Feature, Method, Score (the
+canonical schema shared by the `calc_*` evaluation functions). `Graph`
+is `"{nn1} vs {nn2}"`, `Assay` and `Feature` are NA (no ADT feature is
+involved), and `Method` is "Overlap". If `return_mean = TRUE`, `Score`
+is the mean shared-neighbor count across all cells; else it contains
+per-cell counts with an additional `cell_id` column.

@@ -46,7 +46,9 @@ calc_adt_moran(
 
 ## Value
 
-A single numeric value representing the observed Moran's i.
+A one-row data frame with columns: Graph, Assay, Feature, Method, Score
+(the canonical schema shared by the `calc_*` evaluation functions),
+where `Score` is the observed Moran's i and `Method` is "Moran_I".
 
 ## Details
 

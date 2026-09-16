@@ -63,6 +63,8 @@ the same value for each metadata column.</p>
 <span>  cdr3_length_range <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  clonal_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  min_clone_size <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  gex_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"annotated_clusters_binary"</span>, <span class="st">"annotated_clusters_gex_bcr"</span>,</span>
+<span>    <span class="st">"annotated_clusters_simpler"</span>, <span class="st">"seurat_clusters"</span><span class="op">)</span>,</span>
 <span>  return_mean <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  drop_self <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
@@ -107,6 +109,13 @@ is smaller than <code>min_clone_size</code> get a score of NA.</p></dd>
 <dd><p>Minimum clone size (inclusive) for a cell to receive
 a score on a <code>clonal_cols</code> column; smaller clones get NA. Ignored for
 columns not listed in <code>clonal_cols</code>.</p></dd>
+
+
+<dt id="arg-gex-cols">gex_cols<a class="anchor" aria-label="anchor" href="#arg-gex-cols"></a></dt>
+<dd><p>Character vector of <code>meta_cols</code> that describe GEX-derived
+groupings (e.g. transcriptomic clusters). These get <code>Assay = "GEX"</code> in
+the output; every other column gets <code>Assay = "BCR"</code>. Defaults to the
+known GEX cluster columns plus <code>"seurat_clusters"</code>.</p></dd>
 
 
 <dt id="arg-return-mean">return_mean<a class="anchor" aria-label="anchor" href="#arg-return-mean"></a></dt>

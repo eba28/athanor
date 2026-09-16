@@ -17,7 +17,10 @@ calc_adt_quantile(
   k = 20,
   n_quantile = 10,
   method = c("quantile", "percentile_diff"),
+  binning = c("frequency", "width"),
+  drop_self = TRUE,
   return_counts = FALSE,
+  return_mean = TRUE,
   verbose = FALSE
 )
 ```
@@ -34,7 +37,8 @@ calc_adt_quantile(
 
 - features_adt:
 
-  Name of the ADT feature to evaluate (e.g. "CD27.1").
+  Name(s) of the ADT feature(s) to evaluate (e.g. "CD27.1"); one row
+  group per feature is returned.
 
 - base_assay:
 
@@ -48,21 +52,44 @@ calc_adt_quantile(
 
 - n_quantile:
 
-  The number of quantiles to divide ADT expression into. Neighbors are
-  considered "within range" if they fall into the same quantile as the
-  cell.
+  The number of bins to divide ADT expression into. Neighbors count as
+  "within range" when they fall in the same bin as the cell.
 
 - method:
 
   One of `c("quantile", "percentile_diff")`. `"quantile"` compares
-  discrete quantile bins. `"percentile_diff"` returns mean absolute
+  discrete bins. `"percentile_diff"` returns the mean absolute
   percentile rank difference per cell.
+
+- binning:
+
+  How the `n_quantile` bins are defined for `method = "quantile"`.
+  `"frequency"` (the default) makes bins holding roughly equal numbers
+  of cells (true quantiles, via
+  [`ggplot2::cut_number()`](https://ggplot2.tidyverse.org/reference/cut_interval.html));
+  `"width"` makes bins of equal expression range (via
+  [`ggplot2::cut_interval()`](https://ggplot2.tidyverse.org/reference/cut_interval.html)).
+  Ignored for `method = "percentile_diff"`.
+
+- drop_self:
+
+  Logical indicating whether to drop one neighbor per cell (the
+  self-match if present, else the farthest neighbor) so `k` is fixed
+  across cells regardless of whether self-matches are present. When
+  TRUE, `k` is reduced by one to match. See
+  [`drop_self_neighbors()`](https://eba28.github.io/athanor/reference/drop_self_neighbors.md)
+  for details.
 
 - return_counts:
 
-  If TRUE, returns the count of neighbors within the same quantile bin
-  (only applies to `method = "quantile"`). If FALSE, returns the
-  proportion (count/k). Ignored when `method = "percentile_diff"`.
+  If TRUE, `Score` is the count of neighbors in the same bin (only for
+  `method = "quantile"`); if FALSE, the proportion (count / k). Ignored
+  for `method = "percentile_diff"`.
+
+- return_mean:
+
+  If TRUE, return the mean across all cells; else return per-cell
+  values.
 
 - verbose:
 
@@ -70,7 +97,8 @@ calc_adt_quantile(
 
 ## Value
 
-A named numeric vector with one value per cell in the Seurat object. For
-`method = "quantile"`: count or proportion of neighbors in the same
-quantile bin. For `method = "percentile_diff"`: mean absolute percentile
-rank difference per cell (0 to 1).
+Data frame with columns: Graph, Assay, Feature, Method, Score (the
+canonical schema shared by the `calc_*` evaluation functions). `Method`
+is "Quantile" or "Percentile_Diff". If `return_mean = TRUE`, `Score` is
+the mean across all cells; else it contains per-cell values with an
+additional `cell_id` column.

@@ -68,8 +68,7 @@ similarity).</p>
 <span>  <span class="va">k</span>,</span>
 <span>  distance_metric <span class="op">=</span> <span class="st">"mean_abs"</span>,</span>
 <span>  return_mean <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  exclude_self <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  drop_self <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -111,18 +110,23 @@ features present.</p></dd>
 per-cell values.</p></dd>
 
 
-<dt id="arg-exclude-self">exclude_self<a class="anchor" aria-label="anchor" href="#arg-exclude-self"></a></dt>
-<dd><p>Drop the cell itself from its neighbor list if present.</p></dd>
-
-
-<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
-<dd><p>If TRUE, print progress messages.</p></dd>
+<dt id="arg-drop-self">drop_self<a class="anchor" aria-label="anchor" href="#arg-drop-self"></a></dt>
+<dd><p>Logical indicating whether to drop one neighbor per cell
+(the self-match if present, else the farthest neighbor) so <code>k</code> is fixed
+across cells regardless of whether self-matches are present. See
+<code><a href="drop_self_neighbors.html">drop_self_neighbors()</a></code> for details.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A single numeric value if <code>return_mean = TRUE</code>, or a named numeric
-vector of per-cell distances if <code>return_mean = FALSE</code>.</p>
+    <p>A data frame with columns: Graph, Assay, Feature, Method, Score
+(the canonical schema shared by the <code>calc_*</code> evaluation functions).
+Distances are computed jointly across all requested features, so
+<code>Feature</code> is the "+"-joined set of features used (or "all" when
+<code>features_adt</code> is NULL) rather than one row per feature. <code>Method</code> records
+the distance metric. If <code>return_mean = TRUE</code>, <code>Score</code> is the mean across
+all cells; else it contains per-cell values with an additional <code>cell_id</code>
+column.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

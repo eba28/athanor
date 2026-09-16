@@ -16,6 +16,8 @@ calc_neighbor_matches(
   cdr3_length_range = 0,
   clonal_cols = character(0),
   min_clone_size = 2,
+  gex_cols = c("annotated_clusters_binary", "annotated_clusters_gex_bcr",
+    "annotated_clusters_simpler", "seurat_clusters"),
   return_mean = TRUE,
   drop_self = TRUE,
   verbose = FALSE
@@ -58,6 +60,13 @@ calc_neighbor_matches(
   Minimum clone size (inclusive) for a cell to receive a score on a
   `clonal_cols` column; smaller clones get NA. Ignored for columns not
   listed in `clonal_cols`.
+
+- gex_cols:
+
+  Character vector of `meta_cols` that describe GEX-derived groupings
+  (e.g. transcriptomic clusters). These get `Assay = "GEX"` in the
+  output; every other column gets `Assay = "BCR"`. Defaults to the known
+  GEX cluster columns plus `"seurat_clusters"`.
 
 - return_mean:
 

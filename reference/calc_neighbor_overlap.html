@@ -57,7 +57,7 @@ are shared between two specified neighbor graphs.</p>
 <span>  <span class="va">seurat_obj</span>,</span>
 <span>  <span class="va">nn1</span>,</span>
 <span>  <span class="va">nn2</span>,</span>
-<span>  exclude_self <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  drop_self <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  return_mean <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -79,9 +79,11 @@ are shared between two specified neighbor graphs.</p>
 <dd><p>Name of the second neighbor graph (e.g. "BCR.nn").</p></dd>
 
 
-<dt id="arg-exclude-self">exclude_self<a class="anchor" aria-label="anchor" href="#arg-exclude-self"></a></dt>
-<dd><p>If TRUE, remove the cell's own index from each
-neighbor list before counting shared neighbors.</p></dd>
+<dt id="arg-drop-self">drop_self<a class="anchor" aria-label="anchor" href="#arg-drop-self"></a></dt>
+<dd><p>Logical indicating whether to drop one neighbor per cell
+(the self-match if present, else the farthest neighbor) from each graph
+so <code>k</code> is fixed across cells regardless of whether self-matches are
+present. See <code><a href="drop_self_neighbors.html">drop_self_neighbors()</a></code> for details.</p></dd>
 
 
 <dt id="arg-return-mean">return_mean<a class="anchor" aria-label="anchor" href="#arg-return-mean"></a></dt>
@@ -95,8 +97,12 @@ cells; else return a named numeric vector of per-cell counts.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A single numeric value if <code>return_mean = TRUE</code>, or a named numeric
-vector of per-cell shared neighbor counts if <code>return_mean = FALSE</code>.</p>
+    <p>Data frame with columns: Graph, Assay, Feature, Method, Score (the
+canonical schema shared by the <code>calc_*</code> evaluation functions). <code>Graph</code> is
+<code>"{nn1} vs {nn2}"</code>, <code>Assay</code> and <code>Feature</code> are NA (no ADT feature is
+involved), and <code>Method</code> is "Overlap". If <code>return_mean = TRUE</code>, <code>Score</code> is
+the mean shared-neighbor count across all cells; else it contains
+per-cell counts with an additional <code>cell_id</code> column.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

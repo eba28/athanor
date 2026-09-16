@@ -15,8 +15,11 @@ permute_neighbor_matches(
     "annotated_clusters_gex_bcr", "annotated_clusters_simpler", "cdr3_aa_length",
     "clone_id_unique", "isotype_stage", "locus_light", "mu_freq_bins_binary",
     "v_call_family"),
+  gex_cols = c("annotated_clusters_binary", "annotated_clusters_gex_bcr",
+    "annotated_clusters_simpler", "seurat_clusters"),
   n_permutations = 10,
   return_mean = TRUE,
+  drop_self = TRUE,
   verbose = FALSE
 )
 ```
@@ -36,6 +39,13 @@ permute_neighbor_matches(
 
   Character vector of metadata columns to evaluate.
 
+- gex_cols:
+
+  Character vector of `meta_cols` that describe GEX-derived groupings;
+  these get `Assay = "GEX"` in the output and every other column gets
+  `Assay = "BCR"`. Defaults to the known GEX cluster columns plus
+  `"seurat_clusters"`.
+
 - n_permutations:
 
   Number of permutations to run.
@@ -44,6 +54,14 @@ permute_neighbor_matches(
 
   If TRUE, return the mean across all cells; else return per-cell values
   (averaged across permutations).
+
+- drop_self:
+
+  Logical indicating whether to drop one neighbor per cell (the
+  self-match if present, else the farthest neighbor) so `k` is fixed
+  across cells regardless of whether self-matches are present. See
+  [`drop_self_neighbors()`](https://eba28.github.io/athanor/reference/drop_self_neighbors.md)
+  for details.
 
 - verbose:
 
