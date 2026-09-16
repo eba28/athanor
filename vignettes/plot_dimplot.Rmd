@@ -47,6 +47,9 @@ library(patchwork)
 library(Seurat)
 
 set.seed(42)
+
+# you can also define custom plot annotations to make figures consistent e.g.
+# plot_anno <- patchwork::plot_annotation(tag_levels = "I")
 ```
 
 ### Initial GEX object

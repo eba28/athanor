@@ -74,4 +74,5 @@ additional \code{cell_id} column.
 For each cell in a Seurat object, calculates how many of its k nearest
 neighbors have ADT expression within the same quantile as the cell's own
 ADT expression for a given feature.
+Note that the output of this function is a vector and not a data.frame like most of the other evaluation functions.
 }

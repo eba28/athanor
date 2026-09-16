@@ -322,6 +322,14 @@ get_airr_genes <- function(genome = "hsapiens", ensembl_version = NULL,
       return(readRDS(cache_file))
    }
 
+   if (!requireNamespace("biomaRt", quietly = TRUE)) {
+      cli::cli_abort(c(
+         "The {.pkg biomaRt} package is required for {.fn get_airr_genes}.",
+         "i" = "Install it with {.code BiocManager::install('biomaRt')}, or \\
+                pass {.arg cache_file} to use a cached result instead."
+      ))
+   }
+
    retry_ensembl <- function(fn, attempts = 3) {
       for (i in seq_len(attempts)) {
          result <- tryCatch(fn(), error = function(e) {

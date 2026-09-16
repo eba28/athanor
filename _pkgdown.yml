@@ -148,5 +148,4 @@ reference:
   - labels_standard
   - labels_standard_vln
   - labels_standard_vln_rotate
-  - plot_anno
   - theme_bw_custom

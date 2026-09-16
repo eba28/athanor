@@ -88,19 +88,27 @@ sim_gex_manual <- function(num_genes = 1000, num_cells = 2000,
 sim_gex_splatter <- function(num_genes = 1000, num_cells = 2000,
                              splatter_groups = 1, splatter_method = "single",
                              seed = 42, verbose = TRUE) {
+  if (!requireNamespace("splatter", quietly = TRUE)) {
+    cli::cli_abort(c(
+      "The {.pkg splatter} package is required for {.fn sim_gex_splatter}.",
+      "i" = "Install it with {.code BiocManager::install('splatter')}."
+    ))
+  }
+
   # splatter with defaults - gives a SCE object
-  sim <- splatSimulate(params = newSplatParams(nGenes = num_genes,
-                                               batchCells = num_cells,
-                                               group.prob = splatter_groups,
-                                               seed = seed),
-                       method = splatter_method,
-                       verbose = verbose)
+  sim <- splatter::splatSimulate(
+    params = splatter::newSplatParams(nGenes = num_genes,
+                                      batchCells = num_cells,
+                                      group.prob = splatter_groups,
+                                      seed = seed),
+    method = splatter_method,
+    verbose = verbose)
 
   # we don't need most of what's in the object e.g. the rowData
   # (Gene, BaseGeneMean, OutlierFactor, GeneMean, DEFacGroup1, DEFacGroup2) or
   # most of the colData (Cell, Batch, Group, ExpLibSize)
-  sim <- minimiseSCE(sim, colData.keep = "Cell", metadata.keep = TRUE,
-                     verbose = verbose)
+  sim <- splatter::minimiseSCE(sim, colData.keep = "Cell", metadata.keep = TRUE,
+                               verbose = verbose)
 
   # convert to Seurat
   seurat_obj <-

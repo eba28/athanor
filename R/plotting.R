@@ -490,7 +490,7 @@ plot_doublets <- function(seurat_obj, data_source = "", clrs_specific,
 
   # combine plots
   p1 + p2 + p3 + p4 +
-    plot_layout(guides = "collect", widths = c(1, 3)) + plot_anno &
+    plot_layout(guides = "collect", widths = c(1, 3)) &
     theme(plot.tag = element_text(face = "plain", size = 12))
 }
 
@@ -876,12 +876,12 @@ plot_overview_comps <- function(seurat_objs, data_source = "", pt_size = 0.1,
   # combine all of the plots
   if (!missing(ncol)) {
     wrap_plots(plots_overview, ncol = ncol, byrow = TRUE) +
-      plot_anno + plot_layout(guides = "collect")
+      plot_layout(guides = "collect")
   } else if (length(seurat_objs) == 1) {
-    wrap_plots(plots_overview, ncol = min(length(comparisons), 5)) + plot_anno
+    wrap_plots(plots_overview, ncol = min(length(comparisons), 5))
   } else {
     wrap_plots(plots_overview, nrow = length(comparisons), byrow = TRUE) +
-      plot_anno + plot_layout(guides = "collect")
+      plot_layout(guides = "collect")
   }
 }
 

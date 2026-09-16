@@ -3,8 +3,6 @@
 
 # athanor
 
-**Last Updated:** 2026-06-17
-
 <!-- badges: start -->
 
 <!-- badges: end -->
@@ -17,7 +15,7 @@ neighbors, and plotting.
 ## Installation
 
 You can install the development version of `athanor` from
-[GitHub](https://github.com/) with:
+[GitHub](https://github.com/eba28/athanor) with:
 
 ``` r
 # install.packages("pak")
@@ -42,3 +40,8 @@ pak::pak("eba28/athanor")
   “bpca” and “bcr.umap” reductions instead of “pca” and “umap”. This is
   to avoid confusion when the two objects are merged together in
   `merge_gex_bcr()`.
+- Although not implemented here so as to not add an additional
+  dependency, we recommend using the `qs2` package over the default
+  RDA/RDS format for saving and loading objects and data.frames. The
+  `qs2` format is much faster and more size efficient, especially for
+  large objects.

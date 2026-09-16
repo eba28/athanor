@@ -7,6 +7,8 @@
 #' object.
 #'
 #' @param seurat_obj The Seurat object.
+#' @param nn_names Character vector of neighbor graph names to evaluate.
+#'   Defaults to all graphs in the object.
 #' @param features_adt Name of the ADT features to evaluate (e.g. "CD27.1").
 #' @param adt_assay Name of the assay containing ADT data.
 #' @param cor_method Correlation method to use (e.g. "pearson", "spearman").
@@ -20,7 +22,9 @@
 #'   (the canonical schema shared by the `calc_*` evaluation functions).
 #'   `Method` records the correlation method (e.g. "Spearman").
 #' @export
-calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
+calc_adt_correlation <- function(seurat_obj,
+                                 nn_names = names(seurat_obj@neighbors),
+                                 features_adt, adt_assay = "ADT",
                                  cor_method = "spearman", drop_self = TRUE,
                                  verbose = FALSE) {
   # TODO: only calculate on a subset of the neighbors if desired
@@ -56,7 +60,7 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
   adt_data <- GetAssayData(seurat_obj, assay = adt_assay, layer = "data")
   metrics_df <- c()
 
-  for (nn_name in names(seurat_obj@neighbors)) {
+  for (nn_name in nn_names) {
     nn_idx <- seurat_obj@neighbors[[nn_name]]@nn.idx
 
     # a cell can appear as its own neighbor (e.g. distance-0 self match);
@@ -94,7 +98,7 @@ calc_adt_correlation <- function(seurat_obj, features_adt, adt_assay = "ADT",
 
   if (verbose) {
     cli::cli_inform("Calculated {cor_method} correlation for the \\
-                    {names(seurat_obj@neighbors)} neighbor graphs.")
+                    {nn_names} neighbor graphs.")
     # cli::cli_inform("Calculated {cor_method} correlation between each cell's \\
     #                 ADT expression and the mean of its neighbors' expression for \\
     #                 {length(features_adt)} features across \\
@@ -302,13 +306,15 @@ calc_adt_mean_absolute <- function(seurat_obj,
 #'   matrix (e.g. "RNA.nn", "BCR.nn", "w.nn").
 #' @param row_standardize Whether to row-standardize the weights matrix (i.e.
 #'   make each row sum to 1).
+#' @param verbose If TRUE, print progress messages.
 #'
 #' @returns A one-row data frame with columns: Graph, Assay, Feature, Method,
 #'   Score (the canonical schema shared by the `calc_*` evaluation functions),
 #'   where `Score` is the observed Moran's i and `Method` is "Moran_I".
 #' @export
 calc_adt_moran <- function(seurat_obj, features_adt, adt_assay = "ADT",
-                           graph_name, row_standardize = TRUE) {
+                           graph_name, row_standardize = TRUE,
+                           verbose = FALSE) {
   if (!features_adt %in% rownames(seurat_obj@assays[[adt_assay]])) {
     cli::cli_abort("The requested ADT feature is not present in assay '", adt_assay,
          "'. Available features: ",
@@ -325,6 +331,11 @@ calc_adt_moran <- function(seurat_obj, features_adt, adt_assay = "ADT",
 
   w <- as.matrix(seurat_obj@graphs[[graph_name]])
   if (row_standardize) w <- w / rowSums(w)
+
+  if (verbose) {
+    cli::cli_inform("Calculating Moran's I for feature '{features_adt}' using \\
+                    graph '{graph_name}' (row_standardize = {row_standardize}).")
+  }
 
   moran <- ape::Moran.I(x, w)
 
@@ -447,6 +458,7 @@ calc_adt_nn_within_range <- function(seurat_obj,
 #' For each cell in a Seurat object, calculates how many of its k nearest
 #' neighbors have ADT expression within the same quantile as the cell's own
 #' ADT expression for a given feature.
+#' Note that the output of this function is a vector and not a data.frame like most of the other evaluation functions.
 #'
 #' @param seurat_obj A Seurat object containing ADT data and computed neighbor
 #'   graphs.

@@ -392,15 +392,9 @@ Run {.fn gex_add_airr} first to enable this filter."))
       } else {
         # don't need all of regen_reduc()
         # TODO: do this on the bcr_obj?
+
         # FindNeighbors() always returns a Seurat object (even with
         # return.neighbor = TRUE), so pull the Neighbor object back out of it
-
-        # Found and fixed a real bug in merge_gex_bcr() (R/gex_airr.R:373-383) —
-        # it called FindNeighbors(..., return.neighbor = TRUE) and stored the
-        # result directly into @neighbors, but that function always returns a
-        # Seurat object, not a Neighbor object. This only surfaced with real data
-        # where BCR coverage isn't 100% (the simulated vignette never exercised
-        # this path).
         seurat_obj_nn <-
           FindNeighbors(seurat_obj, reduction = "bpca",
                         dims = 1:bcr_dims, k.param = bcr_k,

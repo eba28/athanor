@@ -19,6 +19,8 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE,
                       fig.align = "center", out.width = "100%")
 ```
 
+Last Updated: `r Sys.Date()`
+
 This vignette walks through the full `athanor` pipeline on simulated data:
 
 1. **GEX processing**: `seurat_pipeline()` + `add_annotations()`
@@ -34,8 +36,6 @@ This vignette walks through the full `athanor` pipeline on simulated data:
 ## Setup
 
 ```{r libs}
-# TODO: switch to using real data
-
 library(athanor)
 library(dplyr)
 library(ggplot2)
@@ -231,7 +231,7 @@ expects:
 - a Seurat object with a `cell_id` column in the metadata
 - a BCR `embeddings` matrix (features × cells) whose column names match
   `cell_id`
-  
+
 You can technically also run this with BCR features but we do not recommend it.
 
 ```{r run-wnn}
