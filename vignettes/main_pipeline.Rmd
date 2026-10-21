@@ -31,6 +31,8 @@ This vignette walks through the full `athanor` pipeline on simulated data:
    embeddings or features into a single assay
 5. **Evaluation**: ADT-based metrics across methods
 
+If you plan on showing multiple UMAPs together across spaces and don't want to have track the different reduction names, you could do a one time clone of the umaps into a common name (e.g. "umap"), then write a plotting loop on that.
+
 ---
 
 ## Setup

@@ -1005,7 +1005,7 @@ plot_pcts <- function(pcts, data_source = "", clrs_specific,
       p <- p + geom_text(mapping = aes(x = !!sym(x_axis), y = 100,
                                        label = Total, fill = NULL),
                          hjust = if (horizontal) 0 else 0.5,
-                         vjust = if (horizontal) -0.5 else -0.5,
+                         vjust = if (horizontal) 0.5 else -0.5,
                          position = if (horizontal) position_nudge(y = 0.2) else position_nudge(y = -0.2),
                          color = "black", size = label_size)
     } else if (plot_type == "Binary") { # just for TRUE v FALSE plots
