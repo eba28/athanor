@@ -72,7 +72,7 @@
 
     
     
-<p>Last Updated: 2026-09-16</p>
+<p>Last Updated: 2026-10-21</p>
 <p>This vignette walks through the full <code>athanor</code> pipeline on
 simulated data:</p>
 <ol style="list-style-type: decimal">
@@ -93,6 +93,10 @@ assay</li>
 <li>
 <strong>Evaluation</strong>: ADT-based metrics across methods</li>
 </ol>
+<p>If you plan on showing multiple UMAPs together across spaces and
+don’t want to have track the different reduction names, you could do a
+one time clone of the umaps into a common name (e.g. “umap”), then write
+a plotting loop on that.</p>
 <hr>
 <div class="section level2">
 <h2 id="setup">Setup<a class="anchor" aria-label="anchor" href="#setup"></a>
@@ -231,12 +235,12 @@ must have one row per cluster in the same order as
 <span><span class="co">#&gt; [1]  256 2000</span></span>
 <span><span class="va">embeddings</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
 <span><span class="co">#&gt; 5 x 5 sparse Matrix of class "dgCMatrix"</span></span>
-<span><span class="co">#&gt;              Cell1      Cell2      Cell3      Cell4      Cell5</span></span>
-<span><span class="co">#&gt; Dim-1 -0.005372051  0.2092985  0.1371510 -0.3377547 -0.1339751</span></span>
-<span><span class="co">#&gt; Dim-2 -0.591098972 -0.5501158 -0.5942936 -0.1688978 -0.4419269</span></span>
-<span><span class="co">#&gt; Dim-3  0.417951867  0.1722756  0.1963192 -0.4843128  0.3692621</span></span>
-<span><span class="co">#&gt; Dim-4 -0.524704402 -0.2404746 -0.4612162  0.4407691  0.2234996</span></span>
-<span><span class="co">#&gt; Dim-5  0.383814105 -0.1278827  0.4827535  0.5947780 -0.2482818</span></span></code></pre></div>
+<span><span class="co">#&gt;            Cell1       Cell2       Cell3       Cell4       Cell5</span></span>
+<span><span class="co">#&gt; Dim-1  0.4977673 -0.46759788 -0.32385200 -0.09307273 -0.44465558</span></span>
+<span><span class="co">#&gt; Dim-2  0.5244905  0.04775794 -0.23352081  0.04478410 -0.15139862</span></span>
+<span><span class="co">#&gt; Dim-3 -0.2566326  0.08548068  0.02228354 -0.10362424 -0.04204124</span></span>
+<span><span class="co">#&gt; Dim-4  0.3965372  0.14274186 -0.19848040 -0.48282641 -0.54407017</span></span>
+<span><span class="co">#&gt; Dim-5  0.1700946  0.25782443 -0.41467804 -0.14367883  0.58501944</span></span></code></pre></div>
 <p>Let’s make a Seurat object out of the embeddings:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">embeddings_obj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bcr_embeddings_pipeline.html">bcr_embeddings_pipeline</a></span><span class="op">(</span>embeddings <span class="op">=</span> <span class="va">embeddings</span>,</span>
@@ -289,10 +293,10 @@ self-contained.</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">mu_freq</span>, <span class="va">cdr3_aa_length</span>, <span class="va">isotype</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     mu_freq       cdr3_aa_length isotype  </span></span>
-<span><span class="co">#&gt;  Min.   :0.0000   Short :654     IgA:313  </span></span>
-<span><span class="co">#&gt;  1st Qu.:0.0740   Medium:648     IgD:320  </span></span>
-<span><span class="co">#&gt;  Median :0.1520   Long  :698     IgG:697  </span></span>
-<span><span class="co">#&gt;  Mean   :0.1494                  IgM:670  </span></span>
+<span><span class="co">#&gt;  Min.   :0.0000   Short :657     IgA:326  </span></span>
+<span><span class="co">#&gt;  1st Qu.:0.0770   Medium:664     IgD:313  </span></span>
+<span><span class="co">#&gt;  Median :0.1500   Long  :679     IgG:661  </span></span>
+<span><span class="co">#&gt;  Mean   :0.1501                  IgM:700  </span></span>
 <span><span class="co">#&gt;  3rd Qu.:0.2250                           </span></span>
 <span><span class="co">#&gt;  Max.   :0.3000</span></span>
 <span></span>

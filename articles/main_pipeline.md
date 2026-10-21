@@ -1,6 +1,6 @@
 # Main processing pipeline: GEX, BCR, concatenation, and WNN
 
-Last Updated: 2026-09-16
+Last Updated: 2026-10-21
 
 This vignette walks through the full `athanor` pipeline on simulated
 data:
@@ -18,6 +18,11 @@ data:
     combines gene expression and BCR embeddings or features into a
     single assay
 5.  **Evaluation**: ADT-based metrics across methods
+
+If you plan on showing multiple UMAPs together across spaces and don’t
+want to have track the different reduction names, you could do a one
+time clone of the umaps into a common name (e.g. “umap”), then write a
+plotting loop on that.
 
 ------------------------------------------------------------------------
 
@@ -174,12 +179,12 @@ dim(embeddings) # dimensions by cells
 #> [1]  256 2000
 embeddings[1:5, 1:5]
 #> 5 x 5 sparse Matrix of class "dgCMatrix"
-#>              Cell1      Cell2      Cell3      Cell4      Cell5
-#> Dim-1 -0.005372051  0.2092985  0.1371510 -0.3377547 -0.1339751
-#> Dim-2 -0.591098972 -0.5501158 -0.5942936 -0.1688978 -0.4419269
-#> Dim-3  0.417951867  0.1722756  0.1963192 -0.4843128  0.3692621
-#> Dim-4 -0.524704402 -0.2404746 -0.4612162  0.4407691  0.2234996
-#> Dim-5  0.383814105 -0.1278827  0.4827535  0.5947780 -0.2482818
+#>            Cell1       Cell2       Cell3       Cell4       Cell5
+#> Dim-1  0.4977673 -0.46759788 -0.32385200 -0.09307273 -0.44465558
+#> Dim-2  0.5244905  0.04775794 -0.23352081  0.04478410 -0.15139862
+#> Dim-3 -0.2566326  0.08548068  0.02228354 -0.10362424 -0.04204124
+#> Dim-4  0.3965372  0.14274186 -0.19848040 -0.48282641 -0.54407017
+#> Dim-5  0.1700946  0.25782443 -0.41467804 -0.14367883  0.58501944
 ```
 
 Let’s make a Seurat object out of the embeddings:
@@ -234,10 +239,10 @@ obj[[]] %>%
   select(mu_freq, cdr3_aa_length, isotype) %>%
   summary()
 #>     mu_freq       cdr3_aa_length isotype  
-#>  Min.   :0.0000   Short :654     IgA:313  
-#>  1st Qu.:0.0740   Medium:648     IgD:320  
-#>  Median :0.1520   Long  :698     IgG:697  
-#>  Mean   :0.1494                  IgM:670  
+#>  Min.   :0.0000   Short :657     IgA:326  
+#>  1st Qu.:0.0770   Medium:664     IgD:313  
+#>  Median :0.1500   Long  :679     IgG:661  
+#>  Mean   :0.1501                  IgM:700  
 #>  3rd Qu.:0.2250                           
 #>  Max.   :0.3000
 
